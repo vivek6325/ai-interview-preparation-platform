@@ -1,0 +1,22 @@
+/* -------------------------------------------------------------
+ * Home.css - Scoped styles for the Home Page container
+ * -------------------------------------------------------------
+ * Component level styles have been extracted into:
+ * - src/components/Navbar/Navbar.css
+ * - src/components/Hero/Hero.css
+ * - src/components/Features/Features.css
+ */
+
+.home-container {
+  min-height: 100vh;
+  background-color: var(--bg-dark);
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.08) 0%, transparent 40%);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  position: relative;
+}
