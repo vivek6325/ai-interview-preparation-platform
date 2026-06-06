@@ -1,37 +1,48 @@
 import React from 'react';
+import { Link, NavLink } from 'react-router-dom';
 import './Navbar.css';
 
 /**
- * Navbar Component
+ * Navbar Component (Refactored)
  * 
- * Renders the top navigation bar with mock links and callback trigger buttons.
- * 
- * Props:
- * @param {Function} onStartInterview Callback triggered when clicking the "Get Started" call-to-action button.
+ * Renders the top navigation bar with routing links to pages.
  */
-function Navbar({ onStartInterview }) {
+function Navbar() {
   return (
     <nav className="home-navbar">
-      <div className="nav-brand">
+      {/* Brand logo linked to Home page */}
+      <Link to="/" className="nav-brand">
         PrepAI<span className="brand-dot">.</span>
-      </div>
+      </Link>
       
-      {/* Mock Navigation Menu Links */}
+      {/* Navigation Menu Links */}
       <ul className="nav-menu">
-        <li className="nav-item"><a href="#features">Features</a></li>
-        <li className="nav-item"><a href="#about">About AI</a></li>
-        <li className="nav-item"><a href="#pricing">Pricing</a></li>
+        <li className="nav-item">
+          <NavLink to="/" end>Home</NavLink>
+        </li>
+        <li className="nav-item">
+          <NavLink to="/dashboard">Dashboard</NavLink>
+        </li>
+        <li className="nav-item">
+          <NavLink to="/interview">Interview Room</NavLink>
+        </li>
+        <li className="nav-item">
+          <NavLink to="/results">Results</NavLink>
+        </li>
       </ul>
 
       {/* Action buttons on navbar */}
       <div className="nav-actions">
-        <button className="btn-secondary-nav">Log In</button>
-        <button className="btn-primary-nav" onClick={onStartInterview}>
+        <Link to="/login" className="btn-secondary-nav">
+          Log In
+        </Link>
+        <Link to="/dashboard" className="btn-primary-nav">
           Get Started
-        </button>
+        </Link>
       </div>
     </nav>
   );
 }
 
 export default Navbar;
+

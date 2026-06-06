@@ -1,5 +1,5 @@
 import React from 'react';
-import Navbar from '../../components/Navbar/Navbar';
+import { useNavigate } from 'react-router-dom';
 import Hero from '../../components/Hero/Hero';
 import Features from '../../components/Features/Features';
 import './Home.css';
@@ -8,18 +8,17 @@ import './Home.css';
  * Home Component (Refactored)
  * 
  * Acting as the container page orchestrating individual modular subcomponents:
- * - Navbar
  * - Hero
  * - Features
  * 
- * Manages route-level actions and redirects (e.g., mock alert callbacks).
+ * Handles routing redirection for hero actions.
  */
 function Home() {
+  const navigate = useNavigate();
   
-  // Handler for beginning a mock interview session (passed to Navbar & Hero)
+  // Handler for beginning a mock interview session (passed to Hero)
   const handleStartInterview = () => {
-    alert('Welcome to your AI Interview prep! Starting your mock interview session setup...');
-    // Future integration: Navigation or router hook to '/interview'
+    navigate('/dashboard');
   };
 
   // Handler for watching demo video (passed to Hero)
@@ -30,9 +29,6 @@ function Home() {
 
   return (
     <div className="home-container">
-      {/* Top navigation header */}
-      <Navbar onStartInterview={handleStartInterview} />
-
       {/* Main hero page display */}
       <Hero 
         onStartInterview={handleStartInterview} 
@@ -46,3 +42,4 @@ function Home() {
 }
 
 export default Home;
+

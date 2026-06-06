@@ -29,6 +29,7 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .brand-dot {
@@ -54,11 +55,12 @@
   padding: 0.25rem 0;
 }
 
-.nav-item a:hover {
+.nav-item a:hover,
+.nav-item a.active {
   color: var(--text-primary);
 }
 
-/* Underline slide animation on hover */
+/* Underline slide animation on hover & active */
 .nav-item a::after {
   content: '';
   position: absolute;
@@ -70,7 +72,8 @@
   transition: var(--transition-smooth);
 }
 
-.nav-item a:hover::after {
+.nav-item a:hover::after,
+.nav-item a.active::after {
   width: 100%;
 }
 
@@ -87,6 +90,7 @@
   font-weight: 500;
   font-size: 0.95rem;
   cursor: pointer;
+  text-decoration: none;
   transition: var(--transition-smooth);
 }
 
@@ -103,6 +107,7 @@
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
+  text-decoration: none;
   box-shadow: 0 4px 12px var(--primary-glow);
   transition: var(--transition-smooth);
 }
@@ -111,6 +116,7 @@
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
 }
+
 
 @media (max-width: 768px) {
   .home-navbar {
