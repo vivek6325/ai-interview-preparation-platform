@@ -9,9 +9,9 @@ import './Hero.css';
  * 
  * Props:
  * @param {Function} onStartInterview Callback triggered when clicking the primary button.
- * @param {Function} onWatchDemo Callback triggered when clicking the secondary button.
+ * @param {Function} onLogin Callback triggered when clicking the secondary button.
  */
-function Hero({ onStartInterview, onWatchDemo }) {
+function Hero({ onStartInterview, onLogin }) {
   return (
     <header className="home-hero">
       {/* Background glow overlay */}
@@ -24,7 +24,7 @@ function Hero({ onStartInterview, onWatchDemo }) {
       </div>
 
       {/* Main Heading */}
-      <h1>AI Interview Preparation Platform</h1>
+      <h1>PrepAI - AI Interview Preparation</h1>
 
       {/* Platform Value Prop / Subheading */}
       <p className="hero-description">
@@ -39,8 +39,8 @@ function Hero({ onStartInterview, onWatchDemo }) {
           Start Interview
           <span className="arrow-icon">→</span>
         </button>
-        <button className="btn-hero-secondary" onClick={onWatchDemo}>
-          Watch Demo
+        <button className="btn-hero-secondary" onClick={onLogin}>
+          Login
         </button>
       </div>
     </header>
@@ -48,3 +48,4 @@ function Hero({ onStartInterview, onWatchDemo }) {
 }
 
 export default Hero;
+

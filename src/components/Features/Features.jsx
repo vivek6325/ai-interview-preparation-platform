@@ -11,30 +11,30 @@ function Features() {
     <section id="features" className="highlights-container">
       <div className="highlights-grid">
         
-        {/* Card 1: Interactive Conversation */}
+        {/* Card 1: Practice Interviews */}
         <div className="highlight-card">
           <div className="card-icon-wrapper">🎙️</div>
-          <h3>Conversational AI</h3>
+          <h3>Practice Interviews</h3>
           <p>
-            Interact naturally using voice or text. The system responds dynamically like a real technical panel.
+            Engage in realistic voice-based mock interviews that simulate actual technical and behavioral panels.
           </p>
         </div>
 
-        {/* Card 2: Actionable Insights */}
+        {/* Card 2: AI Feedback */}
         <div className="highlight-card">
           <div className="card-icon-wrapper">📊</div>
-          <h3>Detailed Feedback</h3>
+          <h3>AI Feedback</h3>
           <p>
-            Get scored on relevance, tone, confidence level, and suggested answers immediately after wrapping up.
+            Receive instant, actionable evaluation scores regarding your response content, pace, and speaking confidence.
           </p>
         </div>
 
-        {/* Card 3: Custom Alignment */}
+        {/* Card 3: Track Progress */}
         <div className="highlight-card">
-          <div className="card-icon-wrapper">🎯</div>
-          <h3>Role Targeted</h3>
+          <div className="card-icon-wrapper">📈</div>
+          <h3>Track Progress</h3>
           <p>
-            Upload job descriptions or paste requirements to generate matching role-specific interview pools.
+            Monitor historical interview data, view score progression graphs, and pinpoint structural areas for growth.
           </p>
         </div>
 
@@ -44,3 +44,4 @@ function Features() {
 }
 
 export default Features;
+

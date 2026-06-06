@@ -21,10 +21,9 @@ function Home() {
     navigate('/dashboard');
   };
 
-  // Handler for watching demo video (passed to Hero)
-  const handleWatchDemo = () => {
-    alert('Launching platform preview video...');
-    // Future integration: Open modal with video player
+  // Handler for login page navigation (passed to Hero)
+  const handleLogin = () => {
+    navigate('/login');
   };
 
   return (
@@ -32,7 +31,7 @@ function Home() {
       {/* Main hero page display */}
       <Hero 
         onStartInterview={handleStartInterview} 
-        onWatchDemo={handleWatchDemo} 
+        onLogin={handleLogin} 
       />
 
       {/* Highlights grid */}
@@ -40,6 +39,7 @@ function Home() {
     </div>
   );
 }
+
 
 export default Home;
 
