@@ -16,33 +16,68 @@
 
 .results-glow-orb {
   position: absolute;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, transparent 70%);
-  top: -10%;
-  left: 50%;
-  transform: translateX(-50%);
   pointer-events: none;
   z-index: -1;
 }
 
-.results-header {
-  margin-bottom: 3rem;
-  text-align: left;
+.results-orb-1 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, transparent 70%);
+  top: -10%;
+  left: -10%;
 }
 
-.results-header h1 {
+.results-orb-2 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.04) 0%, transparent 70%);
+  bottom: 20%;
+  right: -10%;
+}
+
+.completion-banner {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(99, 102, 241, 0.05) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  border-radius: 20px;
+  padding: 2.25rem;
+  margin-bottom: 3rem;
+  text-align: left;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.completion-badge-shield {
   font-size: 3rem;
-  font-weight: 800;
+  background: rgba(16, 185, 129, 0.15);
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+  flex-shrink: 0;
+}
+
+.completion-message h1 {
+  font-size: 2.25rem;
+  font-weight: 850;
   margin: 0 0 0.5rem 0;
-  background: linear-gradient(135deg, #ffffff 40%, var(--primary-color) 100%);
+  background: linear-gradient(135deg, #ffffff 40%, #10b981 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.results-header p {
-  font-size: 1.1rem;
+.completion-message p {
+  font-size: 1.05rem;
   color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
 }
 
 /* Overall metrics board */
@@ -168,12 +203,32 @@
 .metric-bar-header {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   font-size: 0.95rem;
   font-weight: 600;
 }
 
+.metric-meta {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  gap: 0.2rem;
+}
+
+.metric-title {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.metric-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
 .metric-score-text {
   font-weight: 750;
+  white-space: nowrap;
 }
 
 .progress-bar-bg {
@@ -187,6 +242,123 @@
   height: 100%;
   border-radius: 999px;
   transition: width 1s ease-out;
+}
+
+/* Feedback Split Grid for Strengths & Improvements */
+.feedback-split-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2rem;
+  margin-bottom: 4rem;
+}
+
+.feedback-column {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 24px;
+  padding: 2.5rem;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  text-align: left;
+  transition: var(--transition-smooth);
+}
+
+.feedback-column:hover {
+  transform: translateY(-4px);
+}
+
+.strengths-card:hover {
+  border-color: rgba(16, 185, 129, 0.25);
+  box-shadow: 0 12px 35px rgba(16, 185, 129, 0.15);
+}
+
+.improvements-card:hover {
+  border-color: rgba(245, 158, 11, 0.25);
+  box-shadow: 0 12px 35px rgba(245, 158, 11, 0.15);
+}
+
+.column-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 1.25rem;
+}
+
+.column-header h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.header-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+}
+
+.header-icon.green {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.header-icon.amber {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.feedback-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.feedback-bullet-item {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+.item-emoji {
+  font-size: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.item-content strong {
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.item-content p {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
 }
 
 /* Detailed cards evaluation section */
@@ -217,12 +389,31 @@
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 
+.feedback-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
 .feedback-card h4 {
   font-size: 1.15rem;
   font-weight: 750;
-  margin: 0 0 1.5rem;
+  margin: 0;
   line-height: 1.4;
   color: var(--text-primary);
+}
+
+.question-score-badge {
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  color: #a5b4fc;
+  padding: 0.35rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .feedback-point {
@@ -301,15 +492,41 @@
     padding-right: 0;
     padding-bottom: 2rem;
   }
+
+  .feedback-split-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 600px) {
-  .results-header h1 {
-    font-size: 2.25rem;
+  .completion-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+    padding: 1.5rem;
+  }
+
+  .completion-badge-shield {
+    width: 70px;
+    height: 70px;
+    font-size: 2.5rem;
+  }
+
+  .completion-message h1 {
+    font-size: 1.75rem;
   }
   
+  .feedback-column {
+    padding: 1.75rem;
+  }
+
   .feedback-card {
     padding: 1.5rem;
+  }
+
+  .feedback-card-header {
+    flex-direction: column;
+    gap: 0.75rem;
   }
   
   .feedback-point {
