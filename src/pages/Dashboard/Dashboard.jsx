@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
@@ -11,46 +10,56 @@ import './Dashboard.css';
 function Dashboard() {
   const navigate = useNavigate();
 
-  // Handle starting a specific mock interview configuration
-  const handleStartMock = (roleName) => {
-    // Navigate to the interview setup route
-    navigate('/interview');
+  // Handle starting a specific mock interview session
+  const handleStartMock = (categoryName) => {
+    // Navigate to the interview room page, passing category details as state
+    navigate('/interview', { state: { category: categoryName } });
   };
 
+  // User statistics summary for tracking progress
   const dashboardStats = [
-    { label: 'Interviews Completed', value: '12', icon: '✅' },
+    { label: 'Interviews Completed', value: '12 sessions', icon: '✅' },
     { label: 'Average Score', value: '82%', icon: '📈' },
     { label: 'Speaking Pace', value: '135 WPM (Optimal)', icon: '🗣️' },
   ];
 
-  const interviewRoles = [
+  // The 4 requested interview category tracks
+  const interviewCategories = [
+    {
+      id: 'dsa',
+      title: 'Data Structures & Algorithms (DSA)',
+      description: 'Master core computational concepts: arrays, linked lists, trees, graphs, sorting, searching, and dynamic programming optimization.',
+      difficulty: 'Hard',
+      questions: 25,
+      icon: '💻',
+      theme: 'hard'
+    },
     {
       id: 'frontend',
-      title: 'Frontend Engineer',
-      description: 'Test your React, JS core internals, CSS systems, and frontend architectural skills.',
-      difficulty: 'Intermediate',
-      questions: 15,
+      title: 'Frontend Development',
+      description: 'Challenge yourself with core JS/TS internals, React component lifecycle, CSS layout systems, performance tuning, and client-side architecture.',
+      difficulty: 'Medium',
+      questions: 18,
+      icon: '🎨',
+      theme: 'medium'
     },
     {
       id: 'backend',
-      title: 'Backend Engineer',
-      description: 'Prepare on database consistency, caching, distributed locks, API design, and web concurrency.',
-      difficulty: 'Advanced',
-      questions: 18,
+      title: 'Backend Development',
+      description: 'Assess your skills in database schema design, rest APIs, system cache patterns, queue workers, concurrency control, and scalability principles.',
+      difficulty: 'Hard',
+      questions: 20,
+      icon: '⚙️',
+      theme: 'hard'
     },
     {
-      id: 'system-design',
-      title: 'System Design Specialist',
-      description: 'Deep dive into load balancing, message queues, horizontal scaling, and high-availability patterns.',
-      difficulty: 'Expert',
-      questions: 10,
-    },
-    {
-      id: 'behavioral',
-      title: 'Behavioral Prep (STAR)',
-      description: 'Practice structuring answers using Situation, Task, Action, and Result formats with AI pacing metrics.',
-      difficulty: 'All Levels',
+      id: 'hr',
+      title: 'Human Resources (HR)',
+      description: 'Practice situational judgment scenarios, STAR-based behavioral questions, leadership principles, and workplace cultural alignment.',
+      difficulty: 'Easy',
       questions: 12,
+      icon: '🤝',
+      theme: 'easy'
     },
   ];
 
@@ -60,8 +69,8 @@ function Dashboard() {
       
       {/* Header section with Welcome text */}
       <header className="dashboard-header">
-        <h1>Prep Dashboard</h1>
-        <p>Analyze your progress and launch customized AI interview sessions.</p>
+        <h1>Interview Prep Dashboard</h1>
+        <p>Track your analytical progress and launch simulated AI interview panels.</p>
       </header>
 
       {/* Analytics highlights */}
@@ -79,23 +88,25 @@ function Dashboard() {
 
       {/* Available Session Tracks */}
       <section className="roles-section">
-        <h2>Select an Interview Track</h2>
+        <h2>Choose Your Practice Domain</h2>
         <div className="roles-grid">
-          {interviewRoles.map((role) => (
-            <div key={role.id} className="role-card">
+          {interviewCategories.map((category) => (
+            <div key={category.id} className="role-card">
               <div className="role-card-header">
-                <span className={`difficulty-pill ${role.difficulty.toLowerCase().replace(' ', '-')}`}>
-                  {role.difficulty}
+                <span className={`difficulty-pill ${category.theme}`}>
+                  {category.difficulty}
                 </span>
-                <span className="question-count">{role.questions} Questions</span>
+                <span className="question-count">
+                  <span className="icon-badge">{category.icon}</span> {category.questions} Questions
+                </span>
               </div>
-              <h3>{role.title}</h3>
-              <p>{role.description}</p>
+              <h3>{category.title}</h3>
+              <p>{category.description}</p>
               <button 
                 className="btn-start-role-mock"
-                onClick={() => handleStartMock(role.title)}
+                onClick={() => handleStartMock(category.title)}
               >
-                Launch Mock Session
+                Start Interview
                 <span className="arrow">→</span>
               </button>
             </div>
