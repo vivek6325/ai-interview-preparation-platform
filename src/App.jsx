@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar/Navbar';
 import Home from './pages/Home/Home';
@@ -6,6 +5,7 @@ import Login from './pages/Login/Login';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Interview from './pages/Interview/Interview';
 import Results from './pages/Results/Results';
+import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 
 /**
  * App Component
@@ -24,9 +24,23 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/interview" element={<Interview />} />
-          <Route path="/results" element={<Results />} />
+          
+          {/* Protected Routes */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/interview" element={
+            <ProtectedRoute>
+              <Interview />
+            </ProtectedRoute>
+          } />
+          <Route path="/results" element={
+            <ProtectedRoute>
+              <Results />
+            </ProtectedRoute>
+          } />
         </Routes>
       </div>
     </Router>

@@ -1,5 +1,4 @@
-import React from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import './Navbar.css';
 
 /**
@@ -8,6 +7,15 @@ import './Navbar.css';
  * Renders the top navigation bar with routing links to pages.
  */
 function Navbar() {
+  const navigate = useNavigate();
+  useLocation();
+  const isAuth = localStorage.getItem('isAuthenticated') === 'true';
+
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    navigate('/');
+  };
+
   return (
     <nav className="home-navbar">
       {/* Brand logo linked to Home page */}
@@ -33,12 +41,20 @@ function Navbar() {
 
       {/* Action buttons on navbar */}
       <div className="nav-actions">
-        <Link to="/login" className="btn-secondary-nav">
-          Log In
-        </Link>
-        <Link to="/dashboard" className="btn-primary-nav">
-          Get Started
-        </Link>
+        {isAuth ? (
+          <button onClick={handleLogout} className="btn-secondary-nav" style={{ cursor: 'pointer' }}>
+            Log Out
+          </button>
+        ) : (
+          <>
+            <Link to="/login" className="btn-secondary-nav">
+              Log In
+            </Link>
+            <Link to="/dashboard" className="btn-primary-nav">
+              Get Started
+            </Link>
+          </>
+        )}
       </div>
     </nav>
   );

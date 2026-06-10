@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 
@@ -21,6 +21,8 @@ function Login() {
       return;
     }
     setError('');
+    // Set localStorage mock authentication state
+    localStorage.setItem('isAuthenticated', 'true');
     // Mock successful login redirection to Dashboard
     navigate('/dashboard');
   };

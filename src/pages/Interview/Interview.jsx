@@ -12,9 +12,73 @@ import './Interview.css';
  */
 function Interview() {
   const navigate = useNavigate();
+  const [demoState, setDemoState] = useState('normal');
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [answerText, setAnswerText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+
+  const renderDemoSelector = () => (
+    <div className="demo-state-selector">
+      <span>Demo State:</span>
+      <button className={`demo-btn ${demoState === 'normal' ? 'active' : ''}`} onClick={() => setDemoState('normal')}>Normal</button>
+      <button className={`demo-btn ${demoState === 'loading' ? 'active' : ''}`} onClick={() => setDemoState('loading')}>Loading</button>
+      <button className={`demo-btn ${demoState === 'empty' ? 'active' : ''}`} onClick={() => setDemoState('empty')}>Empty</button>
+      <button className={`demo-btn ${demoState === 'error' ? 'active' : ''}`} onClick={() => setDemoState('error')}>Error</button>
+    </div>
+  );
+
+  if (demoState === 'loading') {
+    return (
+      <div className="interview-room-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="state-container" style={{ minHeight: 'auto', background: 'transparent', border: 'none' }}>
+          <div className="avatar-box" style={{ margin: '0 auto 24px' }}>
+            <div className="avatar-pulse-ring recording-active"></div>
+            <div className="avatar-core">
+              <span className="avatar-brain-icon">🤖</span>
+            </div>
+          </div>
+          <h3>Setting up AI Panel...</h3>
+          <p>Initializing voice analysis engines and configuring audio streams. Please stand by...</p>
+          <div className="skeleton-shimmer" style={{ width: '200px', height: '6px', margin: '0 auto', borderRadius: '3px' }}></div>
+        </div>
+        {renderDemoSelector()}
+      </div>
+    );
+  }
+
+  if (demoState === 'empty') {
+    return (
+      <div className="interview-room-container">
+        <div className="state-container">
+          <div className="state-icon-wrapper">📝</div>
+          <h3>No Questions Found</h3>
+          <p>We couldn't retrieve any mock questions for this category track. Please return to the practice selection panel and try another option.</p>
+          <div>
+            <button className="state-btn" onClick={() => navigate('/dashboard')}>Select Track</button>
+            <button className="state-btn-secondary" onClick={() => setDemoState('normal')}>Mock Load</button>
+          </div>
+        </div>
+        {renderDemoSelector()}
+      </div>
+    );
+  }
+
+  if (demoState === 'error') {
+    return (
+      <div className="interview-room-container">
+        <div className="state-container error">
+          <div className="state-icon-wrapper">🎙️</div>
+          <h3>Speech Engine Failed</h3>
+          <p>Unable to connect to the audio processing server. Please verify your microphone connection/permissions and retry.</p>
+          <div>
+            <button className="state-btn" onClick={() => setDemoState('normal')}>Retry Feed</button>
+            <button className="state-btn-secondary" onClick={() => navigate('/dashboard')}>Back to Dashboard</button>
+          </div>
+        </div>
+        {renderDemoSelector()}
+      </div>
+    );
+  }
 
 
 
@@ -131,6 +195,7 @@ function Interview() {
         </div>
 
       </div>
+      {renderDemoSelector()}
     </div>
   );
 }
