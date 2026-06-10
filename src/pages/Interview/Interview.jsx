@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { mockQuestions } from '../../utils/constants';
 import './Interview.css';
 
 /**
@@ -15,12 +16,7 @@ function Interview() {
   const [answerText, setAnswerText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
 
-  const mockQuestions = [
-    "Tell me about a time you had to resolve a performance issue in a web application. What metrics did you monitor, and what was the outcome?",
-    "Explain how React's Virtual DOM works, and what optimization hooks you use to avoid unnecessary re-renders.",
-    "Describe a challenging situation where you disagreed with a colleague on a technical decision. How did you approach the conversation?",
-    "How do you ensure application security and prevent common vulnerabilities like XSS or CSRF in your frontend systems?"
-  ];
+
 
   const handleNextQuestion = () => {
     if (currentQuestionIdx < mockQuestions.length - 1) {
