@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDB } from './src/config/db.js';
+import interviewRoutes from './src/routes/interviewRoutes.js';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -17,6 +18,9 @@ app.use(cors());
 
 // Parse incoming requests with JSON payloads
 app.use(express.json());
+
+// Register API Routes
+app.use('/api/interviews', interviewRoutes);
 
 // Simple health check route to verify server status
 app.get('/api/health', (req, res) => {
