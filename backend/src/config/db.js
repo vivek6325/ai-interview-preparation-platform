@@ -6,11 +6,12 @@ import mongoose from 'mongoose';
  */
 export async function connectDB() {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
+    const conn = await mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 2000, // Timeout after 2s instead of hanging
+    });
     console.log(`🔌 MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error(`❌ Database Connection Error: ${error.message}`);
-    // Exit process with failure code if connection fails
-    process.exit(1);
+    console.log('⚠️ Running backend server in mock-database fallback mode.');
   }
 }

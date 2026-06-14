@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { dashboardStats, interviewCategories } from '../../utils/constants';
+import { getInterviews } from '../../services/api';
 import './Dashboard.css';
 
 /**
@@ -12,6 +13,24 @@ import './Dashboard.css';
 function Dashboard() {
   const navigate = useNavigate();
   const [demoState, setDemoState] = useState('normal');
+  const [interviews, setInterviews] = useState([]);
+
+  useEffect(() => {
+    async function loadInterviews() {
+      try {
+        const response = await getInterviews();
+        console.log('Interviews response:', response);
+        if (response && response.data && response.data.interviews) {
+          setInterviews(response.data.interviews);
+        } else {
+          setInterviews(response);
+        }
+      } catch (error) {
+        console.error('Error loading interviews:', error);
+      }
+    }
+    loadInterviews();
+  }, []);
 
   // Handle starting a specific mock interview session
   const handleStartMock = (categoryName) => {

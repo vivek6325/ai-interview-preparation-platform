@@ -8,7 +8,56 @@
 import { mockQuestions } from '../utils/constants';
 
 // Target backend base URL: e.g., 'https://api.prep-ai.com/v1' or process.env.REACT_APP_API_URL
-const BASE_URL = '';
+const BASE_URL = 'http://localhost:5000/api';
+
+/**
+ * Reusable HTTP client wrapper using native fetch()
+ * @param {string} endpoint - The target endpoint path (e.g. '/interviews')
+ * @param {Object} options - Custom fetch configurations (method, headers, body)
+ * @returns {Promise<Object>} Response payload from server
+ */
+async function apiRequest(endpoint, options = {}) {
+  const url = `${BASE_URL}${endpoint}`;
+  
+  // Set default content header to JSON if we are sending data
+  const defaultHeaders = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+
+  const config = {
+    ...options,
+    headers: defaultHeaders,
+  };
+
+  // Convert request payload body to a JSON string if it's an object
+  if (config.body && typeof config.body === 'object') {
+    config.body = JSON.stringify(config.body);
+  }
+
+  // 1. Perform HTTP request
+  const response = await fetch(url, config);
+
+  // 2. Check if the server returned a 2xx success status code
+  if (!response.ok) {
+    // Attempt to extract error response payload, fallback to general message
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
+  }
+
+  // 3. Parse and return JSON
+  return response.json();
+}
+
+/**
+ * Fetches all interview sessions from the backend.
+ * @returns {Promise<Object>} Object containing interviews status and data
+ */
+export async function getInterviews() {
+  return apiRequest('/interviews');
+}
+
+
 
 /**
  * Retrieves mock/real questions for a specific interview category.
