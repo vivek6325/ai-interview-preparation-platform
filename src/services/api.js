@@ -1,11 +1,8 @@
-/* eslint-disable no-unused-vars */
 /**
  * API service layer for mock interview data and responses.
  * This module prepares the frontend for backend integration.
  * Currently returns mock data or simulates network response delays.
  */
-
-import { mockQuestions } from '../utils/constants';
 
 // Target backend base URL: e.g., 'https://api.prep-ai.com/v1' or process.env.REACT_APP_API_URL
 const BASE_URL = 'http://localhost:5000/api';

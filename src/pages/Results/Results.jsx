@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getInterviewById, getInterviews } from '../../services/api';
+import ScoreCard from './components/ScoreCard';
+import MetricsPanel from './components/MetricsPanel';
+import FeedbackGrid from './components/FeedbackGrid';
+import QuestionBreakdown from './components/QuestionBreakdown';
+import { extractErrorMessage } from '../../utils/helpers';
 import './Results.css';
 
 /**
  * Results Component
- * 
- * Displays the final evaluation scores, overall rating, list of strengths,
- * areas for improvement, and detailed feedback per question.
+ * Decoupled container managing evaluation data fetches and page rendering.
  */
 function Results() {
   const navigate = useNavigate();
@@ -36,7 +39,7 @@ function Results() {
 
         if (id) {
           const res = await getInterviewById(id);
-          if (res && res.data && res.data.interview) {
+          if (res?.data?.interview) {
             session = res.data.interview;
           }
         } else {
@@ -82,7 +85,7 @@ function Results() {
         }
       } catch (err) {
         console.error('Error loading results:', err);
-        setError(err.message);
+        setError(extractErrorMessage(err));
         setDemoState('error');
       } finally {
         setLoading(false);
@@ -177,132 +180,24 @@ function Results() {
 
       {/* Score Dashboard & Metrics */}
       <div className="results-board">
-        {/* Score Ring Summary Panel */}
-        <div className="score-summary-panel">
-          <div className="score-ring">
-            <svg viewBox="0 0 100 100">
-              <circle className="ring-track" cx="50" cy="50" r="40" />
-              <circle 
-                className="ring-fill" 
-                cx="50" 
-                cy="50" 
-                r="40" 
-                style={{ strokeDashoffset: `calc(251.2 - (251.2 * ${evaluationResult.overallScorePercent}) / 100)` }} 
-              />
-            </svg>
-            <div className="score-text">
-              <span className="number">{evaluationResult.overallScore}</span>
-              <span className="percent">/10</span>
-            </div>
-          </div>
-          <div className="grade-badge">{evaluationResult.grade}</div>
-          <p className="summary-verdict">{evaluationResult.verdict}</p>
-        </div>
+        <ScoreCard 
+          overallScore={evaluationResult.overallScore}
+          overallScorePercent={evaluationResult.overallScorePercent}
+          grade={evaluationResult.grade}
+          verdict={evaluationResult.verdict}
+        />
 
-        {/* Detailed stats bars */}
-        <div className="metrics-panel">
-          <h3>Dimension Breakdown</h3>
-          <div className="metrics-list">
-            {evaluationResult.metrics.map((metric, index) => (
-              <div key={index} className="metric-bar-group">
-                <div className="metric-bar-header">
-                  <div className="metric-meta">
-                    <span className="metric-title">{metric.name}</span>
-                    <span className="metric-desc">{metric.description}</span>
-                  </div>
-                  <span className="metric-score-text" style={{ color: metric.color }}>{metric.score}%</span>
-                </div>
-                <div className="progress-bar-bg">
-                  <div 
-                    className="progress-bar-fill" 
-                    style={{ width: `${metric.score}%`, backgroundColor: metric.color }}
-                  ></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <MetricsPanel metrics={evaluationResult.metrics} />
       </div>
 
       {/* Key Strengths & Areas for Improvement Split Grid */}
-      <div className="feedback-split-grid">
-        {/* Strengths Column */}
-        <div className="feedback-column strengths-card">
-          <div className="column-header">
-            <span className="header-icon green">✨</span>
-            <h2>Key Strengths</h2>
-          </div>
-          {evaluationResult.strengths.length > 0 ? (
-            <ul className="feedback-bullets">
-              {evaluationResult.strengths.map((item, idx) => (
-                <li key={idx} className="feedback-bullet-item">
-                  <span className="item-emoji">🎯</span>
-                  <div className="item-content">
-                    <strong>Point {idx + 1}</strong>
-                    <p>{item}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p style={{ color: 'var(--text-secondary)', padding: '1rem' }}>No key strengths compiled.</p>
-          )}
-        </div>
-
-        {/* Improvements Column */}
-        <div className="feedback-column improvements-card">
-          <div className="column-header">
-            <span className="header-icon amber">🎯</span>
-            <h2>Areas for Improvement</h2>
-          </div>
-          {evaluationResult.improvements.length > 0 ? (
-            <ul className="feedback-bullets">
-              {evaluationResult.improvements.map((item, idx) => (
-                <li key={idx} className="feedback-bullet-item">
-                  <span className="item-emoji">💡</span>
-                  <div className="item-content">
-                    <strong>Area {idx + 1}</strong>
-                    <p>{item}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p style={{ color: 'var(--text-secondary)', padding: '1rem' }}>No improvement areas compiled.</p>
-          )}
-        </div>
-      </div>
+      <FeedbackGrid 
+        strengths={evaluationResult.strengths}
+        improvements={evaluationResult.improvements}
+      />
 
       {/* Question Breakdown Details */}
-      <section className="detailed-feedback-section">
-        <h2>Question-by-Question Feedback</h2>
-        <div className="feedback-cards-grid">
-          {evaluationResult.questionsBreakdown.map((item) => (
-            <div key={item.number} className="feedback-card">
-              <div className="feedback-card-header">
-                <h4>Q{item.number}: {item.question}</h4>
-                <span className="question-score-badge">Score: {item.score}%</span>
-              </div>
-              
-              <div className="feedback-point strength">
-                <span className="point-icon">🔥</span>
-                <div>
-                  <strong>Key Strength:</strong>
-                  <p>{item.strength}</p>
-                </div>
-              </div>
-
-              <div className="feedback-point improvement">
-                <span className="point-icon">💡</span>
-                <div>
-                  <strong>Area for Growth:</strong>
-                  <p>{item.improvement}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      <QuestionBreakdown questionsBreakdown={evaluationResult.questionsBreakdown} />
 
       {/* Back to Dashboard CTA */}
       <div className="results-cta">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { dashboardStats, interviewCategories } from '../../utils/constants';
+import { dashboardStats, interviewCategories } from '../../constants';
 import { getInterviews } from '../../services/api';
 import './Dashboard.css';
 
@@ -19,7 +19,6 @@ function Dashboard() {
     async function loadInterviews() {
       try {
         const response = await getInterviews();
-        console.log('Interviews response:', response);
         if (response && response.data && response.data.interviews) {
           setInterviews(response.data.interviews);
         } else {

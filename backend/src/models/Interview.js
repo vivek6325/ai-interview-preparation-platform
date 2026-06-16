@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { DIFFICULTY, STATUS } from '../config/constants.js';
 
 /**
  * Sub-schema for individual questions within an interview session.
@@ -58,7 +59,7 @@ const InterviewSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Difficulty level is required'],
       enum: {
-        values: ['Easy', 'Medium', 'Hard'],
+        values: Object.values(DIFFICULTY),
         message: '{VALUE} is not a valid difficulty level',
       },
     },
@@ -74,8 +75,8 @@ const InterviewSchema = new mongoose.Schema(
     status: {
       type: String,
       required: true,
-      enum: ['pending', 'completed'],
-      default: 'pending',
+      enum: Object.values(STATUS),
+      default: STATUS.PENDING,
     },
     overallScore: {
       type: Number,
