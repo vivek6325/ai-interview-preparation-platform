@@ -9,6 +9,12 @@ export function ScoreCard({ overallScore, overallScorePercent, grade, verdict })
     <div className="score-summary-panel">
       <div className="score-ring">
         <svg viewBox="0 0 100 100">
+          <defs>
+            <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="var(--primary)" />
+              <stop offset="100%" stopColor="var(--secondary)" />
+            </linearGradient>
+          </defs>
           <circle className="ring-track" cx="50" cy="50" r="40" />
           <circle 
             className="ring-fill" 

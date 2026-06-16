@@ -21,19 +21,7 @@ export function AvatarSection({ isRecording, timeLeft }) {
       </div>
 
       {/* Time Remaining Timer Badge */}
-      <div 
-        className={`timer-badge ${timeLeft <= 15 ? 'warning-timer' : ''}`}
-        style={{ 
-          padding: '0.6rem 1.2rem', 
-          borderRadius: '12px', 
-          border: `1px solid ${timeLeft <= 15 ? 'rgba(239, 68, 68, 0.3)' : 'var(--card-border)'}`, 
-          background: timeLeft <= 15 ? 'rgba(239, 68, 68, 0.08)' : 'rgba(255,255,255,0.02)',
-          color: timeLeft <= 15 ? '#f87171' : 'var(--text-primary)',
-          fontWeight: 'bold',
-          textAlign: 'center',
-          width: '80%'
-        }}
-      >
+      <div className={`timer-badge ${timeLeft <= 15 ? 'warning-timer' : ''}`}>
         ⏱️ {timeLeft}s Remaining
       </div>
     </div>

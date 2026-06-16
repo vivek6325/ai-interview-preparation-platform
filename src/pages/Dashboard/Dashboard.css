@@ -1,5 +1,5 @@
 /* -------------------------------------------------------------
- * Dashboard.css - Scoped styles for the Dashboard Page component
+ * Dashboard.css - Premium polished scoped styles for Dashboard
  * -------------------------------------------------------------
  */
 
@@ -13,30 +13,43 @@
   position: relative;
   overflow: hidden;
   min-height: calc(100vh - 80px);
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .dashboard-glow-orb {
   position: absolute;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.06) 0%, transparent 70%);
-  top: -10%;
-  right: -5%;
+  width: 450px;
+  height: 450px;
+  border-radius: 50%;
   pointer-events: none;
   z-index: -1;
+  filter: blur(80px);
+  opacity: 0.4;
+}
+
+.dashboard-orb-1 {
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+  top: -15%;
+  right: -10%;
 }
 
 .dashboard-header {
-  margin-bottom: 3rem;
+  margin-bottom: 3rem; /* 48px */
   text-align: left;
 }
 
 .dashboard-header h1 {
-  font-size: 3rem;
+  font-family: var(--heading);
+  font-size: 3rem; /* 48px */
   font-weight: 800;
   letter-spacing: -0.03em;
-  margin: 0 0 0.5rem 0;
-  background: linear-gradient(135deg, #ffffff 40%, var(--primary-color) 100%);
+  margin: 0 0 0.75rem 0;
+  background: linear-gradient(135deg, #ffffff 30%, var(--primary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -44,44 +57,49 @@
 .dashboard-header p {
   font-size: 1.1rem;
   color: var(--text-secondary);
+  line-height: 1.6;
 }
 
 /* Stats analytics row */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 4rem;
+  gap: 1.5rem; /* 24px */
+  margin-bottom: 3.5rem; /* 56px */
 }
 
 .stat-card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 16px;
-  padding: 1.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1.5rem; /* 24px */
   display: flex;
   align-items: center;
   gap: 1.25rem;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   transition: var(--transition-smooth);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(99, 102, 241, 0.2);
+  transform: translateY(-4px);
+  border-color: rgba(99, 102, 241, 0.25);
+  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.1), 0 0 15px rgba(99, 102, 241, 0.05);
 }
 
 .stat-icon {
-  font-size: 2rem;
-  background: rgba(255, 255, 255, 0.03);
-  width: 50px;
-  height: 50px;
+  font-size: 1.8rem;
+  background: rgba(255, 255, 255, 0.02);
+  width: 52px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  border: 1px solid var(--card-border);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.02);
 }
 
 .stat-info {
@@ -97,10 +115,12 @@
 }
 
 .stat-value {
-  font-size: 1.5rem;
-  font-weight: 750;
+  font-size: 1.6rem;
+  font-weight: 800;
   color: var(--text-primary);
   margin-top: 0.25rem;
+  font-family: var(--heading);
+  letter-spacing: -0.01em;
 }
 
 /* Interview tracks section */
@@ -109,37 +129,39 @@
 }
 
 .roles-section h2 {
-  font-size: 1.75rem;
+  font-family: var(--heading);
+  font-size: 1.75rem; /* 28px */
   font-weight: 800;
   letter-spacing: -0.02em;
-  margin-bottom: 2rem;
+  margin-bottom: 2rem; /* 32px */
   color: var(--text-primary);
 }
 
 .roles-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
-  gap: 2rem;
+  gap: 2rem; /* 32px */
 }
 
 .role-card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 20px;
-  padding: 2.25rem 2rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 2.5rem 2rem;
   display: flex;
   flex-direction: column;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   transition: var(--transition-smooth);
   position: relative;
   overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 .role-card:hover {
-  transform: translateY(-5px);
-  border-color: rgba(99, 102, 241, 0.25);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  transform: translateY(-6px);
+  border-color: rgba(168, 85, 247, 0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 25px rgba(168, 85, 247, 0.08);
 }
 
 .role-card-header {
@@ -150,35 +172,35 @@
 }
 
 .difficulty-pill {
-  padding: 0.35rem 0.75rem;
+  padding: 0.35rem 0.8rem;
   border-radius: 9999px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
-/* Difficulty color coding */
+/* Difficulty color coding using premium palette */
 .difficulty-pill.easy {
-  background: rgba(16, 185, 129, 0.1);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.08);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 .difficulty-pill.medium {
-  background: rgba(99, 102, 241, 0.1);
+  background: rgba(99, 102, 241, 0.08);
   color: #a5b4fc;
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(99, 102, 241, 0.25);
 }
 
 .difficulty-pill.hard {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
+  background: rgba(239, 68, 68, 0.08);
+  color: var(--danger);
   border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
 .icon-badge {
-  margin-right: 0.25rem;
+  margin-right: 0.35rem;
   font-size: 1.1rem;
   vertical-align: middle;
 }
@@ -190,10 +212,12 @@
 }
 
 .role-card h3 {
+  font-family: var(--heading);
   font-size: 1.4rem;
-  font-weight: 750;
+  font-weight: 800;
   margin: 0 0 1rem 0;
   color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
 .role-card p {
@@ -205,11 +229,11 @@
 }
 
 .btn-start-role-mock {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--card-border);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
   color: var(--text-primary);
   padding: 0.85rem 1.25rem;
-  border-radius: 10px;
+  border-radius: 12px;
   font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
@@ -221,13 +245,13 @@
 }
 
 .btn-start-role-mock .arrow {
-  transition: transform 0.3s;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-start-role-mock:hover {
-  background: linear-gradient(135deg, var(--primary-color) 0%, #4f46e5 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
   border-color: transparent;
-  box-shadow: 0 4px 12px var(--primary-glow);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
   transform: translateY(-2px);
 }
 
@@ -235,8 +259,24 @@
   transform: translateX(4px);
 }
 
+/* Responsiveness Pass */
 @media (max-width: 768px) {
   .dashboard-header h1 {
     font-size: 2.25rem;
+  }
+  
+  .dashboard-container {
+    padding: 2rem 1rem 4rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  
+  .roles-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 }
