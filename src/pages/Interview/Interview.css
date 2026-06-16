@@ -355,3 +355,35 @@
     justify-content: space-between;
   }
 }
+
+/* Day 6 Timer & Progress Bar Visual Styles */
+.timer-badge {
+  transition: all 0.3s ease;
+  font-family: monospace;
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.01);
+}
+
+.warning-timer {
+  animation: timer-pulse 1s infinite alternate ease-in-out;
+}
+
+@keyframes timer-pulse {
+  from {
+    box-shadow: 0 0 4px rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+  to {
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+    border-color: rgba(239, 68, 68, 0.7);
+    background-color: rgba(239, 68, 68, 0.15);
+  }
+}
+
+.interview-progress-wrapper {
+  animation: slide-down-progress 0.5s ease-out;
+}
+
+@keyframes slide-down-progress {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -20,6 +20,16 @@ const QuestionSchema = new mongoose.Schema({
     default: '',
     trim: true,
   },
+  strength: {
+    type: String,
+    default: '',
+    trim: true,
+  },
+  improvement: {
+    type: String,
+    default: '',
+    trim: true,
+  },
   score: {
     type: Number,
     min: [0, 'Score cannot be less than 0'],
@@ -66,6 +76,28 @@ const InterviewSchema = new mongoose.Schema(
       required: true,
       enum: ['pending', 'completed'],
       default: 'pending',
+    },
+    overallScore: {
+      type: Number,
+      default: null,
+    },
+    overallFeedback: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    grade: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    strengths: {
+      type: [String],
+      default: [],
+    },
+    improvements: {
+      type: [String],
+      default: [],
     },
   },
   {
