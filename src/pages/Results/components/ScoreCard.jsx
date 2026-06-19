@@ -1,10 +1,9 @@
-import React from 'react';
 
 /**
  * ScoreCard Component
  * Displays the central radial evaluation score circle, verdict summary, and performance rank badge.
  */
-export function ScoreCard({ overallScore, overallScorePercent, grade, verdict }) {
+export function ScoreCard({ overallScore, overallScorePercent, grade, verdict, subscores }) {
   return (
     <div className="score-summary-panel">
       <div className="score-ring">
@@ -31,6 +30,26 @@ export function ScoreCard({ overallScore, overallScorePercent, grade, verdict })
       </div>
       <div className="grade-badge">{grade}</div>
       <p className="summary-verdict">{verdict}</p>
+
+      {subscores && (
+        <div className="subscores-panel">
+          <div className="subscore-badge communication">
+            <span className="badge-icon">🗣️</span>
+            <span className="badge-name">Communication</span>
+            <span className="badge-val">{subscores.communication}/10</span>
+          </div>
+          <div className="subscore-badge confidence">
+            <span className="badge-icon">⚡</span>
+            <span className="badge-name">Confidence</span>
+            <span className="badge-val">{subscores.confidence}/10</span>
+          </div>
+          <div className="subscore-badge technical">
+            <span className="badge-icon">💻</span>
+            <span className="badge-name">Technical Depth</span>
+            <span className="badge-val">{subscores.technical}/10</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

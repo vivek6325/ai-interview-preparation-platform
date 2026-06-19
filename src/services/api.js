@@ -119,7 +119,7 @@ export async function getInterviewById(id) {
     const list = local ? JSON.parse(local) : [];
     const found = list.find(i => i._id === id);
     if (!found) {
-      throw new Error('Interview not found in local storage.');
+      throw new Error('Interview not found in local storage.', { cause: error });
     }
     return { status: 'success', data: { interview: found } };
   }
@@ -143,7 +143,7 @@ export async function updateInterview(id, payload) {
     const list = local ? JSON.parse(local) : [];
     const index = list.findIndex(i => i._id === id);
     if (index === -1) {
-      throw new Error('Interview not found in local storage.');
+      throw new Error('Interview not found in local storage.', { cause: error });
     }
 
     const existing = list[index];
@@ -173,6 +173,26 @@ export async function updateInterview(id, payload) {
     localStorage.setItem('localInterviews', JSON.stringify(list));
 
     return { status: 'success', data: { interview: updatedSession } };
+  }
+}
+
+/**
+ * Deletes an interview session by ID.
+ * @param {string} id - Session identifier
+ * @returns {Promise<Object>} Status response
+ */
+export async function deleteInterview(id) {
+  try {
+    return await apiRequest(`/interviews/${id}`, {
+      method: 'DELETE'
+    });
+  } catch (error) {
+    console.warn('⚠️ Backend offline, deleting interview session locally:', error.message);
+    const local = localStorage.getItem('localInterviews');
+    const list = local ? JSON.parse(local) : [];
+    const filtered = list.filter(i => i._id !== id);
+    localStorage.setItem('localInterviews', JSON.stringify(filtered));
+    return { status: 'success', message: 'Deleted locally.' };
   }
 }
 
@@ -259,7 +279,7 @@ function localEvaluateSession(questions) {
     }
 
     // 3. Keyword matching (up to 4 points)
-    let techKeywords = [];
+    let techKeywords;
     const qLower = text.toLowerCase();
     if (qLower.includes('rest') || qLower.includes('graphql')) {
       techKeywords = ['rest', 'graphql', 'query', 'mutation', 'schema', 'endpoint', 'over-fetching', 'under-fetching', 'http', 'json', 'post', 'resolver'];
@@ -295,9 +315,9 @@ function localEvaluateSession(questions) {
     score = Math.max(1, Math.min(10, score));
     totalScore += score;
 
-    let qFeedback = '';
-    let qStrength = '';
-    let qImprovement = '';
+    let qFeedback;
+    let qStrength;
+    let qImprovement;
 
     if (score >= 9) {
       qFeedback = 'Excellent answer. You covered technical details comprehensively with solid structure.';
@@ -330,10 +350,10 @@ function localEvaluateSession(questions) {
 
   const averageScore = parseFloat((totalScore / questions.length).toFixed(1));
 
-  let overallFeedback = '';
-  let badge = '';
-  let strengths = [];
-  let improvements = [];
+  let overallFeedback;
+  let badge;
+  let strengths;
+  let improvements;
 
   if (averageScore >= 8) {
     overallFeedback = 'Excellent communication and technical clarity.';

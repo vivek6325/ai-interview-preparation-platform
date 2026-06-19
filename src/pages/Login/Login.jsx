@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../components/Toast/ToastContext';
 import './Login.css';
 
 /**
@@ -10,6 +11,7 @@ import './Login.css';
  */
 function Login() {
   const navigate = useNavigate();
+  const { addToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -23,6 +25,7 @@ function Login() {
     setError('');
     // Set localStorage mock authentication state
     localStorage.setItem('isAuthenticated', 'true');
+    addToast('Signed in successfully!', 'success');
     // Mock successful login redirection to Dashboard
     navigate('/dashboard');
   };

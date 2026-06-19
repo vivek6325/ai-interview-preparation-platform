@@ -320,6 +320,24 @@
   cursor: not-allowed;
 }
 
+.btn-exit-interview {
+  background: rgba(239, 68, 68, 0.03);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #f87171;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.btn-exit-interview:hover {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+  transform: translateY(-1px);
+}
+
 .btn-submit-interview {
   background: linear-gradient(135deg, var(--secondary) 0%, #7c3aed 100%);
   border: 1px solid rgba(255, 255, 255, 0.1);

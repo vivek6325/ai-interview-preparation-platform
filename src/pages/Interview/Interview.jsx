@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { getQuestions, createInterview, updateInterview } from '../../services/api';
+import { getQuestions, createInterview, updateInterview, deleteInterview } from '../../services/api';
 import ProgressBar from './components/ProgressBar';
 import AvatarSection from './components/AvatarSection';
 import QuestionBoard from './components/QuestionBoard';
+import ConfirmationModal from '../../components/Modal/ConfirmationModal';
 import { validateAnswer } from '../../utils/helpers';
+import { useToast } from '../../components/Toast/ToastContext';
 import './Interview.css';
 
 /**
@@ -16,6 +18,7 @@ import './Interview.css';
 function Interview() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { addToast } = useToast();
   
   // State variables
   const [questions, setQuestions] = useState([]);
@@ -29,14 +32,64 @@ function Interview() {
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [sessionId, setSessionId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [category, setCategory] = useState('Frontend Development');
+  const [exitModalOpen, setExitModalOpen] = useState(false);
 
   const timerRef = useRef(null);
+  const handleTimeOutRef = useRef(null);
 
-  // Load questions and initialize session on mount
+  async function submitCompletedInterview(finalAnswersList) {
+    try {
+      setIsEvaluating(true);
+      addToast('Interview finished! Evaluating performance...', 'success');
+      const questionsWithAnswers = questions.map((q, idx) => ({
+        questionText: q,
+        userAnswer: finalAnswersList[idx]
+      }));
+
+      const res = await updateInterview(sessionId, {
+        status: 'completed',
+        questions: questionsWithAnswers
+      });
+
+      if (res?.data?.interview?._id) {
+        navigate(`/results?id=${res.data.interview._id}`);
+      } else {
+        navigate('/results');
+      }
+    } catch (err) {
+      console.error('Error submitting interview response:', err);
+      navigate('/results');
+    } finally {
+      setIsEvaluating(false);
+    }
+  }
+
+  async function saveAnswerAndAdvance(answerToSave) {
+    setErrorMsg('');
+    const updatedAnswers = [...answers];
+    updatedAnswers[currentQuestionIdx] = answerToSave;
+    setAnswers(updatedAnswers);
+
+    if (currentQuestionIdx === questions.length - 1) {
+      await submitCompletedInterview(updatedAnswers);
+    } else {
+      setCurrentQuestionIdx(prev => prev + 1);
+      setAnswerText(updatedAnswers[currentQuestionIdx + 1] || '');
+      setTimeLeft(60);
+    }
+  }
+
+  function handleTimeOut() {
+    const fallbackAnswer = answerText.trim() || 'No response provided within 60 second timer limit.';
+    saveAnswerAndAdvance(fallbackAnswer);
+  }
+
+  useEffect(() => {
+    handleTimeOutRef.current = handleTimeOut;
+  });
+
   useEffect(() => {
     const interviewCategory = location.state?.category || 'Frontend Development';
-    setCategory(interviewCategory);
 
     async function initInterview() {
       try {
@@ -78,7 +131,9 @@ function Interview() {
       setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timerRef.current);
-          handleTimeOut();
+          if (handleTimeOutRef.current) {
+            handleTimeOutRef.current();
+          }
           return 60;
         }
         return prev - 1;
@@ -88,32 +143,12 @@ function Interview() {
     return () => clearInterval(timerRef.current);
   }, [isLoading, isEvaluating, currentQuestionIdx, questions]);
 
-  const handleTimeOut = () => {
-    const fallbackAnswer = answerText.trim() || 'No response provided within 60 second timer limit.';
-    saveAnswerAndAdvance(fallbackAnswer);
-  };
-
   const getQuestionCategoryTag = (questionText) => {
     const text = questionText?.toLowerCase() || '';
     if (text.includes('rest') || text.includes('graphql')) return 'Backend';
     if (text.includes('react') || text.includes('memo') || text.includes('virtual dom')) return 'Frontend';
     if (text.includes('sql') || text.includes('query') || text.includes('optimize') || text.includes('database')) return 'DB';
     return 'General';
-  };
-
-  const saveAnswerAndAdvance = async (answerToSave) => {
-    setErrorMsg('');
-    const updatedAnswers = [...answers];
-    updatedAnswers[currentQuestionIdx] = answerToSave;
-    setAnswers(updatedAnswers);
-
-    if (currentQuestionIdx === questions.length - 1) {
-      await submitCompletedInterview(updatedAnswers);
-    } else {
-      setCurrentQuestionIdx(prev => prev + 1);
-      setAnswerText(updatedAnswers[currentQuestionIdx + 1] || '');
-      setTimeLeft(60);
-    }
   };
 
   const handleNextQuestion = () => {
@@ -126,6 +161,7 @@ function Interview() {
   };
 
   const handleSkipQuestion = () => {
+    addToast('Question skipped.', 'warning');
     saveAnswerAndAdvance('Question was skipped by candidate.');
   };
 
@@ -142,34 +178,34 @@ function Interview() {
     }
   };
 
-  const submitCompletedInterview = async (finalAnswersList) => {
-    try {
-      setIsEvaluating(true);
-      const questionsWithAnswers = questions.map((q, idx) => ({
-        questionText: q,
-        userAnswer: finalAnswersList[idx]
-      }));
 
-      const res = await updateInterview(sessionId, {
-        status: 'completed',
-        questions: questionsWithAnswers
-      });
-
-      if (res?.data?.interview?._id) {
-        navigate(`/results?id=${res.data.interview._id}`);
-      } else {
-        navigate('/results');
-      }
-    } catch (err) {
-      console.error('Error submitting interview response:', err);
-      navigate('/results');
-    } finally {
-      setIsEvaluating(false);
-    }
-  };
 
   const toggleRecording = () => {
+    if (!isRecording) {
+      addToast('Speech analyzer simulation online. Start speaking...', 'info');
+    } else {
+      addToast('Audio transcription finalized.', 'success');
+    }
     setIsRecording(!isRecording);
+  };
+
+  const handleExitClick = () => {
+    setExitModalOpen(true);
+  };
+
+  const handleConfirmExit = async () => {
+    try {
+      if (sessionId) {
+        await deleteInterview(sessionId);
+      }
+      addToast('Practice session cancelled.', 'info');
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Error cancelling interview:', err);
+      navigate('/dashboard');
+    } finally {
+      setExitModalOpen(false);
+    }
   };
 
   if (isLoading) {
@@ -248,8 +284,19 @@ function Interview() {
           handleSkipQuestion={handleSkipQuestion}
           handleNextQuestion={handleNextQuestion}
           isLastQuestion={currentQuestionIdx === questions.length - 1}
+          handleExitClick={handleExitClick}
         />
       </div>
+
+      <ConfirmationModal 
+        isOpen={exitModalOpen}
+        title="Exit Interview Room?"
+        message="Are you sure you want to cancel and exit this mock interview? All answers and progress recorded in this session will be permanently lost."
+        confirmText="Yes, Exit"
+        cancelText="Resume Practice"
+        onConfirm={handleConfirmExit}
+        onCancel={() => setExitModalOpen(false)}
+      />
     </div>
   );
 }

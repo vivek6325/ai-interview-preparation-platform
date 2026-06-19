@@ -102,7 +102,7 @@ function evaluateSession(questions) {
     }
 
     // 3. Keyword matching (up to 4 points)
-    let techKeywords = [];
+    let techKeywords;
     const qLower = text.toLowerCase();
     if (qLower.includes('rest') || qLower.includes('graphql')) {
       techKeywords = ['rest', 'graphql', 'query', 'mutation', 'schema', 'endpoint', 'over-fetching', 'under-fetching', 'http', 'json', 'post', 'resolver'];
@@ -138,9 +138,9 @@ function evaluateSession(questions) {
     score = Math.max(1, Math.min(10, score));
     totalScore += score;
 
-    let qFeedback = '';
-    let qStrength = '';
-    let qImprovement = '';
+    let qFeedback;
+    let qStrength;
+    let qImprovement;
 
     if (score >= 9) {
       qFeedback = 'Excellent answer. You covered technical details comprehensively with solid structure.';
@@ -173,10 +173,10 @@ function evaluateSession(questions) {
 
   const averageScore = parseFloat((totalScore / questions.length).toFixed(1));
 
-  let overallFeedback = '';
-  let badge = '';
-  let strengths = [];
-  let improvements = [];
+  let overallFeedback;
+  let badge;
+  let strengths;
+  let improvements;
 
   if (averageScore >= 8) {
     overallFeedback = 'Excellent communication and technical clarity.';

@@ -6,6 +6,8 @@ import MetricsPanel from './components/MetricsPanel';
 import FeedbackGrid from './components/FeedbackGrid';
 import QuestionBreakdown from './components/QuestionBreakdown';
 import { extractErrorMessage } from '../../utils/helpers';
+import { downloadInterviewReport } from '../../utils/exportHelper';
+import { useToast } from '../../components/Toast/ToastContext';
 import './Results.css';
 
 /**
@@ -15,6 +17,7 @@ import './Results.css';
 function Results() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { addToast } = useToast();
   const [demoState, setDemoState] = useState('normal');
   const [evaluationResult, setEvaluationResult] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -63,12 +66,21 @@ function Results() {
             { name: 'Problem Solving Method', score: Math.min(100, Math.max(10, overallScorePercentage + 2)), color: '#10b981', description: 'Structuring scenarios and handling edge cases.' },
           ];
 
+          const communicationScore = Math.min(10, Math.max(1, Math.round((session.overallScore || 0) - 0.5)));
+          const confidenceScore = Math.min(10, Math.max(1, Math.round((session.overallScore || 0) + 0.2)));
+          const technicalDepthScore = Math.min(10, Math.max(1, Math.round((session.overallScore || 0) + 0.4)));
+
           setEvaluationResult({
             overallScore: session.overallScore || 0,
             overallScorePercent: overallScorePercentage,
             grade: session.grade || 'Strong Candidate',
             verdict: session.overallFeedback || 'Completed.',
             metrics,
+            subscores: {
+              communication: communicationScore,
+              confidence: confidenceScore,
+              technical: technicalDepthScore
+            },
             strengths: session.strengths || [],
             improvements: session.improvements || [],
             questionsBreakdown: (session.questions || []).map((q, idx) => ({
@@ -99,6 +111,13 @@ function Results() {
 
   const handleRetry = () => {
     navigate('/dashboard');
+  };
+
+  const handleExport = () => {
+    if (evaluationResult) {
+      addToast('Preparing print-friendly report for PDF export...', 'success');
+      downloadInterviewReport(evaluationResult);
+    }
   };
 
   const renderDemoSelector = () => (
@@ -185,6 +204,7 @@ function Results() {
           overallScorePercent={evaluationResult.overallScorePercent}
           grade={evaluationResult.grade}
           verdict={evaluationResult.verdict}
+          subscores={evaluationResult.subscores}
         />
 
         <MetricsPanel metrics={evaluationResult.metrics} />
@@ -200,9 +220,15 @@ function Results() {
       <QuestionBreakdown questionsBreakdown={evaluationResult.questionsBreakdown} />
 
       {/* Back to Dashboard CTA */}
-      <div className="results-cta">
+      <div className="results-cta" style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', marginTop: '2rem' }}>
         <button className="btn-results-retry" onClick={handleRetry}>
           Back to Dashboard
+        </button>
+        <button 
+          className="btn-results-export" 
+          onClick={handleExport}
+        >
+          📄 Export Report / PDF
         </button>
       </div>
       {renderDemoSelector()}

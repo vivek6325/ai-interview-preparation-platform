@@ -1,4 +1,3 @@
-import React from 'react';
 
 /**
  * QuestionBoard Component
@@ -17,7 +16,8 @@ export function QuestionBoard({
   handlePrevQuestion,
   handleSkipQuestion,
   handleNextQuestion,
-  isLastQuestion
+  isLastQuestion,
+  handleExitClick
 }) {
   return (
     <div className="question-response-board">
@@ -76,6 +76,13 @@ export function QuestionBoard({
         </div>
 
         <div className="navigation-actions">
+          <button 
+            className="btn-exit-interview"
+            onClick={handleExitClick}
+          >
+            Exit Room
+          </button>
+
           <button 
             className="btn-nav-page" 
             onClick={handlePrevQuestion}
