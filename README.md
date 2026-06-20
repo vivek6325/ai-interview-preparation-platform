@@ -130,5 +130,5 @@ npm run dev
 ## 👤 Author
 
 **Vivek Aripalli**
-*   GitHub: [@vivekaripalli](https://github.com/vivekaripalli)
-*   LinkedIn: [Vivek Aripalli](https://linkedin.com/in/vivekaripalli)
+*   GitHub: [@vivek6325](https://github.com/vivek6325)
+*   LinkedIn: [Vivek Aripalli](https://linkedin.com/in/vivek-aripalli)
