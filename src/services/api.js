@@ -4,8 +4,8 @@
  * Currently returns mock data or simulates network response delays.
  */
 
-// Target backend base URL: e.g., 'https://api.prep-ai.com/v1' or process.env.REACT_APP_API_URL
-const BASE_URL = 'http://localhost:5000/api';
+// Target backend base URL loaded dynamically from environment variables
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 /**
  * Reusable HTTP client wrapper using native fetch()
