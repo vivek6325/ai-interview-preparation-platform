@@ -109,14 +109,10 @@ function History() {
   if (loading) {
     return (
       <div className="history-page-container">
-        <header className="history-header">
-          <h1>Interview History</h1>
-          <p>Review your historical performance data and tracks taken.</p>
-        </header>
-        <div className="skeleton-grid">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="skeleton-shimmer history-skeleton-row"></div>
-          ))}
+        <div className="spinner-container">
+          <div className="spinner"></div>
+          <h3>Retrieving Practice History...</h3>
+          <p>Please stand by while we query the database.</p>
         </div>
       </div>
     );
@@ -250,7 +246,7 @@ function History() {
                             View Report
                           </button>
                         ) : (
-                          <button className="btn-table-action start" onClick={() => navigate('/interview', { state: { category: item.title?.replace(' Mock', '') } })}>
+                          <button className="btn-table-action start" onClick={() => navigate('/interview', { state: { id: item._id } })}>
                             Start Mock
                           </button>
                         )}

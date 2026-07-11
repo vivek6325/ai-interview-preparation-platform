@@ -23,13 +23,6 @@ export const API_ENDPOINTS = {
   INTERVIEWS: '/interviews'
 };
 
-// User statistics summary for tracking progress on the Dashboard
-export const dashboardStats = [
-  { label: 'Interviews Completed', value: '12 sessions', icon: '✅' },
-  { label: 'Average Score', value: '82%', icon: '📈' },
-  { label: 'Speaking Pace', value: '135 WPM (Optimal)', icon: '🗣️' },
-];
-
 // The interview category tracks available on the Dashboard
 export const interviewCategories = [
   {
@@ -70,10 +63,3 @@ export const interviewCategories = [
   },
 ];
 
-// Sample questions used in the simulated AI Interview room
-export const mockQuestions = [
-  'Tell me about a time you had to resolve a performance issue in a web application. What metrics did you monitor, and what was the outcome?',
-  "Explain how React's Virtual DOM works, and what optimization hooks you use to avoid unnecessary re-renders.",
-  'Describe a challenging situation where you disagreed with a colleague on a technical decision. How did you approach the conversation?',
-  'How do you ensure application security and prevent common vulnerabilities like XSS or CSRF in your frontend systems?'
-];

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { getInterviewById, getInterviews } from '../../services/api';
+import { getInterview, getInterviews } from '../../services/api';
 import ScoreCard from './components/ScoreCard';
 import MetricsPanel from './components/MetricsPanel';
 import FeedbackGrid from './components/FeedbackGrid';
@@ -18,7 +18,6 @@ function Results() {
   const navigate = useNavigate();
   const location = useLocation();
   const { addToast } = useToast();
-  const [demoState, setDemoState] = useState('normal');
   const [evaluationResult, setEvaluationResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -41,10 +40,8 @@ function Results() {
         let session = null;
 
         if (id) {
-          const res = await getInterviewById(id);
-          if (res?.data?.interview) {
-            session = res.data.interview;
-          }
+          const res = await getInterview(id);
+          session = res?.data?.interview || res;
         } else {
           // Fetch all and take the latest completed session
           const list = await getInterviews();
@@ -92,22 +89,18 @@ function Results() {
             }))
           });
         } else {
-          // If no session found anywhere, set state to empty
-          setDemoState('empty');
+          setError('No completed interview sessions found in history.');
         }
       } catch (err) {
         console.error('Error loading results:', err);
         setError(extractErrorMessage(err));
-        setDemoState('error');
       } finally {
         setLoading(false);
       }
     }
 
-    if (demoState === 'normal') {
-      loadSession();
-    }
-  }, [location, demoState]);
+    loadSession();
+  }, [location]);
 
   const handleRetry = () => {
     navigate('/dashboard');
@@ -120,17 +113,7 @@ function Results() {
     }
   };
 
-  const renderDemoSelector = () => (
-    <div className="demo-state-selector">
-      <span>Demo State:</span>
-      <button className={`demo-btn ${demoState === 'normal' ? 'active' : ''}`} onClick={() => setDemoState('normal')}>Normal</button>
-      <button className={`demo-btn ${demoState === 'loading' ? 'active' : ''}`} onClick={() => setDemoState('loading')}>Loading</button>
-      <button className={`demo-btn ${demoState === 'empty' ? 'active' : ''}`} onClick={() => setDemoState('empty')}>Empty</button>
-      <button className={`demo-btn ${demoState === 'error' ? 'active' : ''}`} onClick={() => setDemoState('error')}>Error</button>
-    </div>
-  );
-
-  if (loading || demoState === 'loading') {
+  if (loading) {
     return (
       <div className="results-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 120px)' }}>
         <div className="state-container" style={{ minHeight: 'auto', background: 'transparent', border: 'none' }}>
@@ -142,46 +125,25 @@ function Results() {
           <p>Processing speech audio metrics, calculating speaking pace, and summarizing custom STAR strengths. Generating your personalized report card...</p>
           <div className="skeleton-shimmer" style={{ width: '220px', height: '6px', margin: '0 auto', borderRadius: '3px' }}></div>
         </div>
-        {renderDemoSelector()}
       </div>
     );
   }
 
-  if (demoState === 'empty') {
-    return (
-      <div className="results-container">
-        <div className="state-container">
-          <div className="state-icon-wrapper">📊</div>
-          <h3>No Assessment Found</h3>
-          <p>There are no evaluation reports available for this session. Complete a mock interview practice domain first to view your scores.</p>
-          <div>
-            <button className="state-btn" onClick={() => navigate('/dashboard')}>Go to Dashboard</button>
-            <button className="state-btn-secondary" onClick={() => setDemoState('normal')}>Mock Load</button>
-          </div>
-        </div>
-        {renderDemoSelector()}
-      </div>
-    );
-  }
-
-  if (demoState === 'error') {
+  if (error || !evaluationResult) {
     return (
       <div className="results-container">
         <div className="state-container error">
           <div className="state-icon-wrapper">⚠️</div>
-          <h3>Evaluation Engine Timeout</h3>
+          <h3>Evaluation Details Missing</h3>
           <p>{error || 'The AI speech evaluator took longer than expected to respond. We were unable to fetch your performance statistics.'}</p>
           <div>
-            <button className="state-btn" onClick={() => setDemoState('normal')}>Retry Retrieval</button>
+            <button className="state-btn" onClick={() => window.location.reload()}>Retry Retrieval</button>
             <button className="state-btn-secondary" onClick={() => navigate('/dashboard')}>Back to Dashboard</button>
           </div>
         </div>
-        {renderDemoSelector()}
       </div>
     );
   }
-
-  if (!evaluationResult) return null;
 
   return (
     <div className="results-container">
@@ -231,7 +193,6 @@ function Results() {
           📄 Export Report / PDF
         </button>
       </div>
-      {renderDemoSelector()}
     </div>
   );
 }

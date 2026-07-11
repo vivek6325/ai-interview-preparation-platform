@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { getQuestions, createInterview, updateInterview, deleteInterview } from '../../services/api';
+import { getInterview, updateInterview, deleteInterview } from '../../services/api';
 import ProgressBar from './components/ProgressBar';
 import AvatarSection from './components/AvatarSection';
 import QuestionBoard from './components/QuestionBoard';
@@ -13,7 +13,7 @@ import './Interview.css';
  * Interview Component
  * 
  * Simulates a live AI mock interview room.
- * Manages question states, timers, and routes completion events.
+ * Fetches the session details from the database by ID and updates answer states.
  */
 function Interview() {
   const navigate = useNavigate();
@@ -40,7 +40,8 @@ function Interview() {
   async function submitCompletedInterview(finalAnswersList) {
     try {
       setIsEvaluating(true);
-      addToast('Interview finished! Evaluating performance...', 'success');
+      addToast('Interview finished! Evaluating performance...', 'info');
+      
       const questionsWithAnswers = questions.map((q, idx) => ({
         questionText: q,
         userAnswer: finalAnswersList[idx]
@@ -51,14 +52,13 @@ function Interview() {
         questions: questionsWithAnswers
       });
 
-      if (res?.data?.interview?._id) {
-        navigate(`/results?id=${res.data.interview._id}`);
-      } else {
-        navigate('/results');
-      }
+      addToast('Interview evaluation completed.', 'success');
+      const finalId = res?.data?.interview?._id || res?._id || sessionId;
+      navigate(`/results?id=${finalId}`);
     } catch (err) {
       console.error('Error submitting interview response:', err);
-      navigate('/results');
+      addToast(err.message || 'Failed to submit interview responses.', 'error');
+      navigate('/dashboard');
     } finally {
       setIsEvaluating(false);
     }
@@ -89,39 +89,47 @@ function Interview() {
   });
 
   useEffect(() => {
-    const interviewCategory = location.state?.category || 'Frontend Development';
+    const interviewId = location.state?.id;
+
+    if (!interviewId) {
+      addToast('No active interview session found. Please start from the dashboard.', 'error');
+      navigate('/dashboard');
+      return;
+    }
 
     async function initInterview() {
       try {
         setIsLoading(true);
-        const loadedQuestions = await getQuestions(interviewCategory);
-        setQuestions(loadedQuestions);
-        setAnswers(new Array(loadedQuestions.length).fill(''));
+        const res = await getInterview(interviewId);
+        const interview = res?.data?.interview || res;
 
-        const res = await createInterview({
-          title: `${interviewCategory} Mock Practice`,
-          role: interviewCategory === 'hr' ? 'HR Specialist' : 'Software Engineer',
-          difficulty: 'Medium',
-          questions: loadedQuestions.map(q => ({
-            questionText: q,
-            userAnswer: '',
-            score: null,
-            feedback: ''
-          }))
-        });
-
-        if (res?.data?.interview?._id) {
-          setSessionId(res.data.interview._id);
+        if (!interview) {
+          throw new Error('Session details could not be retrieved.');
         }
+
+        const questionList = interview.questions || [];
+        setQuestions(questionList.map(q => q.questionText));
+        
+        const initialAnswers = questionList.map(q => q.userAnswer || '');
+        setAnswers(initialAnswers);
+        setSessionId(interview._id);
+
+        // Find first question without an answer to support resumption
+        const unansweredIdx = questionList.findIndex(q => !q.userAnswer);
+        const startIdx = unansweredIdx >= 0 ? unansweredIdx : 0;
+        setCurrentQuestionIdx(startIdx);
+        setAnswerText(initialAnswers[startIdx] || '');
       } catch (err) {
         console.error('Error initializing interview room:', err);
+        addToast(err.message || 'Failed to initialize the interview session.', 'error');
+        navigate('/dashboard');
       } finally {
         setIsLoading(false);
       }
     }
 
     initInterview();
-  }, [location.state]);
+  }, [location.state, navigate, addToast]);
 
   // Timer Effect
   useEffect(() => {
@@ -178,8 +186,6 @@ function Interview() {
     }
   };
 
-
-
   const toggleRecording = () => {
     if (!isRecording) {
       addToast('Speech analyzer simulation online. Start speaking...', 'info');
@@ -197,8 +203,8 @@ function Interview() {
     try {
       if (sessionId) {
         await deleteInterview(sessionId);
+        addToast('Practice session cancelled and deleted.', 'info');
       }
-      addToast('Practice session cancelled.', 'info');
       navigate('/dashboard');
     } catch (err) {
       console.error('Error cancelling interview:', err);
