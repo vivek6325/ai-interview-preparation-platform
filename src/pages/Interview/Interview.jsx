@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { getInterview, updateInterview, deleteInterview, evaluateAIInterview } from '../../services/api';
+import { getInterview, updateInterview, deleteInterview } from '../../services/api';
 import ProgressBar from './components/ProgressBar';
 import AvatarSection from './components/AvatarSection';
 import QuestionBoard from './components/QuestionBoard';
@@ -12,9 +12,10 @@ import './Interview.css';
 /**
  * Interview Component
  * 
- * Simulates a live AI mock interview room.
+ * Simulates a live mock interview room.
  * Fetches the session details from the database by ID (URL param or router state),
- * performs background autosaves of answers, and initiates AI evaluations on complete.
+ * and performs dynamic saves on navigation changes (Next, Skip, Previous, Timeout)
+ * along with visual Saving/Saved badges.
  */
 function Interview() {
   const navigate = useNavigate();
@@ -35,6 +36,9 @@ function Interview() {
   const [sessionId, setSessionId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [exitModalOpen, setExitModalOpen] = useState(false);
+  
+  // Auto-save visual status: 'idle' | 'saving' | 'saved' | 'error'
+  const [saveStatus, setSaveStatus] = useState('idle');
 
   const timerRef = useRef(null);
   const handleTimeOutRef = useRef(null);
@@ -60,6 +64,7 @@ function Interview() {
       if (!hasChanged) return;
 
       try {
+        setSaveStatus('saving');
         const questionsWithAnswers = questions.map((q, idx) => ({
           questionText: q,
           userAnswer: currentAnswers[idx] || ''
@@ -70,33 +75,92 @@ function Interview() {
         });
         
         lastSavedAnswersRef.current = [...currentAnswers];
+        setSaveStatus('saved');
         console.log('📝 Mock answers autosaved in background.');
       } catch (err) {
         console.warn('⚠️ Background autosave failed:', err.message);
+        setSaveStatus('error');
       }
     }, 5000);
 
     return () => clearInterval(autosaveInterval);
   }, [isLoading, isEvaluating, questions, sessionId]);
 
+  /**
+   * Persists the candidate's answers directly to MongoDB.
+   * @param {Array} targetAnswers - Updated array of answers
+   * @returns {Promise<boolean>} Resolves to true on success, false on failure
+   */
+  const persistAnswerToDB = async (targetAnswers) => {
+    try {
+      setSaveStatus('saving');
+      const questionsWithAnswers = questions.map((q, idx) => ({
+        questionText: q,
+        userAnswer: targetAnswers[idx] || ''
+      }));
+      
+      await updateInterview(sessionId, {
+        questions: questionsWithAnswers
+      });
+      
+      lastSavedAnswersRef.current = [...targetAnswers];
+      setSaveStatus('saved');
+      return true;
+    } catch (err) {
+      console.error('Error auto-saving answer:', err);
+      setSaveStatus('error');
+      addToast(err.message || 'Auto-save failed. Please check connection and retry.', 'error');
+      return false;
+    }
+  };
+
+  /**
+   * Updates answer in local state and propagates change on keystroke.
+   */
+  const handleAnswerChange = (text) => {
+    setAnswerText(text);
+    setAnswers((prev) => {
+      const updated = [...prev];
+      updated[currentQuestionIdx] = text;
+      return updated;
+    });
+  };
+
   async function submitCompletedInterview(finalAnswersList) {
     try {
       setIsEvaluating(true);
       addToast('Interview finished! Evaluating performance...', 'info');
       
-      const res = await evaluateAIInterview(sessionId, finalAnswersList);
+      const questionsWithAnswers = questions.map((q, idx) => ({
+        questionText: q,
+        userAnswer: finalAnswersList[idx] || ''
+      }));
+      
+      const res = await updateInterview(sessionId, {
+        status: 'completed',
+        questions: questionsWithAnswers
+      });
       
       addToast('Interview evaluation completed.', 'success');
       const finalId = res?.data?.interview?._id || res?.interview?._id || sessionId;
       navigate(`/results?id=${finalId}`);
     } catch (err) {
       console.error('Error submitting interview response:', err);
-      addToast(err.message || 'Failed to evaluate answers using Gemini AI.', 'error');
+      addToast(err.message || 'Failed to evaluate answers.', 'error');
       navigate('/dashboard');
     } finally {
       setIsEvaluating(false);
     }
   }
+
+  const changeQuestion = (newIdx, newAnswers) => {
+    setCurrentQuestionIdx(newIdx);
+    const nextAnswerText = newAnswers[newIdx] || '';
+    setAnswerText(nextAnswerText);
+    setSaveStatus(nextAnswerText ? 'saved' : 'idle');
+    setTimeLeft(60);
+    setErrorMsg('');
+  };
 
   async function saveAnswerAndAdvance(answerToSave) {
     setErrorMsg('');
@@ -104,12 +168,13 @@ function Interview() {
     updatedAnswers[currentQuestionIdx] = answerToSave;
     setAnswers(updatedAnswers);
 
-    if (currentQuestionIdx === questions.length - 1) {
-      await submitCompletedInterview(updatedAnswers);
-    } else {
-      setCurrentQuestionIdx(prev => prev + 1);
-      setAnswerText(updatedAnswers[currentQuestionIdx + 1] || '');
-      setTimeLeft(60);
+    const success = await persistAnswerToDB(updatedAnswers);
+    if (success) {
+      if (currentQuestionIdx === questions.length - 1) {
+        await submitCompletedInterview(updatedAnswers);
+      } else {
+        changeQuestion(currentQuestionIdx + 1, updatedAnswers);
+      }
     }
   }
 
@@ -152,7 +217,10 @@ function Interview() {
         const unansweredIdx = questionList.findIndex(q => !q.userAnswer);
         const startIdx = unansweredIdx >= 0 ? unansweredIdx : 0;
         setCurrentQuestionIdx(startIdx);
-        setAnswerText(initialAnswers[startIdx] || '');
+        
+        const currentAnswer = initialAnswers[startIdx] || '';
+        setAnswerText(currentAnswer);
+        setSaveStatus(currentAnswer ? 'saved' : 'idle');
       } catch (err) {
         console.error('Error initializing interview room:', err);
         addToast(err.message || 'Failed to initialize the interview session.', 'error');
@@ -207,16 +275,16 @@ function Interview() {
     saveAnswerAndAdvance('Question was skipped by candidate.');
   };
 
-  const handlePrevQuestion = () => {
+  const handlePrevQuestion = async () => {
     if (currentQuestionIdx > 0) {
       const updatedAnswers = [...answers];
       updatedAnswers[currentQuestionIdx] = answerText;
       setAnswers(updatedAnswers);
 
-      setCurrentQuestionIdx(prev => prev - 1);
-      setAnswerText(updatedAnswers[currentQuestionIdx - 1] || '');
-      setTimeLeft(60);
-      setErrorMsg('');
+      const success = await persistAnswerToDB(updatedAnswers);
+      if (success) {
+        changeQuestion(currentQuestionIdx - 1, updatedAnswers);
+      }
     }
   };
 
@@ -275,7 +343,7 @@ function Interview() {
             <span style={{ fontSize: '3rem' }}>📊</span>
           </div>
           <h3>Interview Completed</h3>
-          <p>Evaluating your performance... Analyzing answer lengths, structure coherence, and vocabulary details.</p>
+          <p>Evaluating your performance... Analyzing answer lengths, coherence, and structural logic.</p>
           <div className="skeleton-shimmer" style={{ width: '220px', height: '6px', margin: '0 auto', borderRadius: '3px' }}></div>
         </div>
       </div>
@@ -316,7 +384,7 @@ function Interview() {
           questionCategory={questionCategory}
           questionText={currentQuestionText}
           answerText={answerText}
-          setAnswerText={setAnswerText}
+          setAnswerText={handleAnswerChange}
           errorMsg={errorMsg}
           isRecording={isRecording}
           toggleRecording={toggleRecording}
@@ -325,6 +393,7 @@ function Interview() {
           handleNextQuestion={handleNextQuestion}
           isLastQuestion={currentQuestionIdx === questions.length - 1}
           handleExitClick={handleExitClick}
+          saveStatus={saveStatus}
         />
       </div>
 

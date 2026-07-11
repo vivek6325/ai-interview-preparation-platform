@@ -17,7 +17,8 @@ export function QuestionBoard({
   handleSkipQuestion,
   handleNextQuestion,
   isLastQuestion,
-  handleExitClick
+  handleExitClick,
+  saveStatus
 }) {
   return (
     <div className="question-response-board">
@@ -46,7 +47,24 @@ export function QuestionBoard({
       </div>
 
       <div className="response-container">
-        <label htmlFor="answer-input">Your Answer Response</label>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <label htmlFor="answer-input" style={{ margin: 0 }}>Your Answer Response</label>
+          {saveStatus === 'saving' && (
+            <span className="save-status-indicator" style={{ color: '#60a5fa', fontSize: '0.85rem', fontWeight: '600' }}>
+              Saving...
+            </span>
+          )}
+          {saveStatus === 'saved' && (
+            <span className="save-status-indicator" style={{ color: '#34d399', fontSize: '0.85rem', fontWeight: '600' }}>
+              Saved ✓
+            </span>
+          )}
+          {saveStatus === 'error' && (
+            <span className="save-status-indicator" style={{ color: '#f87171', fontSize: '0.85rem', fontWeight: '600' }}>
+              Save failed ⚠️
+            </span>
+          )}
+        </div>
         <textarea
           id="answer-input"
           rows="8"

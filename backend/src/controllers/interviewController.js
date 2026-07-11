@@ -427,23 +427,38 @@ export const updateInterview = async (req, res) => {
     }
 
     if (isDbConnected() && mongoose.Types.ObjectId.isValid(id)) {
-      const updatedInterview = await Interview.findByIdAndUpdate(
-        id,
-        updatePayload,
-        {
-          new: true,
-          runValidators: true,
-        }
-      );
-
-      if (updatedInterview) {
-        return res.status(200).json({
-          status: 'success',
-          data: {
-            interview: updatedInterview,
-          },
+      const interview = await Interview.findById(id);
+      if (!interview) {
+        return res.status(404).json({
+          status: 'fail',
+          message: 'Interview session not found.',
         });
       }
+
+      // Selectively update questions[].userAnswer
+      if (updatePayload.questions && Array.isArray(updatePayload.questions)) {
+        updatePayload.questions.forEach((qp) => {
+          const dbQ = interview.questions.find(
+            (q) => (qp._id && q._id.toString() === qp._id.toString()) ||
+                   q.questionText === qp.questionText
+          );
+          if (dbQ) {
+            dbQ.userAnswer = qp.userAnswer ?? dbQ.userAnswer;
+          }
+        });
+        delete updatePayload.questions;
+      }
+
+      // Assign remaining payload fields to document
+      Object.assign(interview, updatePayload);
+
+      const savedInterview = await interview.save();
+      return res.status(200).json({
+        status: 'success',
+        data: {
+          interview: savedInterview,
+        },
+      });
     }
 
     // Fallback to updating in mockDatabase
@@ -457,20 +472,13 @@ export const updateInterview = async (req, res) => {
 
     // Merge changes in memory
     const existing = mockDatabase[index];
-    const questionsMerged = updatePayload.questions || existing.questions;
-
-    let updatedMock = {
-      ...existing,
-      ...updatePayload,
-      questions: questionsMerged,
-      updatedAt: new Date()
-    };
 
     // Evaluate in memory if completing
     if (updatePayload.status === 'completed') {
+      const questionsMerged = updatePayload.questions || existing.questions;
       const evaluation = evaluateSession(questionsMerged);
-      updatedMock = {
-        ...updatedMock,
+      updatePayload = {
+        ...updatePayload,
         questions: evaluation.questions,
         overallScore: evaluation.overallScore,
         overallFeedback: evaluation.overallFeedback,
@@ -479,6 +487,25 @@ export const updateInterview = async (req, res) => {
         improvements: evaluation.improvements
       };
     }
+
+    // Selectively update questions[].userAnswer in memory
+    if (updatePayload.questions && Array.isArray(updatePayload.questions)) {
+      existing.questions.forEach((q) => {
+        const qp = updatePayload.questions.find(
+          (item) => (item._id && q._id === item._id) || item.questionText === q.questionText
+        );
+        if (qp) {
+          q.userAnswer = qp.userAnswer ?? q.userAnswer;
+        }
+      });
+      delete updatePayload.questions;
+    }
+
+    let updatedMock = {
+      ...existing,
+      ...updatePayload,
+      updatedAt: new Date()
+    };
 
     mockDatabase[index] = updatedMock;
 
