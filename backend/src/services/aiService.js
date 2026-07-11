@@ -26,7 +26,7 @@ function getAIClient() {
 async function callGemini(prompt, isJsonResponse = true) {
   const client = getAIClient();
   const model = client.getGenerativeModel({
-    model: 'gemini-1.5-flash',
+    model: "gemini-2.5-flash",
     generationConfig: isJsonResponse ? { responseMimeType: 'application/json' } : undefined,
   });
 
