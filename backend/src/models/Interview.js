@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { DIFFICULTY, STATUS } from '../config/constants.js';
 
 /**
  * Sub-schema for individual questions within an interview session.
@@ -45,6 +44,12 @@ const QuestionSchema = new mongoose.Schema({
  */
 const InterviewSchema = new mongoose.Schema(
   {
+    // User association (optional for backward compatibility, referencing User model)
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: false,
+    },
     title: {
       type: String,
       required: [true, 'Interview title is required'],
@@ -58,8 +63,10 @@ const InterviewSchema = new mongoose.Schema(
     difficulty: {
       type: String,
       required: [true, 'Difficulty level is required'],
+      trim: true,
+      lowercase: true, // Automatically normalizes "Medium" -> "medium", "Easy" -> "easy", "Hard" -> "hard"
       enum: {
-        values: Object.values(DIFFICULTY),
+        values: ['easy', 'medium', 'hard'],
         message: '{VALUE} is not a valid difficulty level',
       },
     },
@@ -72,14 +79,41 @@ const InterviewSchema = new mongoose.Schema(
         message: 'An interview session must contain at least one question.',
       },
     },
+    // New fields requested for Step 5
+    answers: {
+      type: [String],
+      default: [],
+    },
+    score: {
+      type: Number,
+      min: [0, 'Score cannot be less than 0'],
+      max: [100, 'Score cannot exceed 100'],
+      default: null,
+    },
+    feedback: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    duration: {
+      type: Number,
+      min: [0, 'Duration cannot be negative'],
+      default: 0,
+    },
+    // Existing fields for backward compatibility with controllers and UI
     status: {
       type: String,
       required: true,
-      enum: Object.values(STATUS),
-      default: STATUS.PENDING,
+      enum: {
+        values: ['pending', 'completed'],
+        message: '{VALUE} is not a valid status',
+      },
+      default: 'pending',
     },
     overallScore: {
       type: Number,
+      min: [0, 'Overall score cannot be less than 0'],
+      max: [100, 'Overall score cannot exceed 100'],
       default: null,
     },
     overallFeedback: {

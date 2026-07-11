@@ -1,11 +1,12 @@
+import 'dotenv/config';
+import dns from 'node:dns';
+
+dns.setServers(['8.8.8.8', '1.1.1.1']);
+console.log("ENV URI:", process.env.MONGODB_URI);
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import { connectDB } from './src/config/db.js';
 import interviewRoutes from './src/routes/interviewRoutes.js';
-
-// Load environment variables from .env file
-dotenv.config();
 
 // Connect to MongoDB database before starting the web server
 await connectDB();

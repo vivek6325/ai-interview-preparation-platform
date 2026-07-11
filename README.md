@@ -107,18 +107,6 @@ npm run dev
 
 ---
 
-## 📸 Screenshots Section
-
-| Dashboard View | Simulator View |
-|:---:|:---:|
-| ![Dashboard Placeholder](https://via.placeholder.com/600x350/1e1e24/ffffff?text=Dashboard+Analytics) | ![Simulator Placeholder](https://via.placeholder.com/600x350/1e1e24/ffffff?text=Interview+Simulator) |
-
-| Results Report | History Log |
-|:---:|:---:|
-| ![Results Placeholder](https://via.placeholder.com/600x350/1e1e24/ffffff?text=Evaluation+Report) | ![History Placeholder](https://via.placeholder.com/600x350/1e1e24/ffffff?text=History+List) |
-
----
-
 ## 🔮 Future Improvements
 
 1.  **AI Voice Interviews:** Integration of the Web Speech API (Speech-to-Text and Text-to-Speech) for fully conversational mock reviews.
