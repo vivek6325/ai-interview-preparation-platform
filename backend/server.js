@@ -8,6 +8,7 @@ import cors from 'cors';
 import { connectDB } from './src/config/db.js';
 import interviewRoutes from './src/routes/interviewRoutes.js';
 import aiRoutes from './src/routes/aiRoutes.js';
+import authRoutes from './src/routes/authRoutes.js';
 
 // Connect to MongoDB database before starting the web server
 await connectDB();
@@ -24,6 +25,7 @@ app.use(express.json());
 // Register API Routes
 app.use('/api/interviews', interviewRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/auth', authRoutes);
 
 // Simple health check route to verify server status
 app.get('/api/health', (req, res) => {

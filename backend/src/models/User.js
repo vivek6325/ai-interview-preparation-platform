@@ -1,31 +1,61 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 /**
- * Mongoose Schema for the User model.
- * Stores core user profile details with strict validation rules.
+ * Mongoose Schema for User accounts.
+ * Manages user credentials, role tags, and profile metadata.
  */
 const UserSchema = new mongoose.Schema(
   {
-    name: {
+    fullName: {
       type: String,
-      required: [true, 'Name is required'],
+      required: [true, 'Full name is required'],
       trim: true,
     },
     email: {
       type: String,
-      required: [true, 'Email is required'],
+      required: [true, 'Email address is required'],
       unique: true,
-      trim: true,
       lowercase: true,
-      match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email address'],
+      trim: true,
+      match: [
+        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+        'Please provide a valid email address',
+      ],
+    },
+    password: {
+      type: String,
+      required: [true, 'Password is required'],
+      minlength: [6, 'Password must be at least 6 characters long'],
+    },
+    avatar: {
+      type: String,
+      default: '',
+    },
+    role: {
+      type: String,
+      default: 'candidate',
+      trim: true,
     },
   },
   {
-    // Automatically manage createdAt and updatedAt fields
-    timestamps: true,
+    timestamps: true, // Automatically manages createdAt and updatedAt fields
   }
 );
 
-// Create and export the User model
+// Pre-save hook to hash password using bcryptjs before writing to MongoDB
+UserSchema.pre('save', async function () {
+  if (!this.isModified('password')) {
+    return;
+  }
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+});
+
+// Custom instance method to match entered plaintext password with hashed DB key
+UserSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
 const User = mongoose.model('User', UserSchema);
 export default User;
