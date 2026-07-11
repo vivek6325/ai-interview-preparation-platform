@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { getInterview, updateInterview, deleteInterview } from '../../services/api';
+import { getInterview, updateInterview, deleteInterview, evaluateAIInterview } from '../../services/api';
 import ProgressBar from './components/ProgressBar';
 import AvatarSection from './components/AvatarSection';
 import QuestionBoard from './components/QuestionBoard';
@@ -136,14 +136,11 @@ function Interview() {
         userAnswer: finalAnswersList[idx] || ''
       }));
       
-      const res = await updateInterview(sessionId, {
-        status: 'completed',
-        questions: questionsWithAnswers
-      });
+      const res = await evaluateAIInterview(sessionId, questionsWithAnswers);
       
       addToast('Interview evaluation completed.', 'success');
       const finalId = res?.data?.interview?._id || res?.interview?._id || sessionId;
-      navigate(`/results?id=${finalId}`);
+      navigate(`/results/${finalId}`);
     } catch (err) {
       console.error('Error submitting interview response:', err);
       addToast(err.message || 'Failed to evaluate answers.', 'error');
@@ -342,8 +339,8 @@ function Interview() {
             <div className="avatar-pulse-ring recording-active" style={{ width: '120px', height: '120px' }}></div>
             <span style={{ fontSize: '3rem' }}>📊</span>
           </div>
-          <h3>Interview Completed</h3>
-          <p>Evaluating your performance... Analyzing answer lengths, coherence, and structural logic.</p>
+          <h3>AI is evaluating your interview...</h3>
+          <p>Analyzing answer accuracy, vocabulary structure, and coherence parameters using Gemini AI model.</p>
           <div className="skeleton-shimmer" style={{ width: '220px', height: '6px', margin: '0 auto', borderRadius: '3px' }}></div>
         </div>
       </div>

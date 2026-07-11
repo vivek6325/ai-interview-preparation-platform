@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { getInterview, getInterviews } from '../../services/api';
 import ScoreCard from './components/ScoreCard';
 import MetricsPanel from './components/MetricsPanel';
@@ -16,6 +16,7 @@ import './Results.css';
  */
 function Results() {
   const navigate = useNavigate();
+  const { id: paramId } = useParams();
   const location = useLocation();
   const { addToast } = useToast();
   const [evaluationResult, setEvaluationResult] = useState(null);
@@ -28,9 +29,13 @@ function Results() {
         setLoading(true);
         setError('');
         
+        let id = paramId;
+        
         // 1. Check if ID is in query params
-        const params = new URLSearchParams(location.search);
-        let id = params.get('id');
+        if (!id) {
+          const params = new URLSearchParams(location.search);
+          id = params.get('id');
+        }
 
         // 2. If not in query params, check router state
         if (!id && location.state?.id) {
@@ -83,7 +88,9 @@ function Results() {
             questionsBreakdown: (session.questions || []).map((q, idx) => ({
               number: idx + 1,
               question: q.questionText,
-              score: Math.round((q.score || 0) * 10),
+              userAnswer: q.userAnswer || 'No response provided.',
+              score: q.score !== null ? Math.round(q.score * 10) : 0,
+              feedback: q.feedback || 'No feedback provided.',
               strength: q.strength || 'Completed response explanation.',
               improvement: q.improvement || 'Study terms and details.'
             }))
@@ -100,7 +107,7 @@ function Results() {
     }
 
     loadSession();
-  }, [location]);
+  }, [location, paramId]);
 
   const handleRetry = () => {
     navigate('/dashboard');

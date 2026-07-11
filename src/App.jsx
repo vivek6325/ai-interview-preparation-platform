@@ -50,6 +50,11 @@ function App() {
                 <Interview />
               </ProtectedRoute>
             } />
+            <Route path="/results/:id" element={
+              <ProtectedRoute>
+                <Results />
+              </ProtectedRoute>
+            } />
             <Route path="/results" element={
               <ProtectedRoute>
                 <Results />

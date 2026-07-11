@@ -150,10 +150,10 @@ export async function generateAIInterview(payload) {
 /**
  * Calls backend Gemini endpoint to grade answers and save scores.
  */
-export async function evaluateAIInterview(interviewId, answers) {
+export async function evaluateAIInterview(interviewId, questions) {
   return await apiRequest('/ai/evaluate', {
     method: 'POST',
-    body: { interviewId, answers }
+    body: { interviewId, questions }
   });
 }
 

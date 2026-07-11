@@ -67,7 +67,7 @@ export const generateSession = async (req, res) => {
  */
 export const evaluateSession = async (req, res) => {
   try {
-    const { interviewId, answers } = req.body;
+    const { interviewId, questions, answers } = req.body;
 
     if (!interviewId) {
       return res.status(400).json({
@@ -85,7 +85,17 @@ export const evaluateSession = async (req, res) => {
     }
 
     // Update answers in memory if provided in request body
-    if (answers && Array.isArray(answers)) {
+    if (questions && Array.isArray(questions)) {
+      questions.forEach((qp) => {
+        const dbQ = interview.questions.find(
+          (q) => (qp._id && q._id.toString() === qp._id.toString()) ||
+            q.questionText === qp.questionText
+        );
+        if (dbQ) {
+          dbQ.userAnswer = qp.userAnswer ?? dbQ.userAnswer;
+        }
+      });
+    } else if (answers && Array.isArray(answers)) {
       answers.forEach((ans, idx) => {
         if (interview.questions[idx]) {
           interview.questions[idx].userAnswer = ans;
@@ -102,23 +112,36 @@ export const evaluateSession = async (req, res) => {
     // Call Gemini API to evaluate responses
     const evaluation = await evaluateInterviewAnswers(questionsWithAnswers);
 
-    // Save evaluation outcomes to Mongoose document
-    interview.questions.forEach((q, idx) => {
+    // Prepare updated questions array
+    const updatedQuestions = interview.questions.map((q, idx) => {
       const evalItem = evaluation.questions[idx] || {};
-      q.score = evalItem.score ?? 0;
-      q.feedback = evalItem.feedback ?? '';
-      q.strength = evalItem.strength ?? '';
-      q.improvement = evalItem.improvement ?? '';
+
+      return {
+        ...q.toObject(),
+        score: evalItem.score ?? 0,
+        feedback: evalItem.feedback ?? '',
+        strength: evalItem.strength ?? '',
+        improvement: evalItem.improvement ?? '',
+      };
     });
 
-    interview.overallScore = evaluation.overallScore ?? 0;
-    interview.overallFeedback = evaluation.overallFeedback ?? '';
-    interview.grade = evaluation.grade ?? 'Needs Development';
-    interview.strengths = evaluation.strengths ?? [];
-    interview.improvements = evaluation.improvements ?? [];
-    interview.status = 'completed';
-
-    const savedInterview = await interview.save();
+    // Atomic update to avoid VersionError
+    const savedInterview = await Interview.findByIdAndUpdate(
+      interviewId,
+      {
+        questions: updatedQuestions,
+        overallScore: evaluation.overallScore ?? 0,
+        overallFeedback: evaluation.overallFeedback ?? '',
+        grade: evaluation.grade ?? 'Needs Development',
+        strengths: evaluation.strengths ?? [],
+        improvements: evaluation.improvements ?? [],
+        status: 'completed',
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     res.status(200).json({
       status: 'success',
