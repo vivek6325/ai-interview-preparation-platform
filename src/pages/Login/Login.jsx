@@ -1,33 +1,55 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/Toast/ToastContext';
 import './Login.css';
 
 /**
  * Login Component
- * 
- * Provides a sleek, glassmorphic mock login screen.
- * Clicking "Sign In" handles mock validation and routes the user to the Dashboard.
+ * Provides a sleek, glassmorphic sign-in screen connecting directly to the AuthContext.
  */
 function Login() {
   const navigate = useNavigate();
+  const { login, isAuthenticated } = useAuth();
   const { addToast } = useToast();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  // If user is already authenticated, redirect to Dashboard
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !password) {
+    setError('');
+
+    if (!email.trim() || !password) {
       setError('Please fill in all fields.');
       return;
     }
-    setError('');
-    // Set localStorage mock authentication state
-    localStorage.setItem('isAuthenticated', 'true');
-    addToast('Signed in successfully!', 'success');
-    // Mock successful login redirection to Dashboard
-    navigate('/dashboard');
+
+    try {
+      setLoading(true);
+      await login({
+        email: email.trim(),
+        password,
+      });
+
+      addToast('Signed in successfully!', 'success');
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Login action failed:', err);
+      setError(err.message || 'Invalid email or password.');
+      addToast(err.message || 'Sign in failed.', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -53,6 +75,7 @@ function Login() {
               placeholder="name@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
               required
             />
           </div>
@@ -65,17 +88,18 @@ function Login() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
               required
             />
           </div>
 
-          <button type="submit" className="btn-login-submit">
-            Sign In
+          <button type="submit" className="btn-login-submit" disabled={loading}>
+            {loading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
 
         <div className="login-footer">
-          <p>Don't have an account? <span className="mock-link">Sign up</span></p>
+          <p>Don't have an account? <Link to="/register" className="mock-link">Sign up</Link></p>
         </div>
       </div>
     </div>

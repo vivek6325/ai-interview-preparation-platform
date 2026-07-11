@@ -1,0 +1,189 @@
+/* -------------------------------------------------------------
+ * Register.css - Scoped styles for the Register Page component
+ * -------------------------------------------------------------
+ */
+
+.register-page-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+  padding: 4rem 1.5rem;
+  background-color: var(--bg-dark);
+  position: relative;
+  overflow: hidden;
+  min-height: calc(100vh - 80px); /* Account for global Navbar */
+}
+
+/* Glow effects matching the hero section design */
+.register-glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.15;
+}
+
+.purple-orb {
+  width: 300px;
+  height: 300px;
+  background: var(--secondary-color);
+  top: 10%;
+  left: 20%;
+}
+
+.indigo-orb {
+  width: 320px;
+  height: 320px;
+  background: var(--primary-color);
+  bottom: 10%;
+  right: 20%;
+}
+
+/* Glassmorphic card container */
+.register-card {
+  width: 100%;
+  max-width: 480px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 3rem 2.5rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 1;
+  animation: register-fade-in 0.8s ease-out;
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.register-header h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.025em;
+  background: linear-gradient(135deg, #fff 50%, var(--primary-color) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.register-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.register-error-message {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.form-group label {
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+.form-group input {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
+  color: var(--text-primary);
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: var(--transition-smooth);
+}
+
+.form-group input:focus {
+  border-color: var(--primary-color);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+}
+
+/* Register submit button */
+.btn-register-submit {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #4f46e5 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 0.9rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px var(--primary-glow);
+  transition: var(--transition-smooth);
+  margin-top: 0.5rem;
+}
+
+.btn-register-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
+}
+
+.btn-register-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.register-footer {
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.register-footer a {
+  color: var(--primary-color);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: var(--transition-smooth);
+}
+
+.register-footer a:hover {
+  color: var(--secondary-color);
+  text-decoration: underline;
+}
+
+@keyframes register-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .register-card {
+    padding: 2.25rem 1.5rem;
+  }
+}

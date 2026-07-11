@@ -38,8 +38,10 @@ const CATEGORY_QUESTIONS = {
 async function apiRequest(endpoint, options = {}) {
   const url = `${BASE_URL}${endpoint}`;
   
+  const token = localStorage.getItem('token');
   const defaultHeaders = {
     'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     ...options.headers,
   };
 
@@ -56,6 +58,18 @@ async function apiRequest(endpoint, options = {}) {
     const response = await fetch(url, config);
 
     if (!response.ok) {
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('isAuthenticated');
+        if (
+          !window.location.pathname.includes('/login') && 
+          !window.location.pathname.includes('/register') && 
+          window.location.pathname !== '/'
+        ) {
+          window.location.href = '/login';
+        }
+      }
       const errorData = await response.json().catch(() => ({}));
       const error = new Error(errorData.message || `HTTP error! Status: ${response.status}`);
       error.status = response.status;
@@ -72,6 +86,26 @@ async function apiRequest(endpoint, options = {}) {
     networkError.status = 503;
     throw networkError;
   }
+}
+
+/**
+ * Register a new user account.
+ */
+export async function register(userData) {
+  return await apiRequest('/auth/register', {
+    method: 'POST',
+    body: userData,
+  });
+}
+
+/**
+ * Log in to an existing user account.
+ */
+export async function login(credentials) {
+  return await apiRequest('/auth/login', {
+    method: 'POST',
+    body: credentials,
+  });
 }
 
 /**

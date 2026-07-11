@@ -1,25 +1,22 @@
-import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import './Navbar.css';
 
 /**
- * Navbar Component (Refactored)
- * 
- * Renders the top navigation bar with routing links to pages.
+ * Navbar Component
+ * Renders page links and session controls based on candidate authentication states.
  */
 function Navbar() {
-  const navigate = useNavigate();
-  useLocation();
-  const isAuth = localStorage.getItem('isAuthenticated') === 'true';
+  const { isAuthenticated, logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
-    navigate('/');
+    logout();
   };
 
   return (
     <nav className="home-navbar">
-      {/* Brand logo linked to Home page */}
-      <Link to="/" className="nav-brand">
+      {/* Brand logo linked to Home/Dashboard */}
+      <Link to={isAuthenticated ? "/dashboard" : "/"} className="nav-brand">
         PrepAI<span className="brand-dot">.</span>
       </Link>
       
@@ -28,23 +25,24 @@ function Navbar() {
         <li className="nav-item">
           <NavLink to="/" end>Home</NavLink>
         </li>
-        <li className="nav-item">
-          <NavLink to="/dashboard">Dashboard</NavLink>
-        </li>
-        <li className="nav-item">
-          <NavLink to="/history">History</NavLink>
-        </li>
-        <li className="nav-item">
-          <NavLink to="/interview">Interview Room</NavLink>
-        </li>
-        <li className="nav-item">
-          <NavLink to="/results">Results</NavLink>
-        </li>
+        {isAuthenticated && (
+          <>
+            <li className="nav-item">
+              <NavLink to="/dashboard">Dashboard</NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink to="/history">History</NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink to="/profile">Profile</NavLink>
+            </li>
+          </>
+        )}
       </ul>
 
       {/* Action buttons on navbar */}
       <div className="nav-actions">
-        {isAuth ? (
+        {isAuthenticated ? (
           <button onClick={handleLogout} className="btn-secondary-nav" style={{ cursor: 'pointer' }}>
             Log Out
           </button>
@@ -53,8 +51,8 @@ function Navbar() {
             <Link to="/login" className="btn-secondary-nav">
               Log In
             </Link>
-            <Link to="/dashboard" className="btn-primary-nav">
-              Get Started
+            <Link to="/register" className="btn-primary-nav">
+              Register
             </Link>
           </>
         )}

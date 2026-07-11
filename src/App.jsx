@@ -7,6 +7,8 @@ import InterviewSetup from './pages/InterviewSetup/InterviewSetup';
 import Interview from './pages/Interview/Interview';
 import Results from './pages/Results/Results';
 import History from './pages/History/History';
+import Register from './pages/Register/Register';
+import Profile from './pages/Profile/Profile';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import { ToastProvider } from './components/Toast/ToastContext';
 
@@ -28,6 +30,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             
             {/* Protected Routes */}
             <Route path="/dashboard" element={
@@ -63,6 +66,11 @@ function App() {
             <Route path="/history" element={
               <ProtectedRoute>
                 <History />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             } />
           </Routes>
