@@ -3,6 +3,7 @@ import Navbar from './components/Navbar/Navbar';
 import Home from './pages/Home/Home';
 import Login from './pages/Login/Login';
 import Dashboard from './pages/Dashboard/Dashboard';
+import InterviewSetup from './pages/InterviewSetup/InterviewSetup';
 import Interview from './pages/Interview/Interview';
 import Results from './pages/Results/Results';
 import History from './pages/History/History';
@@ -32,6 +33,16 @@ function App() {
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/interview-setup" element={
+              <ProtectedRoute>
+                <InterviewSetup />
+              </ProtectedRoute>
+            } />
+            <Route path="/interview/:id" element={
+              <ProtectedRoute>
+                <Interview />
               </ProtectedRoute>
             } />
             <Route path="/interview" element={

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { interviewCategories } from '../../constants';
-import { getInterviews, createInterview, getQuestions, deleteInterview } from '../../services/api';
+import { getInterviews, deleteInterview } from '../../services/api';
 import { useToast } from '../../components/Toast/ToastContext';
 import ConfirmationModal from '../../components/Modal/ConfirmationModal';
 import { formatDate } from '../../utils/helpers';
@@ -21,7 +21,6 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showAnalytics, setShowAnalytics] = useState(true);
-  const [isStartingInterview, setIsStartingInterview] = useState(false);
   const [currentTime] = useState(() => Date.now());
 
   // Deletion Modal state
@@ -138,46 +137,17 @@ function Dashboard() {
   }, [completedList]);
 
   // Handle starting a specific mock interview session
-  const handleStartMock = async (categoryName) => {
-    if (isStartingInterview) return;
-    try {
-      setIsStartingInterview(true);
-      addToast('Initializing new interview room...', 'info');
-
-      const questionsList = await getQuestions(categoryName);
-      const difficultyMap = {
-        'Easy': 'easy',
-        'Medium': 'medium',
-        'Hard': 'hard'
-      };
-      
-      const catObj = interviewCategories.find(c => c.title === categoryName);
-      const role = categoryName.includes('DSA') || categoryName.includes('Algorithms') ? 'Software Engineer' :
-                   categoryName.includes('Frontend') ? 'Frontend Developer' :
-                   categoryName.includes('Backend') ? 'Backend Developer' : 'HR Specialist';
-      const difficulty = difficultyMap[catObj?.difficulty] || 'medium';
-
-      const res = await createInterview({
-        title: `${categoryName} Mock Practice`,
-        role: role,
-        difficulty: difficulty,
-        questions: questionsList.map(q => ({
-          questionText: q,
-          userAnswer: '',
-          score: null,
-          feedback: ''
-        }))
-      });
-
-      addToast('Interview created successfully.', 'success');
-      const newId = res?.data?.interview?._id || res?._id;
-      navigate('/interview', { state: { id: newId } });
-    } catch (err) {
-      console.error('Error starting interview:', err);
-      addToast(err.message || 'Failed to create new interview session.', 'error');
-    } finally {
-      setIsStartingInterview(false);
-    }
+  const handleStartMock = (categoryName) => {
+    const catObj = interviewCategories.find(c => c.title === categoryName);
+    const role = categoryName.includes('DSA') || categoryName.includes('Algorithms') ? 'Software Engineer' :
+                 categoryName.includes('Frontend') ? 'Frontend Developer' :
+                 categoryName.includes('Backend') ? 'Backend Developer' : 'HR Specialist';
+    navigate('/interview-setup', {
+      state: {
+        role,
+        difficulty: catObj?.difficulty || 'Medium'
+      }
+    });
   };
 
   const handleDeleteClick = (id, e) => {
@@ -428,12 +398,12 @@ function Dashboard() {
     );
   };
 
-  if (loading || isStartingInterview) {
+  if (loading) {
     return (
       <div className="dashboard-container">
         <div className="spinner-container">
           <div className="spinner"></div>
-          <h3>{isStartingInterview ? 'Configuring Voice Session...' : 'Retrieving Your Progress...'}</h3>
+          <h3>Retrieving Your Progress...</h3>
           <p>Please hold on while we communicate with the cloud database.</p>
         </div>
       </div>

@@ -136,3 +136,24 @@ export async function getQuestions(category) {
               category?.toLowerCase().includes('hr') || category?.toLowerCase().includes('human') ? 'hr' : 'frontend';
   return CATEGORY_QUESTIONS[key];
 }
+
+/**
+ * Calls backend Gemini endpoint to generate questions and save interview.
+ */
+export async function generateAIInterview(payload) {
+  return await apiRequest('/ai/generate', {
+    method: 'POST',
+    body: payload
+  });
+}
+
+/**
+ * Calls backend Gemini endpoint to grade answers and save scores.
+ */
+export async function evaluateAIInterview(interviewId, answers) {
+  return await apiRequest('/ai/evaluate', {
+    method: 'POST',
+    body: { interviewId, answers }
+  });
+}
+

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { getInterview, updateInterview, deleteInterview } from '../../services/api';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { getInterview, updateInterview, deleteInterview, evaluateAIInterview } from '../../services/api';
 import ProgressBar from './components/ProgressBar';
 import AvatarSection from './components/AvatarSection';
 import QuestionBoard from './components/QuestionBoard';
@@ -13,10 +13,12 @@ import './Interview.css';
  * Interview Component
  * 
  * Simulates a live AI mock interview room.
- * Fetches the session details from the database by ID and updates answer states.
+ * Fetches the session details from the database by ID (URL param or router state),
+ * performs background autosaves of answers, and initiates AI evaluations on complete.
  */
 function Interview() {
   const navigate = useNavigate();
+  const { id } = useParams();
   const location = useLocation();
   const { addToast } = useToast();
   
@@ -36,28 +38,60 @@ function Interview() {
 
   const timerRef = useRef(null);
   const handleTimeOutRef = useRef(null);
+  
+  const answersRef = useRef(answers);
+  const lastSavedAnswersRef = useRef([]);
+
+  // Keep ref up to date with answers state to support interval reads without re-runs
+  useEffect(() => {
+    answersRef.current = answers;
+  }, [answers]);
+
+  // Background Autosave interval effect
+  useEffect(() => {
+    if (isLoading || isEvaluating || questions.length === 0 || !sessionId) return;
+
+    // Set initial save checkpoint
+    lastSavedAnswersRef.current = [...answersRef.current];
+
+    const autosaveInterval = setInterval(async () => {
+      const currentAnswers = answersRef.current;
+      const hasChanged = currentAnswers.some((ans, idx) => ans !== lastSavedAnswersRef.current[idx]);
+      if (!hasChanged) return;
+
+      try {
+        const questionsWithAnswers = questions.map((q, idx) => ({
+          questionText: q,
+          userAnswer: currentAnswers[idx] || ''
+        }));
+        
+        await updateInterview(sessionId, {
+          questions: questionsWithAnswers
+        });
+        
+        lastSavedAnswersRef.current = [...currentAnswers];
+        console.log('📝 Mock answers autosaved in background.');
+      } catch (err) {
+        console.warn('⚠️ Background autosave failed:', err.message);
+      }
+    }, 5000);
+
+    return () => clearInterval(autosaveInterval);
+  }, [isLoading, isEvaluating, questions, sessionId]);
 
   async function submitCompletedInterview(finalAnswersList) {
     try {
       setIsEvaluating(true);
       addToast('Interview finished! Evaluating performance...', 'info');
       
-      const questionsWithAnswers = questions.map((q, idx) => ({
-        questionText: q,
-        userAnswer: finalAnswersList[idx]
-      }));
-
-      const res = await updateInterview(sessionId, {
-        status: 'completed',
-        questions: questionsWithAnswers
-      });
-
+      const res = await evaluateAIInterview(sessionId, finalAnswersList);
+      
       addToast('Interview evaluation completed.', 'success');
-      const finalId = res?.data?.interview?._id || res?._id || sessionId;
+      const finalId = res?.data?.interview?._id || res?.interview?._id || sessionId;
       navigate(`/results?id=${finalId}`);
     } catch (err) {
       console.error('Error submitting interview response:', err);
-      addToast(err.message || 'Failed to submit interview responses.', 'error');
+      addToast(err.message || 'Failed to evaluate answers using Gemini AI.', 'error');
       navigate('/dashboard');
     } finally {
       setIsEvaluating(false);
@@ -89,7 +123,7 @@ function Interview() {
   });
 
   useEffect(() => {
-    const interviewId = location.state?.id;
+    const interviewId = id || location.state?.id;
 
     if (!interviewId) {
       addToast('No active interview session found. Please start from the dashboard.', 'error');
@@ -129,7 +163,7 @@ function Interview() {
     }
 
     initInterview();
-  }, [location.state, navigate, addToast]);
+  }, [id, location.state, navigate, addToast]);
 
   // Timer Effect
   useEffect(() => {
