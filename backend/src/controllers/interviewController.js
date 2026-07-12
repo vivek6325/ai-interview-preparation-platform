@@ -28,14 +28,14 @@ let mockDatabase = [
     difficulty: 'Easy',
     status: 'completed',
     questions: [
-      { 
-        _id: 'q3', 
-        questionText: 'What are React hooks?', 
-        userAnswer: 'React hooks let you use state and other React features without writing a class. Examples include useState and useEffect.', 
-        feedback: 'Excellent answer. You covered technical details comprehensively with solid structure.', 
-        score: 9, 
-        strength: 'Accurately defines the purpose of hooks and gives basic examples.', 
-        improvement: 'Proactively mention performance trade-offs or alternative approaches to show even deeper mastery.' 
+      {
+        _id: 'q3',
+        questionText: 'What are React hooks?',
+        userAnswer: 'React hooks let you use state and other React features without writing a class. Examples include useState and useEffect.',
+        feedback: 'Excellent answer. You covered technical details comprehensively with solid structure.',
+        score: 9,
+        strength: 'Accurately defines the purpose of hooks and gives basic examples.',
+        improvement: 'Proactively mention performance trade-offs or alternative approaches to show even deeper mastery.'
       }
     ],
     overallScore: 9,
@@ -67,7 +67,7 @@ function evaluateSession(questions) {
   const evaluatedQuestions = questions.map((q) => {
     const text = q.questionText || '';
     const answer = q.userAnswer || '';
-    
+
     // 1. Length scoring (up to 3 points)
     let lengthScore = 1;
     if (answer.length >= 300) {
@@ -230,7 +230,7 @@ function evaluateSession(questions) {
 /**
  * @desc    Create a new interview session
  * @route   POST /api/interviews
- * @access  Public (for now)
+ * @access  Private
  */
 export const createInterview = async (req, res) => {
   try {
@@ -265,6 +265,7 @@ export const createInterview = async (req, res) => {
 
     if (isDbConnected()) {
       const newInterview = new Interview({
+        userId: req.user._id,
         title,
         role,
         difficulty,
@@ -282,6 +283,7 @@ export const createInterview = async (req, res) => {
       // In-memory Save Fallback
       const newMockInterview = {
         _id: new mongoose.Types.ObjectId().toString(),
+        userId: req.user._id,
         title,
         role,
         difficulty,
@@ -325,14 +327,16 @@ export const createInterview = async (req, res) => {
 /**
  * @desc    Get all interview sessions
  * @route   GET /api/interviews
- * @access  Public (for now)
+ * @access  Private
  */
 export const getInterviews = async (req, res) => {
   try {
     let interviews = [];
     if (isDbConnected()) {
       try {
-        interviews = await Interview.find().sort({ createdAt: -1 });
+        interviews = await Interview.find({
+          userId: req.user._id
+        }).sort({ createdAt: -1 });
       } catch (dbError) {
         console.warn('⚠️ MongoDB error fetching interviews, falling back to mock database:', dbError.message);
         interviews = mockDatabase;
@@ -360,14 +364,17 @@ export const getInterviews = async (req, res) => {
 /**
  * @desc    Get a single interview session by ID
  * @route   GET /api/interviews/:id
- * @access  Public (for now)
+ * @access  Private
  */
 export const getInterviewById = async (req, res) => {
   try {
     const { id } = req.params;
 
     if (isDbConnected() && mongoose.Types.ObjectId.isValid(id)) {
-      const interview = await Interview.findById(id);
+      const interview = await Interview.findOne({
+        _id: id,
+        userId: req.user._id
+      });
       if (interview) {
         return res.status(200).json({
           status: 'success',
@@ -405,7 +412,7 @@ export const getInterviewById = async (req, res) => {
 /**
  * @desc    Update a single interview session (PATCH)
  * @route   PATCH /api/interviews/:id
- * @access  Public (for now)
+ * @access  Private
  */
 export const updateInterview = async (req, res) => {
   try {
@@ -427,7 +434,10 @@ export const updateInterview = async (req, res) => {
     }
 
     if (isDbConnected() && mongoose.Types.ObjectId.isValid(id)) {
-      const interview = await Interview.findById(id);
+      const interview = await Interview.findOne({
+        _id: id,
+        userId: req.user._id
+      });
       if (!interview) {
         return res.status(404).json({
           status: 'fail',
@@ -440,7 +450,7 @@ export const updateInterview = async (req, res) => {
         updatePayload.questions.forEach((qp) => {
           const dbQ = interview.questions.find(
             (q) => (qp._id && q._id.toString() === qp._id.toString()) ||
-                   q.questionText === qp.questionText
+              q.questionText === qp.questionText
           );
           if (dbQ) {
             dbQ.userAnswer = qp.userAnswer ?? dbQ.userAnswer;
@@ -536,14 +546,17 @@ export const updateInterview = async (req, res) => {
 /**
  * @desc    Delete a single interview session by ID
  * @route   DELETE /api/interviews/:id
- * @access  Public (for now)
+ * @access  Private
  */
 export const deleteInterview = async (req, res) => {
   try {
     const { id } = req.params;
 
     if (isDbConnected() && mongoose.Types.ObjectId.isValid(id)) {
-      const deletedInterview = await Interview.findByIdAndDelete(id);
+      const deletedInterview = await Interview.findOneAndDelete({
+        _id: id,
+        userId: req.user._id
+      });
       if (deletedInterview) {
         return res.status(200).json({
           status: 'success',

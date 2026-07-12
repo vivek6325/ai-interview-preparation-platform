@@ -28,8 +28,12 @@ export const generateSession = async (req, res) => {
       throw new Error('Gemini API returned an empty or malformed questions list.');
     }
 
+    console.log("Authenticated User:", req.user);
+    console.log("Saving userId:", req.user._id);
+
     // Create and save a new pending Interview document in MongoDB
     const newInterview = new Interview({
+      userId: req.user._id,
       title: `${role} AI Interview`,
       role,
       difficulty: difficulty.toLowerCase(),
