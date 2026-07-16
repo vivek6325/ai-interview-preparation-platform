@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getInterviews, deleteInterview } from '../../services/api';
 import { useToast } from '../../components/Toast/ToastContext';
 import ConfirmationModal from '../../components/Modal/ConfirmationModal';
@@ -9,14 +9,19 @@ import './History.css';
 function History() {
   const navigate = useNavigate();
   const { addToast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('All');
-  const [difficultyFilter, setDifficultyFilter] = useState('All');
-  const [sortOption, setSortOption] = useState('newest');
+
+  // Extract filters from search parameters
+  const searchTerm = searchParams.get('search') || '';
+  const categoryFilter = searchParams.get('category') || 'All';
+  const difficultyFilter = searchParams.get('difficulty') || 'All';
+  const statusFilter = searchParams.get('status') || 'All';
+  const dateFilter = searchParams.get('date') || 'All';
+  const sortOption = searchParams.get('sort') || 'newest';
 
   // Deletion Modal state
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -40,6 +45,20 @@ function History() {
   useEffect(() => {
     fetchHistory();
   }, []);
+
+  const updateSearchParam = (key, value) => {
+    const newParams = new URLSearchParams(searchParams);
+    if (value && value !== 'All' && value !== '') {
+      newParams.set(key, value);
+    } else {
+      newParams.delete(key);
+    }
+    setSearchParams(newParams);
+  };
+
+  const handleResetFilters = () => {
+    setSearchParams(new URLSearchParams());
+  };
 
   const handleDeleteClick = (id, e) => {
     e.stopPropagation();
@@ -67,47 +86,90 @@ function History() {
   };
 
   // Filter & Sort Logic
-  const filteredInterviews = interviews
-    .filter(item => {
-      const titleMatch = item.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         item.role?.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const topicMatch = categoryFilter === 'All' || 
-                         item.title?.toLowerCase().includes(categoryFilter.toLowerCase()) ||
-                         (categoryFilter === 'DSA' && item.title?.toLowerCase().includes('algorithm'));
+  const filteredInterviews = useMemo(() => {
+    return interviews
+      .filter(item => {
+        const titleLower = item.title?.toLowerCase() || '';
+        const roleLower = item.role?.toLowerCase() || '';
+        const companyLower = item.company?.toLowerCase() || '';
+        const searchLower = searchTerm.toLowerCase();
+        
+        const searchMatch = !searchTerm || 
+                            titleLower.includes(searchLower) || 
+                            roleLower.includes(searchLower) ||
+                            companyLower.includes(searchLower);
+        
+        const topicMatch = categoryFilter === 'All' || 
+                           titleLower.includes(categoryFilter.toLowerCase()) ||
+                           (categoryFilter === 'DSA' && titleLower.includes('algorithm'));
 
-      const diffMatch = difficultyFilter === 'All' || 
-                        item.difficulty?.toLowerCase() === difficultyFilter.toLowerCase();
+        const diffMatch = difficultyFilter === 'All' || 
+                          item.difficulty?.toLowerCase() === difficultyFilter.toLowerCase();
 
-      return titleMatch && topicMatch && diffMatch;
-    })
-    .sort((a, b) => {
-      if (sortOption === 'newest') {
-        return new Date(b.createdAt) - new Date(a.createdAt);
-      }
-      if (sortOption === 'oldest') {
-        return new Date(a.createdAt) - new Date(b.createdAt);
-      }
-      if (sortOption === 'highest') {
-        return (b.overallScore || 0) - (a.overallScore || 0);
-      }
-      if (sortOption === 'lowest') {
-        return (a.overallScore || 0) - (b.overallScore || 0);
-      }
-      return 0;
-    });
+        const statusMatch = statusFilter === 'All' || 
+                            item.status === (statusFilter === 'Completed' ? 'completed' : 'pending');
+
+        const dateMatch = (() => {
+          if (dateFilter === 'All') return true;
+          const createdDate = new Date(item.createdAt);
+          const now = new Date();
+          if (dateFilter === 'Today') {
+            return createdDate.toDateString() === now.toDateString();
+          }
+          if (dateFilter === 'This Week') {
+            const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            return createdDate >= oneWeekAgo;
+          }
+          if (dateFilter === 'This Month') {
+            const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            return createdDate >= oneMonthAgo;
+          }
+          return true;
+        })();
+
+        return searchMatch && topicMatch && diffMatch && statusMatch && dateMatch;
+      })
+      .sort((a, b) => {
+        if (sortOption === 'newest') {
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        }
+        if (sortOption === 'oldest') {
+          return new Date(a.createdAt) - new Date(b.createdAt);
+        }
+        if (sortOption === 'highest') {
+          return (b.overallScore || 0) - (a.overallScore || 0);
+        }
+        if (sortOption === 'lowest') {
+          return (a.overallScore || 0) - (b.overallScore || 0);
+        }
+        if (sortOption === 'az') {
+          return (a.title || '').localeCompare(b.title || '');
+        }
+        if (sortOption === 'za') {
+          return (b.title || '').localeCompare(a.title || '');
+        }
+        return 0;
+      });
+  }, [interviews, searchTerm, categoryFilter, difficultyFilter, statusFilter, dateFilter, sortOption]);
 
   // Calculate statistics
-  const completedSessions = interviews.filter(i => i.status === 'completed');
+  const completedSessions = useMemo(() => {
+    return interviews.filter(i => i.status === 'completed');
+  }, [interviews]);
+
   const totalCompleted = completedSessions.length;
   
-  const averageScore = totalCompleted > 0
-    ? parseFloat((completedSessions.reduce((acc, curr) => acc + (curr.overallScore || 0), 0) / totalCompleted).toFixed(1))
-    : 0;
+  const averageScore = useMemo(() => {
+    return totalCompleted > 0
+      ? parseFloat((completedSessions.reduce((acc, curr) => acc + (curr.overallScore || 0), 0) / totalCompleted).toFixed(1))
+      : 0;
+  }, [completedSessions, totalCompleted]);
 
-  const successRate = totalCompleted > 0
-    ? Math.round((completedSessions.filter(i => (i.overallScore || 0) >= 7).length / totalCompleted) * 100)
-    : 0;
+  const successRate = useMemo(() => {
+    return totalCompleted > 0
+      ? Math.round((completedSessions.filter(i => (i.overallScore || 0) >= 7).length / totalCompleted) * 100)
+      : 0;
+  }, [completedSessions, totalCompleted]);
 
   return (
     <div className="history-page-container">
@@ -157,16 +219,16 @@ function History() {
           <span className="search-icon">🔍</span>
           <input 
             type="text" 
-            placeholder="Search roles or topics..." 
+            placeholder="Search roles, titles..." 
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => updateSearchParam('search', e.target.value)}
           />
         </div>
         
         <div className="filters-wrapper">
           <div className="filter-group">
             <label>Topic</label>
-            <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+            <select value={categoryFilter} onChange={(e) => updateSearchParam('category', e.target.value)}>
               <option value="All">All Topics</option>
               <option value="DSA">DSA</option>
               <option value="Frontend">Frontend</option>
@@ -177,7 +239,7 @@ function History() {
 
           <div className="filter-group">
             <label>Difficulty</label>
-            <select value={difficultyFilter} onChange={(e) => setDifficultyFilter(e.target.value)}>
+            <select value={difficultyFilter} onChange={(e) => updateSearchParam('difficulty', e.target.value)}>
               <option value="All">All Difficulties</option>
               <option value="Easy">Easy</option>
               <option value="Medium">Medium</option>
@@ -186,12 +248,33 @@ function History() {
           </div>
 
           <div className="filter-group">
+            <label>Status</label>
+            <select value={statusFilter} onChange={(e) => updateSearchParam('status', e.target.value)}>
+              <option value="All">All Statuses</option>
+              <option value="Completed">Completed</option>
+              <option value="In Progress">In Progress</option>
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <label>Date Range</label>
+            <select value={dateFilter} onChange={(e) => updateSearchParam('date', e.target.value)}>
+              <option value="All">All Time</option>
+              <option value="Today">Today</option>
+              <option value="This Week">This Week</option>
+              <option value="This Month">This Month</option>
+            </select>
+          </div>
+
+          <div className="filter-group">
             <label>Sort By</label>
-            <select value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
+            <select value={sortOption} onChange={(e) => updateSearchParam('sort', e.target.value)}>
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
               <option value="highest">Highest Score</option>
               <option value="lowest">Lowest Score</option>
+              <option value="az">A → Z</option>
+              <option value="za">Z → A</option>
             </select>
           </div>
         </div>
@@ -382,12 +465,7 @@ function History() {
             <div className="state-icon-wrapper">📦</div>
             <h3>No Interviews Match Criteria</h3>
             <p>We couldn't find any historical sessions matching your selected filters. Try adjusting the dropdowns or search query.</p>
-            <button className="state-btn" onClick={() => {
-              setSearchTerm('');
-              setCategoryFilter('All');
-              setDifficultyFilter('All');
-              setSortOption('newest');
-            }}>Reset Filters</button>
+            <button className="state-btn" onClick={handleResetFilters}>Reset Filters</button>
           </div>
         )}
       </section>

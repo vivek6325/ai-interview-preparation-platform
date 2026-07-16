@@ -5,7 +5,7 @@ import ScoreCard from './components/ScoreCard';
 import MetricsPanel from './components/MetricsPanel';
 import FeedbackGrid from './components/FeedbackGrid';
 import QuestionBreakdown from './components/QuestionBreakdown';
-import { extractErrorMessage } from '../../utils/helpers';
+import { extractErrorMessage, formatDate } from '../../utils/helpers';
 import { downloadInterviewReport } from '../../utils/exportHelper';
 import { useToast } from '../../components/Toast/ToastContext';
 import './Results.css';
@@ -73,6 +73,12 @@ function Results() {
           const technicalDepthScore = Math.min(10, Math.max(1, Math.round((session.overallScore || 0) + 0.4)));
 
           setEvaluationResult({
+            title: session.title || 'Mock Practice Session',
+            role: session.role || 'General Role',
+            difficulty: session.difficulty || 'Medium',
+            status: session.status || 'completed',
+            createdAt: session.createdAt,
+            updatedAt: session.updatedAt,
             overallScore: session.overallScore || 0,
             overallScorePercent: overallScorePercentage,
             grade: session.grade || 'Strong Candidate',
@@ -163,6 +169,42 @@ function Results() {
         <div className="completion-message">
           <h1>Interview Session Completed!</h1>
           <p>Congratulations on finishing your mock practice session. Here is your AI-powered performance analysis.</p>
+        </div>
+      </section>
+
+      {/* Interview Metadata Card */}
+      <section className="results-metadata-panel">
+        <div className="metadata-item">
+          <span className="metadata-label">Practice Title</span>
+          <span className="metadata-value">{evaluationResult.title}</span>
+        </div>
+        <div className="metadata-item">
+          <span className="metadata-label">Practice Topic / Role</span>
+          <span className="metadata-value">{evaluationResult.role}</span>
+        </div>
+        <div className="metadata-item">
+          <span className="metadata-label">Difficulty</span>
+          <span className="metadata-value">
+            <span className={`difficulty-pill ${evaluationResult.difficulty?.toLowerCase()}`}>
+              {evaluationResult.difficulty}
+            </span>
+          </span>
+        </div>
+        <div className="metadata-item">
+          <span className="metadata-label">Status</span>
+          <span className="metadata-value">
+            <span className={`status-tag ${evaluationResult.status}`}>
+              {evaluationResult.status === 'completed' ? 'Completed' : 'Pending'}
+            </span>
+          </span>
+        </div>
+        <div className="metadata-item">
+          <span className="metadata-label">Created Date</span>
+          <span className="metadata-value">{formatDate(evaluationResult.createdAt)}</span>
+        </div>
+        <div className="metadata-item">
+          <span className="metadata-label">Last Updated</span>
+          <span className="metadata-value">{formatDate(evaluationResult.updatedAt)}</span>
         </div>
       </section>
 
