@@ -9,6 +9,7 @@ import Results from './pages/Results/Results';
 import History from './pages/History/History';
 import Register from './pages/Register/Register';
 import Profile from './pages/Profile/Profile';
+import InterviewSession from './pages/InterviewSession/InterviewSession';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import { ToastProvider } from './components/Toast/ToastContext';
 
@@ -71,6 +72,11 @@ function App() {
             <Route path="/profile" element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="/interview-session" element={
+              <ProtectedRoute>
+                <InterviewSession />
               </ProtectedRoute>
             } />
           </Routes>

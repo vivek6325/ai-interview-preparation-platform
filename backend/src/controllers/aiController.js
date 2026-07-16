@@ -1,5 +1,8 @@
 import Interview from '../models/Interview.js';
 import { generateInterviewQuestions, evaluateInterviewAnswers } from '../services/aiService.js';
+import { generateQuestions } from '../services/ai/questionGenerator.js';
+import { generateFeedback } from '../services/ai/feedbackGenerator.js';
+import { analyzeResume } from '../services/ai/resumeAnalyzer.js';
 
 /**
  * Handles creation and dynamic question generation for an interview.
@@ -158,6 +161,84 @@ export const evaluateSession = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: error.message || 'An unexpected error occurred during AI interview evaluation.',
+    });
+  }
+};
+
+/**
+ * Endpoint to generate a set of mock questions
+ * POST /api/ai/questions
+ */
+export const generateQuestionsController = async (req, res) => {
+  try {
+    const { role, experience, difficulty, totalQuestions } = req.body;
+    
+    if (!role || !experience || !difficulty) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'role, experience, and difficulty parameters are required.'
+      });
+    }
+
+    const count = parseInt(totalQuestions, 10) || 5;
+    const questions = generateQuestions(role, experience, difficulty, count);
+    
+    res.status(200).json(questions);
+  } catch (error) {
+    console.error('Error generating questions:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to generate mock questions.'
+    });
+  }
+};
+
+/**
+ * Endpoint to upload resume and return parsed metrics
+ * POST /api/ai/resume
+ */
+export const resumeUploadController = async (req, res) => {
+  try {
+    // Store uploaded file info or fallback if multer was not invoked correctly
+    const filename = req.file ? req.file.filename : 'mock_resume.pdf';
+    const parsedData = analyzeResume(filename);
+
+    res.status(200).json({
+      skills: parsedData.skills,
+      projects: parsedData.projects,
+      experience: parsedData.experience
+    });
+  } catch (error) {
+    console.error('Error processing resume:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to process resume upload.'
+    });
+  }
+};
+
+/**
+ * Endpoint to generate AI feedback for a single answer
+ * POST /api/ai/feedback
+ */
+export const evaluateFeedbackController = async (req, res) => {
+  try {
+    const { question, answer } = req.body;
+
+    if (!question) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'question parameter is required.'
+      });
+    }
+
+    const feedback = generateFeedback(question, answer);
+    res.status(200).json(feedback);
+  } catch (error) {
+    console.error('Error evaluating answer:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to evaluate answer.'
     });
   }
 };
