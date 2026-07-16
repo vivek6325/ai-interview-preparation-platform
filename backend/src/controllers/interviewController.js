@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import Interview from '../models/Interview.js';
 
 // In-memory mock database fallback when MongoDB is offline
-let mockDatabase = [
+export let mockDatabase = [
   {
     _id: 'mock-dsa-id',
     title: 'Data Structures & Algorithms Mock',
