@@ -12,6 +12,7 @@ function History() {
 
   const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [difficultyFilter, setDifficultyFilter] = useState('All');
@@ -21,22 +22,24 @@ function History() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedDeleteId, setSelectedDeleteId] = useState(null);
 
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const response = await getInterviews();
-        const list = response?.data?.interviews || response || [];
-        setInterviews(list);
-      } catch (error) {
-        console.error('Error fetching history:', error);
-        addToast('Failed to load interview history.', 'error');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchHistory = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await getInterviews();
+      const list = response?.data?.interviews || response || [];
+      setInterviews(list);
+    } catch (err) {
+      console.error('Error fetching history:', err);
+      setError(err.message || 'Failed to retrieve your practice history.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchHistory();
-  }, [addToast]);
+  }, []);
 
   const handleDeleteClick = (id, e) => {
     e.stopPropagation();
@@ -106,18 +109,6 @@ function History() {
     ? Math.round((completedSessions.filter(i => (i.overallScore || 0) >= 7).length / totalCompleted) * 100)
     : 0;
 
-  if (loading) {
-    return (
-      <div className="history-page-container">
-        <div className="spinner-container">
-          <div className="spinner"></div>
-          <h3>Retrieving Practice History...</h3>
-          <p>Please stand by while we query the database.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="history-page-container">
       <div className="history-glow-orb history-orb-1"></div>
@@ -133,21 +124,31 @@ function History() {
 
       {/* Quick Stats Panel */}
       <section className="history-stats-row">
-        <div className="history-stat-box">
-          <span className="stat-box-title">Total Completed</span>
-          <span className="stat-box-value">{totalCompleted} Mock Practice{totalCompleted !== 1 && 's'}</span>
-          <span className="stat-box-trend text-green">🗣️ {interviews.filter(i => i.status === 'pending').length} sessions pending</span>
-        </div>
-        <div className="history-stat-box">
-          <span className="stat-box-title">Average Score</span>
-          <span className="stat-box-value">{averageScore} / 10</span>
-          <span className="stat-box-trend text-blue">📈 Equivalent to {Math.round(averageScore * 10)}%</span>
-        </div>
-        <div className="history-stat-box">
-          <span className="stat-box-title">Success Rate (Score &ge; 7)</span>
-          <span className="stat-box-value">{successRate}%</span>
-          <span className="stat-box-trend text-purple">⭐ Target Benchmark is 75%</span>
-        </div>
+        {loading ? (
+          <>
+            <div className="history-stat-box skeleton shimmer" style={{ height: '110px' }}></div>
+            <div className="history-stat-box skeleton shimmer" style={{ height: '110px' }}></div>
+            <div className="history-stat-box skeleton shimmer" style={{ height: '110px' }}></div>
+          </>
+        ) : (
+          <>
+            <div className="history-stat-box">
+              <span className="stat-box-title">Total Completed</span>
+              <span className="stat-box-value">{totalCompleted} Mock Practice{totalCompleted !== 1 && 's'}</span>
+              <span className="stat-box-trend text-green">🗣️ {interviews.filter(i => i.status === 'pending').length} sessions pending</span>
+            </div>
+            <div className="history-stat-box">
+              <span className="stat-box-title">Average Score</span>
+              <span className="stat-box-value">{averageScore} / 10</span>
+              <span className="stat-box-trend text-blue">📈 Equivalent to {Math.round(averageScore * 10)}%</span>
+            </div>
+            <div className="history-stat-box">
+              <span className="stat-box-title">Success Rate (Score &ge; 7)</span>
+              <span className="stat-box-value">{successRate}%</span>
+              <span className="stat-box-trend text-purple">⭐ Target Benchmark is 75%</span>
+            </div>
+          </>
+        )}
       </section>
 
       {/* Search & Filters Toolbar */}
@@ -196,70 +197,186 @@ function History() {
         </div>
       </section>
 
-      {/* History List Grid */}
+      {/* History List Section */}
       <section className="history-list-section">
-        {filteredInterviews.length > 0 ? (
-          <div className="history-table-container">
-            <table className="history-table">
-              <thead>
-                <tr>
-                  <th>Mock Practice Title</th>
-                  <th>Practice Topic / Role</th>
-                  <th>Difficulty</th>
-                  <th>Completed On</th>
-                  <th>Overall Score</th>
-                  <th>Status</th>
-                  <th style={{ textAlign: 'right' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredInterviews.map((item) => (
-                  <tr key={item._id} className="history-row" onClick={() => item.status === 'completed' && handleViewResults(item._id)}>
-                    <td>
-                      <span className="history-item-title">{item.title}</span>
-                    </td>
-                    <td>
-                      <span className="history-item-role">{item.role}</span>
-                    </td>
-                    <td>
-                      <span className={`difficulty-pill ${item.difficulty?.toLowerCase()}`}>
-                        {item.difficulty}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="history-item-date">{formatDate(item.createdAt)}</span>
-                    </td>
-                    <td>
-                      <span className="history-item-score">
-                        {item.status === 'completed' ? `${item.overallScore} / 10` : '—'}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`status-tag ${item.status}`}>
-                        {item.status === 'completed' ? 'Completed' : 'Pending'}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="history-actions-cell" onClick={(e) => e.stopPropagation()}>
-                        {item.status === 'completed' ? (
-                          <button className="btn-table-action view" onClick={() => handleViewResults(item._id)}>
-                            View Report
-                          </button>
-                        ) : (
-                          <button className="btn-table-action start" onClick={() => navigate('/interview', { state: { id: item._id } })}>
-                            Start Mock
-                          </button>
-                        )}
-                        <button className="btn-table-action delete" onClick={(e) => handleDeleteClick(item._id, e)} title="Delete Practice Session">
-                          🗑️
-                        </button>
-                      </div>
-                    </td>
+        {loading ? (
+          <>
+            {/* Desktop Skeleton Table */}
+            <div className="history-table-container">
+              <table className="history-table">
+                <thead>
+                  <tr>
+                    <th>Mock Practice Title</th>
+                    <th>Practice Topic / Role</th>
+                    <th>Difficulty</th>
+                    <th>Status</th>
+                    <th>Overall Score</th>
+                    <th>Created Date</th>
+                    <th>Last Updated Date</th>
+                    <th style={{ textAlign: 'right' }}>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {[...Array(5)].map((_, idx) => (
+                    <tr key={idx} className="skeleton-row">
+                      <td colSpan="8">
+                        <div className="skeleton-line shimmer"></div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {/* Mobile Skeleton Cards */}
+            <div className="history-cards-container">
+              {[...Array(3)].map((_, idx) => (
+                <div key={idx} className="history-mobile-card skeleton shimmer" style={{ height: '220px' }}></div>
+              ))}
+            </div>
+          </>
+        ) : error ? (
+          <div className="state-container error">
+            <div className="state-icon-wrapper">⚠️</div>
+            <h3>Database Connection Failed</h3>
+            <p>{error}</p>
+            <button className="state-btn" onClick={fetchHistory}>Retry Loading</button>
           </div>
+        ) : interviews.length === 0 ? (
+          <div className="state-container">
+            <div className="state-icon-wrapper">📦</div>
+            <h3>No interview history yet.</h3>
+            <p>You haven't taken any AI mock practice interviews. Start your preparation today!</p>
+            <button className="state-btn" onClick={() => navigate('/interview-setup')}>Start Your First Interview</button>
+          </div>
+        ) : filteredInterviews.length > 0 ? (
+          <>
+            {/* Desktop Table View */}
+            <div className="history-table-container">
+              <table className="history-table">
+                <thead>
+                  <tr>
+                    <th>Mock Practice Title</th>
+                    <th>Practice Topic / Role</th>
+                    <th>Difficulty</th>
+                    <th>Status</th>
+                    <th>Overall Score</th>
+                    <th>Created Date</th>
+                    <th>Last Updated Date</th>
+                    <th style={{ textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredInterviews.map((item) => (
+                    <tr key={item._id} className="history-row" onClick={() => item.status === 'completed' && handleViewResults(item._id)}>
+                      <td>
+                        <span className="history-item-title">{item.title}</span>
+                      </td>
+                      <td>
+                        <span className="history-item-role">{item.role}</span>
+                      </td>
+                      <td>
+                        <span className={`difficulty-pill ${item.difficulty?.toLowerCase()}`}>
+                          {item.difficulty}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`status-tag ${item.status}`}>
+                          {item.status === 'completed' ? 'Completed' : 'Pending'}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="history-item-score">
+                          {item.status === 'completed' ? (
+                            item.overallScore !== null && item.overallScore !== undefined ? (
+                              item.overallScore <= 10 ? `${item.overallScore} / 10` : `${item.overallScore}%`
+                            ) : '—'
+                          ) : '—'}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="history-item-date">{formatDate(item.createdAt)}</span>
+                      </td>
+                      <td>
+                        <span className="history-item-date">{formatDate(item.updatedAt)}</span>
+                      </td>
+                      <td>
+                        <div className="history-actions-cell" onClick={(e) => e.stopPropagation()}>
+                          {item.status === 'completed' ? (
+                            <button className="btn-table-action view" onClick={() => handleViewResults(item._id)}>
+                              View Report
+                            </button>
+                          ) : (
+                            <button className="btn-table-action start" onClick={() => navigate('/interview', { state: { id: item._id } })}>
+                              Continue
+                            </button>
+                          )}
+                          <button className="btn-table-action delete" onClick={(e) => handleDeleteClick(item._id, e)} title="Delete Practice Session">
+                            🗑️
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards View */}
+            <div className="history-cards-container">
+              {filteredInterviews.map((item) => (
+                <div key={item._id} className="history-mobile-card" onClick={() => item.status === 'completed' && handleViewResults(item._id)}>
+                  <div className="card-header">
+                    <span className="card-title">{item.title}</span>
+                    <span className={`status-tag ${item.status}`}>
+                      {item.status === 'completed' ? 'Completed' : 'Pending'}
+                    </span>
+                  </div>
+                  <div className="card-body">
+                    <div className="card-info-row">
+                      <span className="info-label">Role:</span>
+                      <span className="info-value">{item.role}</span>
+                    </div>
+                    <div className="card-info-row">
+                      <span className="info-label">Difficulty:</span>
+                      <span className={`difficulty-pill ${item.difficulty?.toLowerCase()}`}>{item.difficulty}</span>
+                    </div>
+                    <div className="card-info-row">
+                      <span className="info-label">Score:</span>
+                      <span className="info-value score-highlight">
+                        {item.status === 'completed' ? (
+                          item.overallScore !== null && item.overallScore !== undefined ? (
+                            item.overallScore <= 10 ? `${item.overallScore} / 10` : `${item.overallScore}%`
+                          ) : '—'
+                        ) : '—'}
+                      </span>
+                    </div>
+                    <div className="card-info-row">
+                      <span className="info-label">Created:</span>
+                      <span className="info-value">{formatDate(item.createdAt)}</span>
+                    </div>
+                    <div className="card-info-row">
+                      <span className="info-label">Updated:</span>
+                      <span className="info-value">{formatDate(item.updatedAt)}</span>
+                    </div>
+                  </div>
+                  <div className="card-actions" onClick={(e) => e.stopPropagation()}>
+                    {item.status === 'completed' ? (
+                      <button className="btn-card-action view" onClick={() => handleViewResults(item._id)}>
+                        View Report
+                      </button>
+                    ) : (
+                      <button className="btn-card-action start" onClick={() => navigate('/interview', { state: { id: item._id } })}>
+                        Continue
+                      </button>
+                    )}
+                    <button className="btn-card-action delete" onClick={(e) => handleDeleteClick(item._id, e)}>
+                      🗑️ Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         ) : (
           <div className="state-container">
             <div className="state-icon-wrapper">📦</div>
