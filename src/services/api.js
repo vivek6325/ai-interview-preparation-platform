@@ -191,3 +191,11 @@ export async function evaluateAIInterview(interviewId, questions) {
   });
 }
 
+/**
+ * Fetches dashboard analytics.
+ */
+export async function getDashboardAnalytics() {
+  return await apiRequest('/analytics/dashboard');
+}
+
+

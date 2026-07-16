@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { interviewCategories } from '../../constants';
-import { getInterviews, deleteInterview } from '../../services/api';
+import { getDashboardAnalytics, deleteInterview } from '../../services/api';
 import { useToast } from '../../components/Toast/ToastContext';
 import ConfirmationModal from '../../components/Modal/ConfirmationModal';
 import { formatDate } from '../../utils/helpers';
@@ -12,12 +12,12 @@ import './Dashboard.css';
  * Dashboard Component
  * 
  * Renders user prep analytics summary and cards representing target roles.
- * Fetches real interview sessions from the backend on load.
+ * Fetches real interview session analytics from the backend on load.
  */
 function Dashboard() {
   const navigate = useNavigate();
   const { addToast } = useToast();
-  const [fetchedInterviews, setFetchedInterviews] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showAnalytics, setShowAnalytics] = useState(true);
@@ -39,14 +39,14 @@ function Dashboard() {
     let active = true;
     async function loadDashboardData() {
       try {
-        const response = await getInterviews();
-        const list = response?.data?.interviews || response || [];
+        const response = await getDashboardAnalytics();
+        const data = response?.data || response;
         if (active) {
-          setFetchedInterviews(list);
+          setAnalytics(data);
           setError('');
         }
       } catch (err) {
-        console.error('Error loading interviews:', err);
+        console.error('Error loading dashboard analytics:', err);
         if (active) {
           setError(err.message || 'Failed to connect to the backend server.');
         }
@@ -63,26 +63,36 @@ function Dashboard() {
   }, [refreshTrigger]);
 
   const completedList = useMemo(() => {
-    return fetchedInterviews.filter(i => i.status === 'completed');
-  }, [fetchedInterviews]);
+    return (analytics?.recentInterviews || []).filter(i => i.status === 'completed');
+  }, [analytics]);
 
   const stats = useMemo(() => {
-    if (completedList.length === 0) {
-      return {
-        totalCompleted: 0,
-        avgScore: 0,
-        strongestTopic: 'None',
-        weakestTopic: 'None',
-        totalPracticeTime: 0,
-        trend: 'Complete a mock practice to start tracking'
-      };
+    const completedCount = analytics?.completedInterviews || 0;
+    const avgScoreRaw = analytics?.averageScore || 0;
+    const maxScoreRaw = analytics?.highestScore || 0;
+    const monthlyCount = analytics?.monthlyInterviews || 0;
+    const totalCount = analytics?.totalInterviews || 0;
+
+    const recentCompleted = (analytics?.recentInterviews || []).filter(i => i.status === 'completed');
+    let trend = 'Complete a mock practice to start tracking';
+    if (recentCompleted.length > 1) {
+      const sortedByDate = [...recentCompleted].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      const lastScore = sortedByDate[sortedByDate.length - 1].overallScore || 0;
+      const prevScore = sortedByDate[sortedByDate.length - 2].overallScore || 0;
+      const diff = lastScore - prevScore;
+      if (diff > 0) {
+        trend = `Up +${diff.toFixed(1)} score last session`;
+      } else if (diff < 0) {
+        trend = `Down -${Math.abs(diff).toFixed(1)} score last session`;
+      } else {
+        trend = 'Maintained last score';
+      }
+    } else if (recentCompleted.length === 1) {
+      trend = 'First milestone unlocked';
     }
 
-    const totalScores = completedList.reduce((sum, item) => sum + (item.overallScore || 0), 0);
-    const avg = parseFloat((totalScores / completedList.length).toFixed(1));
-    
     const topicScores = {};
-    completedList.forEach(item => {
+    recentCompleted.forEach(item => {
       const topic = item.title?.replace(' Mock Practice', '').replace(' Mock', '') || 'Other';
       if (!topicScores[topic]) {
         topicScores[topic] = [];
@@ -90,8 +100,8 @@ function Dashboard() {
       topicScores[topic].push(item.overallScore || 0);
     });
     
-    let strongest = 'N/A';
-    let weakest = 'N/A';
+    let strongest = 'None';
+    let weakest = 'None';
     let maxAvg = -1;
     let minAvg = 11;
     
@@ -106,35 +116,19 @@ function Dashboard() {
         weakest = topic;
       }
     });
-    
-    const practiceTime = completedList.length * 5;
-    
-    let trend;
-    if (completedList.length > 1) {
-      const sortedByDate = [...completedList].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-      const lastScore = sortedByDate[sortedByDate.length - 1].overallScore || 0;
-      const prevScore = sortedByDate[sortedByDate.length - 2].overallScore || 0;
-      const diff = lastScore - prevScore;
-      if (diff > 0) {
-        trend = `Up +${diff.toFixed(1)} score last session`;
-      } else if (diff < 0) {
-        trend = `Down -${Math.abs(diff).toFixed(1)} score last session`;
-      } else {
-        trend = 'Maintained last score';
-      }
-    } else {
-      trend = 'First milestone unlocked';
-    }
 
     return {
-      totalCompleted: completedList.length,
-      avgScore: avg,
+      totalCompleted: completedCount,
+      totalInterviews: totalCount,
+      avgScore: avgScoreRaw,
+      highestScore: maxScoreRaw,
+      monthlyInterviews: monthlyCount,
+      totalPracticeTime: completedCount * 5,
       strongestTopic: strongest,
       weakestTopic: weakest,
-      totalPracticeTime: practiceTime,
       trend
     };
-  }, [completedList]);
+  }, [analytics]);
 
   // Handle starting a specific mock interview session
   const handleStartMock = (categoryName) => {
@@ -446,6 +440,14 @@ function Dashboard() {
 
       <section className="stats-grid">
         <div className="stat-card">
+          <span className="stat-icon">📋</span>
+          <div className="stat-info">
+            <span className="stat-label">Total Sessions</span>
+            <span className="stat-value">{stats.totalInterviews} Mock{stats.totalInterviews !== 1 && 's'}</span>
+          </div>
+        </div>
+
+        <div className="stat-card">
           <span className="stat-icon">✅</span>
           <div className="stat-info">
             <span className="stat-label">Interviews Completed</span>
@@ -456,32 +458,24 @@ function Dashboard() {
         <div className="stat-card">
           <span className="stat-icon">📈</span>
           <div className="stat-info">
-            <span className="stat-label">Average Rating Score</span>
-            <span className="stat-value">{stats.avgScore > 0 ? `${stats.avgScore}/10` : '—'}</span>
+            <span className="stat-label">Average Score</span>
+            <span className="stat-value">{stats.avgScore > 0 ? `${stats.avgScore}%` : '—'}</span>
           </div>
         </div>
 
         <div className="stat-card">
-          <span className="stat-icon">⏳</span>
+          <span className="stat-icon">🏆</span>
           <div className="stat-info">
-            <span className="stat-label">Total Practice Time</span>
-            <span className="stat-value">{stats.totalPracticeTime} min{stats.totalPracticeTime !== 1 && 's'}</span>
+            <span className="stat-label">Highest Score</span>
+            <span className="stat-value">{stats.highestScore > 0 ? `${stats.highestScore}%` : '—'}</span>
           </div>
         </div>
 
         <div className="stat-card">
-          <span className="stat-icon">🎯</span>
+          <span className="stat-icon">📅</span>
           <div className="stat-info">
-            <span className="stat-label">Strongest Domain</span>
-            <span className="stat-value" style={{ fontSize: '1.25rem', marginTop: '0.45rem' }}>{stats.strongestTopic}</span>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <span className="stat-icon">📉</span>
-          <div className="stat-info">
-            <span className="stat-label">Weakest Domain</span>
-            <span className="stat-value" style={{ fontSize: '1.25rem', marginTop: '0.45rem' }}>{stats.weakestTopic}</span>
+            <span className="stat-label">This Month</span>
+            <span className="stat-value">{stats.monthlyInterviews} Practice{stats.monthlyInterviews !== 1 && 's'}</span>
           </div>
         </div>
 
@@ -576,7 +570,7 @@ function Dashboard() {
       {/* Recent Practice Sessions (List/Table of Interviews) */}
       <section className="recent-sessions-section" style={{ marginTop: '4rem' }}>
         <h2>Recent Practice Sessions</h2>
-        {fetchedInterviews.length > 0 ? (
+        {(analytics?.recentInterviews || []).length > 0 ? (
           <div className="history-table-container">
             <table className="history-table">
               <thead>
@@ -591,7 +585,7 @@ function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {fetchedInterviews.slice(0, 5).map((item) => (
+                {analytics.recentInterviews.map((item) => (
                   <tr key={item._id} className="history-row" onClick={() => item.status === 'completed' && navigate(`/results?id=${item._id}`)}>
                     <td>
                       <span className="history-item-title">{item.title}</span>
@@ -609,7 +603,11 @@ function Dashboard() {
                     </td>
                     <td>
                       <span className="history-item-score">
-                        {item.status === 'completed' ? `${item.overallScore} / 10` : '—'}
+                        {item.status === 'completed' ? (
+                          item.overallScore !== null && item.overallScore !== undefined ? (
+                            item.overallScore <= 10 ? `${item.overallScore} / 10` : `${item.overallScore}%`
+                          ) : '—'
+                        ) : '—'}
                       </span>
                     </td>
                     <td>
@@ -641,8 +639,9 @@ function Dashboard() {
         ) : (
           <div className="state-container" style={{ margin: '1.5rem auto' }}>
             <div className="state-icon-wrapper">📦</div>
-            <h3>No Practice Records Found</h3>
-            <p>Your database history is currently empty. Choose an interview domain below to start your first session!</p>
+            <h3>No Interviews Yet</h3>
+            <p>Your practice history is empty. Start your preparation by taking your first mock interview!</p>
+            <button className="state-btn" onClick={() => navigate('/interview-setup')}>Start First Interview</button>
           </div>
         )}
       </section>
