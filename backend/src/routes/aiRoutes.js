@@ -6,7 +6,8 @@ import {
   evaluateSession,
   generateQuestionsController,
   resumeUploadController,
-  evaluateFeedbackController
+  evaluateFeedbackController,
+  generateInterviewReportController
 } from '../controllers/aiController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -62,5 +63,12 @@ router.post('/resume', protect, upload.single('resume'), resumeUploadController)
  * Access: Private
  */
 router.post('/feedback', protect, evaluateFeedbackController);
+
+/**
+ * Route: POST /api/ai/interview-report
+ * Description: Generates a comprehensive hiring scorecard overall report
+ * Access: Private
+ */
+router.post('/interview-report', protect, generateInterviewReportController);
 
 export default router;

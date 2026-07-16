@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { generateQuestions, uploadResume, generateFeedback } from '../../services/aiService';
+import { generateQuestions, uploadResume, evaluateAnswer, generateInterviewReport } from '../../services/aiService';
+import { createInterview, updateInterview } from '../../services/api';
 import { useToast } from '../../components/Toast/ToastContext';
 import Timer from '../../components/interview/Timer';
 import ProgressBar from '../../components/interview/ProgressBar';
@@ -28,10 +29,14 @@ function InterviewSession() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({}); // { [questionId]: answerText }
   
+  // Database persistence state
+  const [interviewId, setInterviewId] = useState(null);
+  const [parsedResumeDetails, setParsedResumeDetails] = useState(null);
+
   // Feedback Metrics State
   const [evaluationError, setEvaluationError] = useState('');
   const [overallScore, setOverallScore] = useState(0);
-  const [overallFeedback, setOverallFeedback] = useState([]); // Array of string insights
+  const [overallReport, setOverallReport] = useState(null);
   const [individualFeedback, setIndividualFeedback] = useState({}); // { [questionId]: feedbackObject }
 
   // 1. Resume Auto-fill trigger
@@ -50,6 +55,7 @@ function InterviewSession() {
       const response = await uploadResume(formData);
       setResumeSkills(response.skills || []);
       setExperience(response.experience || '1-3 Years');
+      setParsedResumeDetails(response);
       
       // Auto-fill role if resume contains matches
       if (response.skills && response.skills.length > 0) {
@@ -69,10 +75,33 @@ function InterviewSession() {
   const handleStartInterview = async () => {
     setSessionStatus('loading_questions');
     try {
-      const questionList = await generateQuestions(role, experience, difficulty, totalQuestions);
+      const questionList = await generateQuestions(role, experience, difficulty, totalQuestions, parsedResumeDetails);
       setQuestions(questionList);
       setAnswers({});
       setCurrentIndex(0);
+      
+      // Create a pending session record in MongoDB
+      const interviewRes = await createInterview({
+        title: `${role} AI Interview`,
+        role,
+        difficulty: difficulty.toLowerCase(),
+        status: 'pending',
+        questions: questionList.map(q => ({
+          questionText: q.question,
+          userAnswer: '',
+          score: null,
+          feedback: '',
+          strength: '',
+          improvement: '',
+          topic: q.topic || 'General',
+          expectedAnswerPoints: q.expectedAnswerPoints || []
+        })),
+        resumeSummary: parsedResumeDetails
+      });
+      
+      const savedId = interviewRes?.data?._id || interviewRes?._id;
+      setInterviewId(savedId);
+
       setSessionStatus('active');
       addToast('Mock questions generated. Good luck!', 'success');
     } catch (err) {
@@ -123,33 +152,43 @@ function InterviewSession() {
       // Iterate and fetch feedback for each answered question sequentially
       for (const q of questions) {
         const answerText = answers[q.id] || '';
-        const feedbackRes = await generateFeedback(q.question, answerText);
+        const expectedPoints = q.expectedAnswerPoints || [];
+        const feedbackRes = await evaluateAnswer(q.question, answerText, expectedPoints);
         feedbackMap[q.id] = feedbackRes;
-        scoreSum += feedbackRes.score || 0;
+        // score is evaluated out of 10
+        scoreSum += feedbackRes.overallScore || feedbackRes.score || 0;
       }
 
-      const avgScore = parseFloat((scoreSum / questions.length).toFixed(1));
-      setOverallScore(avgScore);
       setIndividualFeedback(feedbackMap);
 
-      // Derive mock aggregate insights based on overall score
-      if (avgScore >= 8) {
-        setOverallFeedback([
-          "Strong Candidate: Displays solid systems thinking and accurate definitions.",
-          "Great Communication: Answer structures are coherent and complete."
-        ]);
-      } else if (avgScore >= 6) {
-        setOverallFeedback([
-          "Capable Professional: Answers hit major parameters but lacks deep architectural trade-offs.",
-          "Suggestion: Practice writing out code examples for complex logic blocks."
-        ]);
-      } else {
-        setOverallFeedback([
-          "Needs Development: Answer content density was thin or incomplete.",
-          "Suggestion: Spend more time reviewing theoretical foundations and algorithms."
-        ]);
+      // Save intermediate progress back to Mongoose
+      const formattedQuestions = questions.map(q => {
+        const ans = answers[q.id] || '';
+        const fb = feedbackMap[q.id] || {};
+        return {
+          questionText: q.question,
+          userAnswer: ans,
+          score: fb.overallScore || fb.score || 0,
+          feedback: fb.suggestions?.join(" ") || '',
+          strength: fb.strengths?.join(" ") || '',
+          improvement: fb.weaknesses?.join(" ") || '',
+          topic: q.topic || 'General',
+          expectedAnswerPoints: q.expectedAnswerPoints || []
+        };
+      });
+
+      if (interviewId) {
+        await updateInterview(interviewId, {
+          questions: formattedQuestions
+        });
       }
 
+      // Generate the comprehensive overall interview report card
+      const reportRes = await generateInterviewReport(interviewId, role, difficulty, formattedQuestions);
+      const report = reportRes?.data?.report || reportRes?.report || reportRes;
+
+      setOverallReport(report);
+      setOverallScore(report.overallScore);
       setSessionStatus('finished');
       addToast('AI performance analysis complete!', 'success');
     } catch (err) {
@@ -166,6 +205,9 @@ function InterviewSession() {
     setCurrentIndex(0);
     setUploadedResumeName('');
     setResumeSkills([]);
+    setInterviewId(null);
+    setOverallReport(null);
+    setParsedResumeDetails(null);
   };
 
   return (
@@ -353,14 +395,57 @@ function InterviewSession() {
                 </div>
                 
                 <div className="insights-panel text-left">
-                  <h3>AI Diagnostic Insights</h3>
-                  <ul className="insights-list">
-                    {overallFeedback.map((insight, idx) => (
-                      <li key={idx}>⚡ {insight}</li>
+                  <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>Hiring Recommendation</h3>
+                  <div className="hiring-verdict" style={{ background: 'rgba(99, 102, 241, 0.06)', borderLeft: '4px solid var(--primary)', padding: '0.8rem 1.25rem', borderRadius: '8px', fontSize: '0.98rem', color: 'var(--text-primary)', fontWeight: '600' }}>
+                    💡 {overallReport?.hiringRecommendation || "No recommendation summary generated."}
+                  </div>
+                  <div className="subscores-row" style={{ marginTop: '1.25rem', display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+                    <div className="subscore-metric" style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
+                      <strong>Technical Capability:</strong> <span style={{ color: 'var(--accent)', fontWeight: '750' }}>{overallReport?.technicalRating || 0} / 10</span>
+                    </div>
+                    <div className="subscore-metric" style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
+                      <strong>Communication:</strong> <span style={{ color: 'var(--success)', fontWeight: '750' }}>{overallReport?.communicationRating || 0} / 10</span>
+                    </div>
+                    <div className="subscore-metric" style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
+                      <strong>Confidence:</strong> <span style={{ color: '#c084fc', fontWeight: '750' }}>{overallReport?.confidenceRating || 0} / 10</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Highlights split lists */}
+              <div className="fb-bullets-row" style={{ marginBottom: '2.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                <div className="bullet-col strength" style={{ background: 'rgba(16, 185, 129, 0.02)', padding: '1.75rem', borderRadius: '20px', border: '1px solid rgba(16, 185, 129, 0.12)' }}>
+                  <h3 style={{ fontSize: '1.20rem', color: 'var(--success)', marginBottom: '1rem', fontWeight: '800' }}>Top Strengths</h3>
+                  <ul style={{ paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {overallReport?.topStrengths?.map((s, idx) => (
+                      <li key={idx} style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>✓ {s}</li>
+                    ))}
+                  </ul>
+                </div>
+                
+                <div className="bullet-col weakness" style={{ background: 'rgba(239, 68, 68, 0.02)', padding: '1.75rem', borderRadius: '20px', border: '1px solid rgba(239, 68, 68, 0.12)' }}>
+                  <h3 style={{ fontSize: '1.20rem', color: '#f87171', marginBottom: '1rem', fontWeight: '800' }}>Areas for Improvement</h3>
+                  <ul style={{ paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {overallReport?.improvementAreas?.map((w, idx) => (
+                      <li key={idx} style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>✗ {w}</li>
                     ))}
                   </ul>
                 </div>
               </div>
+
+              {overallReport?.recommendedTopics && overallReport.recommendedTopics.length > 0 && (
+                <div className="recommended-topics-box" style={{ marginBottom: '2.5rem', background: 'rgba(255, 255, 255, 0.01)', border: '1px solid var(--border)', padding: '1.5rem', borderRadius: '16px', textAlign: 'left' }}>
+                  <strong style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.75rem' }}>Recommended Topics for Further Study:</strong>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {overallReport.recommendedTopics.map((topic, idx) => (
+                      <span key={idx} className="skill-pill" style={{ background: 'rgba(99, 102, 241, 0.08)', color: '#a5b4fc', border: '1px solid rgba(99, 102, 241, 0.15)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem' }}>
+                        {topic}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Question list breakdown */}
               <div className="detailed-breakdown-section">
@@ -372,7 +457,7 @@ function InterviewSession() {
                       <div key={q.id} className="question-fb-card">
                         <div className="q-fb-header">
                           <h4>Question {q.id}: {q.question}</h4>
-                          <span className="score-badge">Score: {fb.score || 0} / 10</span>
+                          <span className="score-badge">Score: {fb.overallScore || fb.score || 0} / 10</span>
                         </div>
                         
                         <div className="q-fb-body">

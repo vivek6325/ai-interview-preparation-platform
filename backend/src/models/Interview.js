@@ -36,6 +36,15 @@ const QuestionSchema = new mongoose.Schema({
     max: [100, 'Score cannot exceed 100'],
     default: null,
   },
+  topic: {
+    type: String,
+    default: '',
+    trim: true,
+  },
+  expectedAnswerPoints: {
+    type: [String],
+    default: [],
+  },
 });
 
 /**
@@ -133,6 +142,14 @@ const InterviewSchema = new mongoose.Schema(
     improvements: {
       type: [String],
       default: [],
+    },
+    resumeSummary: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
+    overallReport: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
     },
   },
   {

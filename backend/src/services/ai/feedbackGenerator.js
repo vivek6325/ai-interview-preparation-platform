@@ -1,50 +1,90 @@
+import { callGeminiModel } from './geminiClient.js';
+import { buildFeedbackPrompt, buildInterviewReportPrompt } from './prompts.js';
+
 /**
- * Mock AI Feedback Generator Service
- * Returns detailed evaluation scores, strengths, weaknesses, and suggestions.
+ * Validates the schema of the feedback returned by Gemini.
  */
+function validateFeedbackSchema(feedback) {
+  if (!feedback || typeof feedback !== 'object') return false;
+  return (
+    typeof feedback.overallScore === 'number' &&
+    typeof feedback.technicalAccuracy === 'number' &&
+    typeof feedback.communication === 'number' &&
+    Array.isArray(feedback.missingConcepts) &&
+    Array.isArray(feedback.strengths) &&
+    Array.isArray(feedback.weaknesses) &&
+    Array.isArray(feedback.suggestions) &&
+    typeof feedback.difficultyAssessment === 'string'
+  );
+}
 
-export const generateFeedback = (question, answer) => {
-  const ans = (answer || '').trim();
+/**
+ * Validates the schema of the overall interview report returned by Gemini.
+ */
+function validateInterviewReportSchema(report) {
+  if (!report || typeof report !== 'object') return false;
+  return (
+    typeof report.overallScore === 'number' &&
+    typeof report.technicalRating === 'number' &&
+    typeof report.communicationRating === 'number' &&
+    typeof report.confidenceRating === 'number' &&
+    Array.isArray(report.topStrengths) &&
+    Array.isArray(report.improvementAreas) &&
+    Array.isArray(report.recommendedTopics) &&
+    typeof report.hiringRecommendation === 'string'
+  );
+}
+
+/**
+ * Evaluates candidate response using the Gemini model.
+ */
+export const generateFeedback = async (question, answer, expectedAnswerPoints) => {
+  const prompt = buildFeedbackPrompt(question, answer, expectedAnswerPoints);
   
-  if (ans.length === 0) {
-    return {
-      score: 1,
-      strengths: ["None"],
-      weaknesses: ["The answer field was left completely empty."],
-      suggestions: ["Provide a complete conceptual overview of the asked topic including any code context."]
-    };
+  let result = null;
+  let attempts = 0;
+  
+  while (attempts < 2) {
+    try {
+      attempts++;
+      result = await callGeminiModel(prompt, true);
+      
+      if (validateFeedbackSchema(result)) {
+        return result;
+      }
+      console.warn(`Attempt ${attempts} returned invalid JSON schema for response feedback. Retrying...`);
+    } catch (err) {
+      if (attempts >= 2) throw err;
+      console.warn(`Attempt ${attempts} failed: ${err.message}. Retrying...`);
+    }
   }
+  
+  throw new Error('Gemini failed to return valid JSON matching the response feedback schema.');
+};
 
-  if (ans.length < 30) {
-    return {
-      score: 4,
-      strengths: ["Attempted to answer the question briefly."],
-      weaknesses: ["Answer lacks technical depth, structural details, and clarity."],
-      suggestions: ["Try using the STAR method (Situation, Task, Action, Result) to frame your technical answers."]
-    };
+/**
+ * Evaluates an entire interview session to generate a comprehensive hiring scorecard.
+ */
+export const generateInterviewReport = async (interviewData) => {
+  const prompt = buildInterviewReportPrompt(interviewData);
+  
+  let result = null;
+  let attempts = 0;
+  
+  while (attempts < 2) {
+    try {
+      attempts++;
+      result = await callGeminiModel(prompt, true);
+      
+      if (validateInterviewReportSchema(result)) {
+        return result;
+      }
+      console.warn(`Attempt ${attempts} returned invalid JSON schema for overall report. Retrying...`);
+    } catch (err) {
+      if (attempts >= 2) throw err;
+      console.warn(`Attempt ${attempts} failed: ${err.message}. Retrying...`);
+    }
   }
-
-  // High-density responses
-  let score = 7;
-  if (ans.length > 200) {
-    score = 9;
-  } else if (ans.length > 100) {
-    score = 8;
-  }
-
-  return {
-    score,
-    strengths: [
-      "Demonstrates clear comprehension of the core computer science concepts.",
-      "Uses appropriate terminology and structured sequencing in the explanation."
-    ],
-    weaknesses: [
-      "Could elaborate more on performance trade-offs and complexity (Time/Space).",
-      "Lacks concrete real-world usage scenarios or personal codebase examples."
-    ],
-    suggestions: [
-      "Incorporate code snippets or diagrams when describing data flow architectures.",
-      "Expand on how you would configure unit testing and mock dependencies for this system."
-    ]
-  };
+  
+  throw new Error('Gemini failed to return valid JSON matching the overall interview report schema.');
 };

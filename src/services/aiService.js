@@ -43,10 +43,10 @@ async function aiRequest(endpoint, options = {}) {
  * Request mock interview questions from the backend.
  * POST /api/ai/questions
  */
-export async function generateQuestions(role, experience, difficulty, totalQuestions = 5) {
+export async function generateQuestions(role, experience, difficulty, totalQuestions = 5, parsedResume = null) {
   return await aiRequest('/ai/questions', {
     method: 'POST',
-    body: { role, experience, difficulty, totalQuestions }
+    body: { role, experience, difficulty, totalQuestions, parsedResume }
   });
 }
 
@@ -65,9 +65,20 @@ export async function uploadResume(formData) {
  * Request feedback score and suggestions for a candidate answer.
  * POST /api/ai/feedback
  */
-export async function generateFeedback(question, answer) {
+export async function evaluateAnswer(question, answer, expectedAnswerPoints = []) {
   return await aiRequest('/ai/feedback', {
     method: 'POST',
-    body: { question, answer }
+    body: { question, answer, expectedAnswerPoints }
+  });
+}
+
+/**
+ * Generates the aggregate mock interview scorecard report card.
+ * POST /api/ai/interview-report
+ */
+export async function generateInterviewReport(interviewId, role, difficulty, questions = []) {
+  return await aiRequest('/ai/interview-report', {
+    method: 'POST',
+    body: { interviewId, role, difficulty, questions }
   });
 }

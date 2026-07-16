@@ -1,7 +1,7 @@
 import Interview from '../models/Interview.js';
 import { generateInterviewQuestions, evaluateInterviewAnswers } from '../services/aiService.js';
-import { generateQuestions } from '../services/ai/questionGenerator.js';
-import { generateFeedback } from '../services/ai/feedbackGenerator.js';
+import { generateQuestions, generateQuestionsFromResume } from '../services/ai/questionGenerator.js';
+import { generateFeedback, generateInterviewReport } from '../services/ai/feedbackGenerator.js';
 import { analyzeResume } from '../services/ai/resumeAnalyzer.js';
 
 /**
@@ -166,12 +166,12 @@ export const evaluateSession = async (req, res) => {
 };
 
 /**
- * Endpoint to generate a set of mock questions
+ * Endpoint to generate a set of questions
  * POST /api/ai/questions
  */
 export const generateQuestionsController = async (req, res) => {
   try {
-    const { role, experience, difficulty, totalQuestions } = req.body;
+    const { role, experience, difficulty, totalQuestions, parsedResume } = req.body;
     
     if (!role || !experience || !difficulty) {
       return res.status(400).json({
@@ -181,14 +181,20 @@ export const generateQuestionsController = async (req, res) => {
     }
 
     const count = parseInt(totalQuestions, 10) || 5;
-    const questions = generateQuestions(role, experience, difficulty, count);
+    let questions;
+
+    if (parsedResume && (parsedResume.skills || parsedResume.projects)) {
+      questions = await generateQuestionsFromResume(parsedResume, count);
+    } else {
+      questions = await generateQuestions(role, experience, difficulty, count);
+    }
     
     res.status(200).json(questions);
   } catch (error) {
     console.error('Error generating questions:', error);
     res.status(500).json({
       status: 'error',
-      message: 'Failed to generate mock questions.'
+      message: error.message || 'Failed to generate questions.'
     });
   }
 };
@@ -199,20 +205,27 @@ export const generateQuestionsController = async (req, res) => {
  */
 export const resumeUploadController = async (req, res) => {
   try {
-    // Store uploaded file info or fallback if multer was not invoked correctly
-    const filename = req.file ? req.file.filename : 'mock_resume.pdf';
-    const parsedData = analyzeResume(filename);
+    if (!req.file) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'No resume file uploaded.'
+      });
+    }
+    
+    const parsedData = await analyzeResume(req.file.path);
 
     res.status(200).json({
       skills: parsedData.skills,
       projects: parsedData.projects,
+      education: parsedData.education,
+      technologies: parsedData.technologies,
       experience: parsedData.experience
     });
   } catch (error) {
     console.error('Error processing resume:', error);
     res.status(500).json({
       status: 'error',
-      message: 'Failed to process resume upload.'
+      message: error.message || 'Failed to process resume upload.'
     });
   }
 };
@@ -223,7 +236,7 @@ export const resumeUploadController = async (req, res) => {
  */
 export const evaluateFeedbackController = async (req, res) => {
   try {
-    const { question, answer } = req.body;
+    const { question, answer, expectedAnswerPoints } = req.body;
 
     if (!question) {
       return res.status(400).json({
@@ -232,13 +245,79 @@ export const evaluateFeedbackController = async (req, res) => {
       });
     }
 
-    const feedback = generateFeedback(question, answer);
+    const feedback = await generateFeedback(question, answer, expectedAnswerPoints);
     res.status(200).json(feedback);
   } catch (error) {
     console.error('Error evaluating answer:', error);
     res.status(500).json({
       status: 'error',
-      message: 'Failed to evaluate answer.'
+      message: error.message || 'Failed to evaluate answer.'
+    });
+  }
+};
+
+/**
+ * Endpoint to generate comprehensive hiring scorecard report
+ * POST /api/ai/interview-report
+ */
+export const generateInterviewReportController = async (req, res) => {
+  try {
+    const { interviewId, role, difficulty, questions } = req.body;
+    
+    let targetId = interviewId;
+    let interviewDoc = null;
+    let sessionData = { role, difficulty, questions };
+
+    if (targetId) {
+      interviewDoc = await Interview.findById(targetId);
+      if (interviewDoc) {
+        sessionData = {
+          role: interviewDoc.role,
+          difficulty: interviewDoc.difficulty,
+          questions: interviewDoc.questions.map(q => ({
+            questionText: q.questionText,
+            userAnswer: q.userAnswer || 'No response provided.',
+            score: q.score,
+            feedback: q.feedback,
+            strength: q.strength,
+            improvement: q.improvement
+          }))
+        };
+      }
+    }
+
+    if (!sessionData.questions || sessionData.questions.length === 0) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Interview questions and answers are required.'
+      });
+    }
+
+    const report = await generateInterviewReport(sessionData);
+
+    // Save report parameters back to Mongoose
+    if (interviewDoc) {
+      interviewDoc.overallReport = report;
+      interviewDoc.overallScore = report.overallScore;
+      interviewDoc.grade = report.hiringRecommendation;
+      interviewDoc.strengths = report.topStrengths;
+      interviewDoc.improvements = report.improvementAreas;
+      interviewDoc.status = 'completed';
+      await interviewDoc.save();
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        report,
+        interview: interviewDoc
+      }
+    });
+  } catch (error) {
+    console.error('Error generating overall report:', error);
+    res.status(500).json({
+      status: 'error',
+      message: error.message || 'Failed to generate interview report.'
     });
   }
 };
