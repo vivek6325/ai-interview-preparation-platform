@@ -45,6 +45,21 @@ const QuestionSchema = new mongoose.Schema({
     type: [String],
     default: [],
   },
+  speakingDuration: {
+    type: Number,
+    min: 0,
+    default: 0,
+  },
+  wordsSpoken: {
+    type: Number,
+    min: 0,
+    default: 0,
+  },
+  transcript: {
+    type: String,
+    default: '',
+    trim: true,
+  },
 });
 
 /**
@@ -148,6 +163,10 @@ const InterviewSchema = new mongoose.Schema(
       default: null,
     },
     overallReport: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
+    voiceAnalytics: {
       type: mongoose.Schema.Types.Mixed,
       default: null,
     },

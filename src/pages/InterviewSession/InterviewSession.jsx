@@ -1,10 +1,13 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { generateQuestions, uploadResume, evaluateAnswer, generateInterviewReport } from '../../services/aiService';
 import { createInterview, updateInterview } from '../../services/api';
 import { useToast } from '../../components/Toast/ToastContext';
 import Timer from '../../components/interview/Timer';
 import ProgressBar from '../../components/interview/ProgressBar';
 import QuestionCard from '../../components/interview/QuestionCard';
+import VoiceRecorder from '../../components/interview/VoiceRecorder';
+import useSpeechRecognition from '../../hooks/useSpeechRecognition';
+import useSpeechSynthesis from '../../hooks/useSpeechSynthesis';
 import './InterviewSession.css';
 
 function InterviewSession() {
@@ -19,6 +22,10 @@ function InterviewSession() {
   const [experience, setExperience] = useState('1-3 Years');
   const [totalQuestions, setTotalQuestions] = useState(5);
   
+  // Mode selection: 'voice' | 'text'
+  const [interviewMode, setInterviewMode] = useState('voice');
+  const [isMuted, setIsMuted] = useState(false);
+
   // Resume upload state
   const [resumeUploading, setResumeUploading] = useState(false);
   const [uploadedResumeName, setUploadedResumeName] = useState('');
@@ -28,6 +35,7 @@ function InterviewSession() {
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({}); // { [questionId]: answerText }
+  const [voiceMetricsMap, setVoiceMetricsMap] = useState({}); // { [qId]: { speakingDuration, wordsSpoken } }
   
   // Database persistence state
   const [interviewId, setInterviewId] = useState(null);
@@ -37,9 +45,89 @@ function InterviewSession() {
   const [evaluationError, setEvaluationError] = useState('');
   const [overallScore, setOverallScore] = useState(0);
   const [overallReport, setOverallReport] = useState(null);
-  const [individualFeedback, setIndividualFeedback] = useState({}); // { [questionId]: feedbackObject }
+  const [individualFeedback, setIndividualFeedback] = useState({});
+  const [overallVoiceAnalytics, setOverallVoiceAnalytics] = useState(null);
 
-  // 1. Resume Auto-fill trigger
+  // Voice Hooks
+  const {
+    isSpeaking,
+    voices,
+    isSupported: isTtsSupported,
+    settings: voiceSettings,
+    updateSettings: updateVoiceSettings,
+    speak,
+    stop: stopSpeaking
+  } = useSpeechSynthesis();
+
+  const {
+    transcript,
+    interimTranscript,
+    isListening,
+    error: recognitionError,
+    isSupported: isSttSupported,
+    speakingDuration,
+    start: startRecording,
+    stop: stopRecording,
+    reset: resetRecording,
+    setTranscript
+  } = useSpeechRecognition({
+    maxDuration: voiceSettings.maxDuration || 180,
+    onAutoSave: (savedText) => {
+      if (questions[currentIndex]) {
+        handleAnswerChange(questions[currentIndex].id, savedText);
+      }
+    }
+  });
+
+  // Sync current question's answer to transcript hook when question changes
+  useEffect(() => {
+    if (sessionStatus === 'active' && questions[currentIndex]) {
+      const qId = questions[currentIndex].id;
+      setTranscript(answers[qId] || '');
+    }
+  }, [currentIndex, sessionStatus, questions]);
+
+  // Read Question Aloud on Question change (if autoRead is enabled)
+  useEffect(() => {
+    if (sessionStatus === 'active' && questions.length > 0 && questions[currentIndex]) {
+      const currentQText = questions[currentIndex].question;
+      if (voiceSettings.autoRead && !isMuted && interviewMode === 'voice') {
+        speak(currentQText);
+      }
+    }
+    return () => {
+      stopSpeaking();
+    };
+  }, [currentIndex, sessionStatus, voiceSettings.autoRead, isMuted, interviewMode]);
+
+  // Keyboard Shortcuts (Part 21)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (sessionStatus !== 'active') return;
+      const tag = e.target.tagName ? e.target.tagName.toLowerCase() : '';
+
+      // Space bar toggles mic recording if user is not actively typing in an input/textarea
+      if (e.code === 'Space' && tag !== 'input' && tag !== 'textarea' && interviewMode === 'voice') {
+        e.preventDefault();
+        if (isListening) {
+          handleStopRecordingVoice();
+        } else {
+          startRecording();
+        }
+      }
+
+      // Ctrl + Enter or Cmd + Enter to submit answer
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        handleNext();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [sessionStatus, isListening, interviewMode, currentIndex, questions]);
+
+  // Resume Auto-fill trigger
   const handleResumeChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -57,7 +145,6 @@ function InterviewSession() {
       setExperience(response.experience || '1-3 Years');
       setParsedResumeDetails(response);
       
-      // Auto-fill role if resume contains matches
       if (response.skills && response.skills.length > 0) {
         setRole(response.skills[2] || 'Frontend');
       }
@@ -71,16 +158,16 @@ function InterviewSession() {
     }
   };
 
-  // 2. Start Interview Session (Question Generation)
+  // Start Interview Session
   const handleStartInterview = async () => {
     setSessionStatus('loading_questions');
     try {
       const questionList = await generateQuestions(role, experience, difficulty, totalQuestions, parsedResumeDetails);
       setQuestions(questionList);
       setAnswers({});
+      setVoiceMetricsMap({});
       setCurrentIndex(0);
       
-      // Create a pending session record in MongoDB
       const interviewRes = await createInterview({
         title: `${role} AI Interview`,
         role,
@@ -103,7 +190,7 @@ function InterviewSession() {
       setInterviewId(savedId);
 
       setSessionStatus('active');
-      addToast('Mock questions generated. Good luck!', 'success');
+      addToast(`Mock interview room ready (${interviewMode === 'voice' ? 'Voice Mode' : 'Text Mode'}). Good luck!`, 'success');
     } catch (err) {
       console.error(err);
       addToast('Failed to load questions. Please check server status.', 'error');
@@ -111,7 +198,7 @@ function InterviewSession() {
     }
   };
 
-  // 3. Question Navigation handlers
+  // Answer Change Handlers
   const handleAnswerChange = (qId, val) => {
     setAnswers(prev => ({
       ...prev,
@@ -119,7 +206,62 @@ function InterviewSession() {
     }));
   };
 
+  const handleVoiceTranscriptChange = (val) => {
+    if (questions[currentIndex]) {
+      const qId = questions[currentIndex].id;
+      setTranscript(val);
+      handleAnswerChange(qId, val);
+    }
+  };
+
+  const handleStartRecordingVoice = () => {
+    stopSpeaking();
+    startRecording();
+  };
+
+  const handleStopRecordingVoice = () => {
+    stopRecording();
+    if (questions[currentIndex]) {
+      const qId = questions[currentIndex].id;
+      const currentAns = answers[qId] || transcript || '';
+      const words = currentAns.trim() ? currentAns.trim().split(/\s+/).length : 0;
+
+      setVoiceMetricsMap((prev) => ({
+        ...prev,
+        [qId]: {
+          speakingDuration: (prev[qId]?.speakingDuration || 0) + (speakingDuration || 1),
+          wordsSpoken: words
+        }
+      }));
+    }
+  };
+
+  const handleRetryVoice = () => {
+    resetRecording();
+    if (questions[currentIndex]) {
+      handleAnswerChange(questions[currentIndex].id, '');
+    }
+  };
+
+  const handleReplayQuestion = () => {
+    if (questions[currentIndex]) {
+      speak(questions[currentIndex].question);
+    }
+  };
+
+  const handleToggleMute = () => {
+    setIsMuted((prev) => {
+      if (!prev) stopSpeaking();
+      return !prev;
+    });
+  };
+
   const handleNext = () => {
+    if (isListening) {
+      handleStopRecordingVoice();
+    }
+    stopSpeaking();
+
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(prev => prev + 1);
     } else {
@@ -128,46 +270,76 @@ function InterviewSession() {
   };
 
   const handlePrevious = () => {
+    if (isListening) {
+      handleStopRecordingVoice();
+    }
+    stopSpeaking();
+
     if (currentIndex > 0) {
       setCurrentIndex(prev => prev - 1);
     }
   };
 
-  // Fired when the question timer runs out
   const handleTimerExpired = () => {
     addToast('Time is up for this question!', 'warning');
     handleNext();
   };
 
-  // 4. Finish and Generate AI Feedback
+  // Finish and Evaluate Interview Session
   const handleFinishInterview = async () => {
+    if (isListening) stopRecording();
+    stopSpeaking();
+
     setSessionStatus('loading_feedback');
     setEvaluationError('');
-    addToast('Analyzing answers and evaluating scorecard...', 'info');
+    addToast('Analyzing transcripts and generating AI performance scorecard...', 'info');
 
     try {
       const feedbackMap = {};
       let scoreSum = 0;
+      let totalSpeakingDuration = 0;
+      let totalWordsSpoken = 0;
 
-      // Iterate and fetch feedback for each answered question sequentially
+      // 1. Evaluate answers via Gemini
       for (const q of questions) {
         const answerText = answers[q.id] || '';
         const expectedPoints = q.expectedAnswerPoints || [];
         const feedbackRes = await evaluateAnswer(q.question, answerText, expectedPoints);
         feedbackMap[q.id] = feedbackRes;
-        // score is evaluated out of 10
         scoreSum += feedbackRes.overallScore || feedbackRes.score || 0;
+
+        // Calculate Voice Analytics per question
+        const metrics = voiceMetricsMap[q.id] || {};
+        const words = answerText.trim() ? answerText.trim().split(/\s+/).length : 0;
+        totalSpeakingDuration += metrics.speakingDuration || 0;
+        totalWordsSpoken += words;
       }
 
       setIndividualFeedback(feedbackMap);
 
-      // Save intermediate progress back to Mongoose
+      const avgWordsPerAnswer = questions.length > 0 ? Math.round(totalWordsSpoken / questions.length) : 0;
+      const avgSpeakingDurationPerAnswer = questions.length > 0 ? Math.round(totalSpeakingDuration / questions.length) : 0;
+
+      const voiceAnalyticsObj = {
+        totalSpeakingDuration,
+        totalWordsSpoken,
+        avgWordsPerAnswer,
+        avgSpeakingDurationPerAnswer
+      };
+      setOverallVoiceAnalytics(voiceAnalyticsObj);
+
+      // 2. Format questions payload for MongoDB
       const formattedQuestions = questions.map(q => {
         const ans = answers[q.id] || '';
         const fb = feedbackMap[q.id] || {};
+        const vm = voiceMetricsMap[q.id] || {};
+        const words = ans.trim() ? ans.trim().split(/\s+/).length : 0;
         return {
           questionText: q.question,
           userAnswer: ans,
+          transcript: ans,
+          speakingDuration: vm.speakingDuration || 0,
+          wordsSpoken: words,
           score: fb.overallScore || fb.score || 0,
           feedback: fb.suggestions?.join(" ") || '',
           strength: fb.strengths?.join(" ") || '',
@@ -179,18 +351,20 @@ function InterviewSession() {
 
       if (interviewId) {
         await updateInterview(interviewId, {
-          questions: formattedQuestions
+          status: 'completed',
+          questions: formattedQuestions,
+          voiceAnalytics: voiceAnalyticsObj
         });
       }
 
-      // Generate the comprehensive overall interview report card
+      // 3. Generate comprehensive overall report
       const reportRes = await generateInterviewReport(interviewId, role, difficulty, formattedQuestions);
       const report = reportRes?.data?.report || reportRes?.report || reportRes;
 
       setOverallReport(report);
       setOverallScore(report.overallScore);
       setSessionStatus('finished');
-      addToast('AI performance analysis complete!', 'success');
+      addToast('AI Voice Performance Analysis Complete!', 'success');
     } catch (err) {
       console.error(err);
       setEvaluationError(err.message || 'An error occurred during evaluation.');
@@ -199,15 +373,19 @@ function InterviewSession() {
   };
 
   const handleResetSession = () => {
+    stopSpeaking();
+    resetRecording();
     setSessionStatus('setup');
     setQuestions([]);
     setAnswers({});
+    setVoiceMetricsMap({});
     setCurrentIndex(0);
     setUploadedResumeName('');
     setResumeSkills([]);
     setInterviewId(null);
     setOverallReport(null);
     setParsedResumeDetails(null);
+    setOverallVoiceAnalytics(null);
   };
 
   return (
@@ -218,12 +396,11 @@ function InterviewSession() {
         <div className="setup-card animate-fade-in">
           <header className="setup-header text-center">
             <div className="setup-badge">⚡ Practice Room</div>
-            <h1>AI Mock Interview Setup</h1>
-            <p>Select your track parameters or upload a resume to tailor the generated questions.</p>
+            <h1>AI Voice Mock Interview</h1>
+            <p>Select your track parameters or upload a resume to tailor real-time voice interview questions.</p>
           </header>
 
           <div className="setup-grid">
-            {/* Form selections */}
             <div className="form-column">
               <div className="input-group-custom">
                 <label>Target Role / Focus Stack</label>
@@ -260,15 +437,29 @@ function InterviewSession() {
                 </div>
               </div>
 
-              <div className="input-group-custom">
-                <label>Total Questions</label>
-                <input 
-                  type="number" 
-                  min="2" 
-                  max="10" 
-                  value={totalQuestions} 
-                  onChange={(e) => setTotalQuestions(Math.min(10, Math.max(2, parseInt(e.target.value, 10) || 5)))}
-                />
+              <div className="row">
+                <div className="col col-half">
+                  <div className="input-group-custom">
+                    <label>Total Questions</label>
+                    <input 
+                      type="number" 
+                      min="2" 
+                      max="10" 
+                      value={totalQuestions} 
+                      onChange={(e) => setTotalQuestions(Math.min(10, Math.max(2, parseInt(e.target.value, 10) || 5)))}
+                    />
+                  </div>
+                </div>
+
+                <div className="col col-half">
+                  <div className="input-group-custom">
+                    <label>Interview Mode</label>
+                    <select value={interviewMode} onChange={(e) => setInterviewMode(e.target.value)}>
+                      <option value="voice">🎙️ Voice Interviewer</option>
+                      <option value="text">✍️ Text Practice</option>
+                    </select>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -289,7 +480,7 @@ function InterviewSession() {
                 />
                 
                 <label htmlFor="resume-file-input" className={`btn-upload ${resumeUploading ? 'loading' : ''}`}>
-                  {resumeUploading ? 'Analyzing Document...' : 'Choose Resume PDF'}
+                  {resumeUploading ? 'Analyzing PDF Document...' : 'Choose Resume PDF'}
                 </label>
 
                 {uploadedResumeName && (
@@ -312,7 +503,7 @@ function InterviewSession() {
 
           <div className="setup-actions">
             <button className="btn-start" onClick={handleStartInterview}>
-              Generate Mock Questions
+              {interviewMode === 'voice' ? '🎙️ Start Voice Interview' : '🚀 Generate Mock Questions'}
             </button>
           </div>
         </div>
@@ -321,23 +512,30 @@ function InterviewSession() {
       {sessionStatus === 'loading_questions' && (
         <div className="loading-state-card text-center animate-fade-in">
           <div className="spinner-loader"></div>
-          <h2>Formulating Interview Room...</h2>
-          <p>Analyzing profile settings, querying target role question pools, and customizing difficulty parameters. Please standby.</p>
+          <h2>Formulating Voice Interview Room...</h2>
+          <p>Analyzing profile settings, querying target role question pools, and initializing speech engines. Please standby.</p>
         </div>
       )}
 
       {sessionStatus === 'active' && (
         <div className="session-card animate-fade-in">
-          <div className="session-header-row">
-            <div className="session-meta">
+          <div className="session-header-row d-flex justify-content-between align-items-center mb-3">
+            <div className="session-meta d-flex align-items-center gap-2">
               <span className="session-role">{role} Track</span>
               <span className="meta-sep">•</span>
               <span className={`difficulty-pill ${difficulty.toLowerCase()}`}>{difficulty}</span>
+              <span className="meta-sep">•</span>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-info py-0 px-2 rounded-pill fs-7"
+                onClick={() => setInterviewMode(prev => (prev === 'voice' ? 'text' : 'voice'))}
+              >
+                {interviewMode === 'voice' ? '🎙️ Voice Mode' : '✍️ Text Mode'}
+              </button>
             </div>
             
-            {/* Countdown timer for each question */}
             <Timer 
-              initialSeconds={90} 
+              initialSeconds={120} 
               onTimeUp={handleTimerExpired} 
               autoStart={true} 
             />
@@ -348,18 +546,76 @@ function InterviewSession() {
             total={questions.length} 
           />
 
-          <QuestionCard 
-            questionNumber={currentIndex + 1}
-            totalQuestions={questions.length}
-            questionText={questions[currentIndex]?.question}
-            difficulty={questions[currentIndex]?.difficulty || difficulty}
-            value={answers[questions[currentIndex]?.id] || ''}
-            onChange={(val) => handleAnswerChange(questions[currentIndex]?.id, val)}
-            onPrevious={handlePrevious}
-            onNext={handleNext}
-            isFirst={currentIndex === 0}
-            isLast={currentIndex === questions.length - 1}
-          />
+          {/* Mode rendering: Voice Mode vs Text Mode */}
+          {interviewMode === 'voice' ? (
+            <div className="voice-interview-active-wrapper my-3">
+              <div className="card bg-dark text-light border-secondary p-3 mb-3 shadow-sm rounded-3">
+                <div className="d-flex justify-content-between align-items-start gap-2">
+                  <div>
+                    <span className="badge bg-primary mb-2">Question {currentIndex + 1} of {questions.length}</span>
+                    <h3 className="h4 text-light fw-bold mb-0">{questions[currentIndex]?.question}</h3>
+                  </div>
+
+                  <div className="d-flex gap-2">
+                    <button
+                      type="button"
+                      className="btn btn-outline-info btn-sm"
+                      onClick={handleReplayQuestion}
+                      title="Replay Question Aloud"
+                    >
+                      {isSpeaking ? '🔊 Speaking...' : '🔊 Replay'}
+                    </button>
+
+                    <button
+                      type="button"
+                      className={`btn btn-sm ${isMuted ? 'btn-outline-warning' : 'btn-outline-secondary'}`}
+                      onClick={handleToggleMute}
+                      title={isMuted ? 'Unmute Auto-read' : 'Mute Auto-read'}
+                    >
+                      {isMuted ? '🔇' : '🔊'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <VoiceRecorder
+                transcript={transcript}
+                interimTranscript={interimTranscript}
+                isListening={isListening}
+                isSpeaking={isSpeaking}
+                isMuted={isMuted}
+                error={recognitionError}
+                isSupported={isSttSupported}
+                speakingDuration={speakingDuration}
+                onStartRecording={handleStartRecordingVoice}
+                onStopRecording={handleStopRecordingVoice}
+                onTranscriptChange={handleVoiceTranscriptChange}
+                onRetry={handleRetryVoice}
+                onReplayQuestion={handleReplayQuestion}
+                onToggleMute={handleToggleMute}
+                onNext={handleNext}
+                onSubmit={handleNext}
+                settings={voiceSettings}
+                onSaveSettings={updateVoiceSettings}
+                voices={voices}
+                isLastQuestion={currentIndex === questions.length - 1}
+                hasAnswer={!!(answers[questions[currentIndex]?.id] || transcript)}
+              />
+            </div>
+          ) : (
+            <QuestionCard 
+              questionNumber={currentIndex + 1}
+              totalQuestions={questions.length}
+              questionText={questions[currentIndex]?.question}
+              difficulty={questions[currentIndex]?.difficulty || difficulty}
+              value={answers[questions[currentIndex]?.id] || ''}
+              onChange={(val) => handleAnswerChange(questions[currentIndex]?.id, val)}
+              onPrevious={handlePrevious}
+              onNext={handleNext}
+              isFirst={currentIndex === 0}
+              isLast={currentIndex === questions.length - 1}
+            />
+          )}
         </div>
       )}
 
@@ -367,7 +623,7 @@ function InterviewSession() {
         <div className="loading-state-card text-center animate-fade-in">
           <div className="spinner-loader feedback"></div>
           <h2>AI Evaluation Pipeline Active...</h2>
-          <p>Processing response densities, calculating structural parameters, and compiling scorecards for each question response. This will take a moment.</p>
+          <p>Processing response speech metrics, analyzing text transcripts with Gemini, and compiling final scorecard. Please standby.</p>
         </div>
       )}
 
@@ -375,8 +631,8 @@ function InterviewSession() {
         <div className="report-card animate-fade-in">
           <header className="report-header text-center">
             <span className="report-shield">🏆</span>
-            <h1>AI Evaluation Report</h1>
-            <p>Review overall score assessments and itemized feedback logs.</p>
+            <h1>AI Interview Scorecard</h1>
+            <p>Review overall score ratings, voice analytics, and detailed feedback logs.</p>
           </header>
 
           {evaluationError ? (
@@ -399,6 +655,8 @@ function InterviewSession() {
                   <div className="hiring-verdict" style={{ background: 'rgba(99, 102, 241, 0.06)', borderLeft: '4px solid var(--primary)', padding: '0.8rem 1.25rem', borderRadius: '8px', fontSize: '0.98rem', color: 'var(--text-primary)', fontWeight: '600' }}>
                     💡 {overallReport?.hiringRecommendation || "No recommendation summary generated."}
                   </div>
+
+                  {/* Subscores */}
                   <div className="subscores-row" style={{ marginTop: '1.25rem', display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
                     <div className="subscore-metric" style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
                       <strong>Technical Capability:</strong> <span style={{ color: 'var(--accent)', fontWeight: '750' }}>{overallReport?.technicalRating || 0} / 10</span>
@@ -412,6 +670,45 @@ function InterviewSession() {
                   </div>
                 </div>
               </div>
+
+              {/* Voice Analytics Summary Bar (Part 20) */}
+              {overallVoiceAnalytics && (
+                <div className="voice-analytics-panel my-4 p-3 rounded-4 bg-dark border border-secondary text-light">
+                  <h3 className="h6 fw-bold mb-3 d-flex align-items-center gap-2 text-info">
+                    <span>📊</span> Voice & Speech Metrics Analytics
+                  </h3>
+
+                  <div className="row g-3 text-center">
+                    <div className="col-6 col-md-3">
+                      <div className="p-2 rounded bg-black bg-opacity-40 border border-secondary border-opacity-25">
+                        <div className="fs-7 text-muted">Total Speaking Time</div>
+                        <div className="fs-5 fw-bold text-light">{overallVoiceAnalytics.totalSpeakingDuration}s</div>
+                      </div>
+                    </div>
+
+                    <div className="col-6 col-md-3">
+                      <div className="p-2 rounded bg-black bg-opacity-40 border border-secondary border-opacity-25">
+                        <div className="fs-7 text-muted">Total Words Spoken</div>
+                        <div className="fs-5 fw-bold text-light">{overallVoiceAnalytics.totalWordsSpoken}</div>
+                      </div>
+                    </div>
+
+                    <div className="col-6 col-md-3">
+                      <div className="p-2 rounded bg-black bg-opacity-40 border border-secondary border-opacity-25">
+                        <div className="fs-7 text-muted">Avg Words / Answer</div>
+                        <div className="fs-5 fw-bold text-light">{overallVoiceAnalytics.avgWordsPerAnswer}</div>
+                      </div>
+                    </div>
+
+                    <div className="col-6 col-md-3">
+                      <div className="p-2 rounded bg-black bg-opacity-40 border border-secondary border-opacity-25">
+                        <div className="fs-7 text-muted">Avg Time / Answer</div>
+                        <div className="fs-5 fw-bold text-light">{overallVoiceAnalytics.avgSpeakingDurationPerAnswer}s</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Highlights split lists */}
               <div className="fb-bullets-row" style={{ marginBottom: '2.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
@@ -434,36 +731,30 @@ function InterviewSession() {
                 </div>
               </div>
 
-              {overallReport?.recommendedTopics && overallReport.recommendedTopics.length > 0 && (
-                <div className="recommended-topics-box" style={{ marginBottom: '2.5rem', background: 'rgba(255, 255, 255, 0.01)', border: '1px solid var(--border)', padding: '1.5rem', borderRadius: '16px', textAlign: 'left' }}>
-                  <strong style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.75rem' }}>Recommended Topics for Further Study:</strong>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    {overallReport.recommendedTopics.map((topic, idx) => (
-                      <span key={idx} className="skill-pill" style={{ background: 'rgba(99, 102, 241, 0.08)', color: '#a5b4fc', border: '1px solid rgba(99, 102, 241, 0.15)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem' }}>
-                        {topic}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Question list breakdown */}
+              {/* Itemized Answer Performance */}
               <div className="detailed-breakdown-section">
-                <h2>Itemized Answer Performance</h2>
+                <h2>Itemized Transcripts & AI Evaluation</h2>
                 <div className="questions-feedback-list">
                   {questions.map((q) => {
                     const fb = individualFeedback[q.id] || {};
+                    const vm = voiceMetricsMap[q.id] || {};
                     return (
                       <div key={q.id} className="question-fb-card">
-                        <div className="q-fb-header">
+                        <div className="q-fb-header d-flex justify-content-between align-items-center">
                           <h4>Question {q.id}: {q.question}</h4>
                           <span className="score-badge">Score: {fb.overallScore || fb.score || 0} / 10</span>
                         </div>
                         
                         <div className="q-fb-body">
                           <p className="candidate-answer-quote">
-                            <strong>Your Answer:</strong> <em>{answers[q.id] || "No response provided."}</em>
+                            <strong>Your Answer Transcript:</strong> <em>{answers[q.id] || "No response recorded."}</em>
                           </p>
+
+                          {vm.speakingDuration > 0 && (
+                            <div className="voice-item-meta text-muted fs-8 mb-2">
+                              🎙️ <em>Recorded: {vm.speakingDuration} seconds | Words: {(answers[q.id] || '').trim().split(/\s+/).length}</em>
+                            </div>
+                          )}
                           
                           <div className="fb-bullets-row">
                             <div className="bullet-col strength">
@@ -497,7 +788,7 @@ function InterviewSession() {
 
           <div className="report-actions text-center">
             <button className="btn-reset" onClick={handleResetSession}>
-              Configure New Interview
+              Configure New Interview Session
             </button>
           </div>
         </div>

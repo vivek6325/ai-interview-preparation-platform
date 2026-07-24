@@ -276,6 +276,216 @@
   color: var(--text-muted);
 }
 
+/* ========================================================
+   DAY 14: VOICE RECORDER & AUDIO COMPONENT STYLES
+   ======================================================== */
+
+/* Microphone Button & Pulse Aura */
+.mic-button-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.mic-button {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, #4338ca 100%);
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 2;
+  margin: 0 auto;
+}
+
+.mic-button:hover:not(.disabled) {
+  transform: scale(1.06);
+  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.6);
+}
+
+.mic-button.listening {
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  box-shadow: 0 8px 30px rgba(239, 68, 68, 0.6);
+  animation: micPulseGlow 1.5s infinite alternate;
+}
+
+.mic-button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(80%);
+}
+
+.mic-icon {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.mic-pulse-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.mic-button.listening .ring-1 {
+  border: 2px solid rgba(239, 68, 68, 0.6);
+  animation: rippleRing 2s infinite cubic-bezier(0, 0.2, 0.8, 1);
+}
+
+.mic-button.listening .ring-2 {
+  border: 2px solid rgba(239, 68, 68, 0.4);
+  animation: rippleRing 2s infinite cubic-bezier(0, 0.2, 0.8, 1) 0.6s;
+}
+
+@keyframes rippleRing {
+  0% { width: 84px; height: 84px; opacity: 0.8; }
+  100% { width: 160px; height: 160px; opacity: 0; }
+}
+
+@keyframes micPulseGlow {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.05); }
+}
+
+.status-badge-pill {
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: 999px;
+  display: inline-block;
+  letter-spacing: 0.3px;
+}
+
+.status-badge-pill.active {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+.status-badge-pill.idle {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+}
+
+/* Sound Wave Bars Indicator */
+.speaking-indicator-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+}
+
+.soundwave-bars {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 20px;
+}
+
+.soundwave-bars .bar {
+  width: 3px;
+  height: 6px;
+  background: var(--text-muted);
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.status-recording .bar {
+  background: #f87171;
+  animation: waveBar 0.8s infinite ease-in-out alternate;
+}
+
+.status-speaking .bar {
+  background: #38bdf8;
+  animation: waveBar 0.6s infinite ease-in-out alternate;
+}
+
+.status-recording .bar-1 { animation-delay: 0.1s; }
+.status-recording .bar-2 { animation-delay: 0.25s; }
+.status-recording .bar-3 { animation-delay: 0.4s; }
+.status-recording .bar-4 { animation-delay: 0.15s; }
+.status-recording .bar-5 { animation-delay: 0.3s; }
+
+.status-speaking .bar-1 { animation-delay: 0.05s; }
+.status-speaking .bar-2 { animation-delay: 0.15s; }
+.status-speaking .bar-3 { animation-delay: 0.25s; }
+.status-speaking .bar-4 { animation-delay: 0.35s; }
+.status-speaking .bar-5 { animation-delay: 0.2s; }
+
+@keyframes waveBar {
+  0% { height: 4px; }
+  100% { height: 18px; }
+}
+
+.speaking-status-text {
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--text-secondary);
+}
+
+/* Transcript Box Area */
+.transcript-box-container {
+  text-align: left;
+}
+
+.transcript-textarea {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #f3f4f6 !important;
+  border-radius: 12px !important;
+  font-size: 0.95rem !important;
+  line-height: 1.6 !important;
+  padding: 1rem !important;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+}
+
+.transcript-textarea:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
+}
+
+.interim-transcript-overlay {
+  position: absolute;
+  bottom: 12px;
+  right: 16px;
+  pointer-events: none;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  color: #fca5a5;
+}
+
+/* Voice Settings Modal */
+.modal-backdrop-custom {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 1050;
+}
+
 /* Report scorecard */
 .report-shield {
   font-size: 3.5rem;
@@ -340,21 +550,6 @@
   margin: 0 0 1rem;
 }
 
-.insights-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.insights-list li {
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
-
 .detailed-breakdown-section {
   text-align: left;
 }
@@ -380,22 +575,9 @@
 }
 
 .q-fb-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1.5rem;
   border-bottom: 1px solid var(--border);
   padding-bottom: 1rem;
   margin-bottom: 1rem;
-}
-
-.q-fb-header h4 {
-  font-family: var(--heading);
-  font-size: 1.1rem;
-  font-weight: 800;
-  margin: 0;
-  color: var(--text-primary);
-  line-height: 1.4;
 }
 
 .candidate-answer-quote {
@@ -469,7 +651,6 @@
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Animations */
 .animate-fade-in {
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -479,7 +660,6 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Responsive styles */
 @media (max-width: 850px) {
   .setup-grid {
     grid-template-columns: 1fr;
@@ -501,5 +681,15 @@
   .fb-bullets-row {
     grid-template-columns: 1fr;
     gap: 1.25rem;
+  }
+
+  .voice-controls-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .voice-actions-left, .voice-actions-right {
+    justify-content: center;
+    width: 100%;
   }
 }
