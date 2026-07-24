@@ -177,6 +177,11 @@ const InterviewSchema = new mongoose.Schema(
   }
 );
 
+// Compound Mongoose indexes for optimized querying and analytics aggregation
+InterviewSchema.index({ userId: 1, createdAt: -1 });
+InterviewSchema.index({ userId: 1, status: 1 });
+InterviewSchema.index({ userId: 1, difficulty: 1 });
+
 // Create and export the Mongoose model
 const Interview = mongoose.model('Interview', InterviewSchema);
 export default Interview;

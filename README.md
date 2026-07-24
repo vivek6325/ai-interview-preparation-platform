@@ -1,122 +1,207 @@
-# PrepAI | AI-Powered Interview Preparation Platform 🚀
+# 🚀 PrepAI - AI-Powered Mock Interview & Career Analytics Platform
 
-[![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)](https://react.dev/)
-[![Node.js](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Express.js](https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=%2361DAFB)](https://expressjs.com/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-%234ea94b.svg?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Node Version](https://img.shields.io/badge/Node.js-22.x-green.svg)](https://nodejs.org)
+[![React Version](https://img.shields.io/badge/React-19.x-blue.svg)](https://react.dev)
+[![Express](https://img.shields.io/badge/Express-5.x-lightgrey.svg)](https://expressjs.com)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-brightgreen.svg)](https://www.mongodb.com/atlas)
+[![Vite](https://img.shields.io/badge/Vite-8.x-purple.svg)](https://vitejs.dev)
 
-An advanced, responsive, and feature-rich simulator designed to help candidates prepare for technical and behavioral job interviews. Using an integrated evaluation engine, PrepAI provides real-time question generation, structured STAR-framework answer assessment, interactive progress analytics, and downloadable performance reports.
-
----
-
-## 🌟 Key Features
-
-*   **Real-Time Interview Flow:** A timed, immersive simulator that mimics real-world technical and behavioral interview formats.
-*   **AI-Generated Assessments:** Dynamic question categorization mapping to Software Engineering, Frontend, Backend, and HR/Behavioral paths.
-*   **Smart Feedback Engine:** Comprehensive answer evaluation analyzing response length, logical transition structures, and technical key terms with feedback on strengths and improvements.
-*   **Interactive Analytics Dashboard:** Deep metrics charting historical mock scores, categories mastered, and overall progression indicators.
-*   **Exportable Reports:** One-click functionality to export grading summaries and review records for offline study.
-*   **Dual-Database Hybrid Architecture:** Automatic, seamless client/server data synchronizations allowing full app operation even when the database is offline.
+> **PrepAI** is a production-grade, full-stack AI Career Coach and Mock Interview Platform built on the MERN stack (MongoDB, Express, React, Node.js 22) and Google Gemini AI. It empowers software engineers, developers, and candidates to practice real-time voice and text mock interviews, receive STAR-framework aligned evaluation scorecards, detect skill weaknesses, and track multi-dimensional career progress.
 
 ---
 
-## 🛠️ Tech Stack
+## ✨ Key Features
 
-### Frontend
-*   **Core:** React (v19)
-*   **Styling:** Premium Custom Vanilla CSS (Glassmorphism design language, customized dynamic dark themes, micro-animations, responsive layout grids)
-*   **Routing:** React Router (v7)
-*   **Build Utility:** Vite
+- **🎙️ Real-Time Voice Interviewer**:
+  - Native Web Speech API integration (`SpeechRecognition` & `SpeechSynthesis`).
+  - Auto-reads interview questions aloud with voice, pitch, and speed rate controls.
+  - Generates live transcript with real-time editing before submission.
+  - Tracks speaking duration, words spoken, and average words per answer.
 
-### Backend
-*   **Server Framework:** Express (Node.js)
-*   **Database:** MongoDB via Mongoose ODM
-*   **AI Logic:** Built-in semantic NLP parser (analyzing length, STAR structure, and category keyword matching)
+- **🤖 AI Question & Evaluation Pipeline**:
+  - Uses Google Gemini 3.6 Flash / 1.5 Pro to formulate customized, role-tailored interview questions.
+  - Grades answers out of 10 with itemized STAR strengths, improvement areas, and suggestions.
+  - Generates comprehensive overall scorecard reports and hiring recommendations.
+
+- **📄 ESM PDF Resume Parser**:
+  - Modern ESM PDF parser running natively on Node.js 22.
+  - Extracts skills, experience level, and technologies to customize mock questions dynamically.
+
+- **📊 SaaS AI Career Coach & Visual Analytics**:
+  - **Multi-Dimensional Skill Radar**: Evaluates Communication, Technical Knowledge, Problem Solving, Confidence, Behavioral, and Coding.
+  - **Score Timeline & Rolling Average**: Line & area SVG graph tracking score progression over time.
+  - **Difficulty & Type Distributions**: Doughnut & bar charts breaking down practice focus.
+  - **Practice Activity Heatmap**: Calendar density grid tracking practice consistency.
+  - **Weakness Detection Engine**: Automatically identifies top 5 weaknesses, top 5 strengths, repeated mistakes, and urgency level.
+  - **Personalized 4-Week Practice Roadmap**: Formulates phase-by-phase daily and weekly goals.
+  - **Milestones & Streaks**: Active streak tracking, achievement badges, and AI readiness index.
+
+- **📂 Enhanced Practice Vault & Report Exports**:
+  - Multi-criteria search, filters (date range, type, difficulty, score range, status, topic), sorting, pagination, and quick report previews.
+  - Export report capabilities in **CSV** and **PDF** formats.
+
+- **🔒 Enterprise Security & Performance**:
+  - Helmet HTTP security headers, CORS domain whitelisting, Express rate limiting, gzip compression.
+  - Input sanitization, Request timing headers (`X-Response-Time`), MongoDB connection pooling (`maxPoolSize: 10`), compound indexes.
+  - React route code-splitting (`React.lazy` / `Suspense`), Error Boundary, 404 handler, and graceful process shutdown.
 
 ---
 
-## 📂 Folder Structure
+## 🏗️ Architecture Overview
 
-```text
-ai-interview-preparation-platform/
-├── backend/                       # Express Node Server
-│   ├── src/
-│   │   ├── config/                # DB Connectors & Constants
-│   │   ├── controllers/           # API Logic (Evaluation Engine & CRUDs)
-│   │   ├── middleware/            # Request interceptors
-│   │   ├── models/                # MongoDB Mongoose Schemas (Interview & Question)
-│   │   ├── routes/                # API Endpoints
-│   │   └── utils/                 # General helpers
-│   ├── .env                       # Backend Environment Settings
-│   ├── server.js                  # App startup script
-│   └── package.json
-├── public/                        # Static Assets (Favicon, SVGs)
-├── src/                           # React Frontend Source
-│   ├── assets/                    # Graphical icons and components
-│   ├── components/                # Reusable UI Components (Navbar, Features, Toast, ProtectedRoute)
-│   ├── constants/                 # Action limits & route strings
-│   ├── pages/                     # Routed views (Dashboard, History, Home, Interview, Login, Results)
-│   ├── services/                  # API fetch clients & client-side fallbacks
-│   ├── styles/                    # Global visual stylesheets
-│   ├── utils/                     # Formatting helpers & document export
-│   ├── App.jsx                    # Routing configuration
-│   └── main.jsx                   # React mounting script
-├── index.html                     # Entry HTML document (with SEO optimized header)
-├── vite.config.js                 # Vite compiler settings
-└── package.json
+```
+ ┌───────────────────────────────────────────────────────────┐
+ │                   React 19 Frontend (Vite)                │
+ │  (Voice Engine, SVG Radar/Timeline Charts, SaaS Dashboard)│
+ └─────────────────────────────┬─────────────────────────────┘
+                               │ HTTPS / JSON API
+ ┌─────────────────────────────▼─────────────────────────────┐
+ │                Express 5 Node.js 22 Backend               │
+ │  (Helmet, Cors, RateLimiter, Compression, ErrorHandlers)  │
+ └──────┬──────────────────────┬──────────────────────┬──────┘
+        │                      │                      │
+ ┌──────▼──────┐        ┌──────▼──────┐        ┌──────▼──────┐
+ │   MongoDB   │        ┌  Gemini AI  │        │  PDF Parser │
+ │ (Atlas/Pool)│        │   Engine    │        │ (Node 22 ESM│
+ └─────────────┘        └─────────────┘        └─────────────┘
 ```
 
 ---
 
-## 🔌 Environment Variables
+## 📁 Repository Folder Structure
 
-### Backend (`/backend/.env`)
-Create a `.env` file in the `/backend` folder with:
-```env
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/ai_interview_platform
 ```
-
-### Frontend (Root Workspace Environment)
-You can optionally create a `.env` file in the root directory for production hosting:
-```env
-VITE_API_URL=https://your-backend-service-url.com/api
+.
+├── backend/
+│   ├── server.js                        # Express server entry point with security & graceful shutdown
+│   └── src/
+│       ├── config/
+│       │   ├── db.js                    # MongoDB connection pooling & health check
+│       │   └── env.js                   # Environment variable validation & abstraction
+│       ├── controllers/
+│       │   ├── aiController.js          # AI question generation & resume parsing
+│       │   ├── analyticsController.js   # Analytics & export HTTP controller
+│       │   ├── authController.js        # Authentication & JWT issue
+│       │   └── interviewController.js   # Session management
+│       ├── middleware/
+│       │   ├── authMiddleware.js        # JWT Bearer token authentication
+│       │   ├── errorHandler.js          # 404 & global error handling
+│       │   └── security.js              # Helmet, CORS, Rate Limiters, Timers
+│       ├── models/
+│       │   ├── Interview.js             # Mongoose schema with compound indexes
+│       │   └── User.js                  # Mongoose user auth schema
+│       ├── routes/                      # Express domain route modules
+│       └── services/
+│           ├── aiService.js             # Gemini integration & prompt builder
+│           ├── analyticsService.js      # Core analytics & practice plan engine
+│           └── ai/pdfParser.js          # ESM PDF text extraction
+├── src/
+│   ├── components/
+│   │   ├── analytics/                   # SVG Skill Radar, Timeline, Heatmap, Weakness components
+│   │   ├── interview/                   # VoiceRecorder, MicrophoneButton, VoiceControls, TranscriptBox
+│   │   ├── ErrorBoundary/               # React Error Boundary fallback
+│   │   ├── Loading/                     # Global loading spinner
+│   │   └── Navbar/                      # Navigation bar
+│   ├── hooks/                           # Custom React hooks (useSpeechRecognition, useSpeechSynthesis)
+│   ├── pages/                           # Dashboard, History, InterviewSession, Results, Login
+│   ├── services/                        # Client API & analytics services
+│   └── styles/                          # Global CSS tokens
+├── DEPLOYMENT.md                        # Production deployment guide
+├── INTERVIEW_GUIDE.md                   # Software Engineering demo script
+├── render.yaml                          # Render backend deployment manifest
+└── vercel.json                          # Vercel SPA routing configuration
 ```
-*(If left empty, the client automatically defaults to `http://localhost:5000/api` for local execution).*
 
 ---
 
-## ⚙️ Installation & Running Locally
+## 🛠️ Installation & Local Setup
 
-### 1. Start the Backend Server
+### Prerequisites
+- **Node.js**: v22.x or higher
+- **npm**: v10.x or higher
+- **MongoDB**: Local MongoDB instance or MongoDB Atlas URI
+- **Gemini API Key**: Free key from [Google AI Studio](https://aistudio.google.com/)
+
+### 1. Clone & Install Dependencies
+
 ```bash
+# Clone the repository
+git clone https://github.com/your-username/ai-interview-platform.git
+cd ai-interview-platform
+
+# Install frontend dependencies
+npm install
+
+# Install backend dependencies
 cd backend
 npm install
-npm run dev
 ```
-*The server will startup and listen on `http://localhost:5000` with the health check available at `/api/health`.*
 
-### 2. Start the Frontend Application
-In a separate terminal shell from the root workspace directory:
+### 2. Configure Environment Variables
+
+Create `.env` inside `backend/`:
+
+```env
+NODE_ENV=development
+PORT=5000
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/ai_interview_platform
+JWT_SECRET=your_super_secret_jwt_key_here
+GEMINI_API_KEY=your_google_gemini_api_key_here
+CLIENT_URL=http://localhost:5173
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+```
+
+Create `.env` inside root (`/`):
+
+```env
+VITE_API_URL=http://localhost:5000/api
+```
+
+### 3. Run Development Servers
+
+In terminal 1 (Backend):
 ```bash
-npm install
+cd backend
 npm run dev
 ```
-*Vite will compile and launch the application on `http://localhost:5173`.*
+
+In terminal 2 (Frontend):
+```bash
+npm run dev
+```
+
+Open `http://localhost:5173` in Google Chrome or Microsoft Edge.
 
 ---
 
-## 🔮 Future Improvements
+## 🌐 API Endpoint Summary
 
-1.  **AI Voice Interviews:** Integration of the Web Speech API (Speech-to-Text and Text-to-Speech) for fully conversational mock reviews.
-2.  **Webcam & Facial Expression Analysis:** Real-time sentiment estimation to assess candidate posture, confidence levels, and eye-contact.
-3.  **Dynamic AI Interactivity:** An interactive avatar host that responds conversationally using large language model (LLM) agents.
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/health` | Service health status, DB connection, uptime | No |
+| `POST` | `/api/auth/register` | User account registration | No |
+| `POST` | `/api/auth/login` | User login & JWT issuance | No |
+| `GET` | `/api/interviews` | Fetch all user interview records | Yes |
+| `POST` | `/api/interviews` | Create a new pending interview session | Yes |
+| `PATCH` | `/api/interviews/:id` | Update interview answers & evaluation | Yes |
+| `POST` | `/api/ai/generate` | Generate AI questions via Gemini | Yes |
+| `POST` | `/api/ai/evaluate` | Evaluate single answer response | Yes |
+| `POST` | `/api/ai/upload-resume` | Parse PDF resume & extract skills | Yes |
+| `GET` | `/api/analytics` | Full AI Career Coach analytics payload | Yes |
+| `GET` | `/api/analytics/history` | Filtered history with pagination | Yes |
+| `GET` | `/api/analytics/export` | Export analytics as CSV or PDF payload | Yes |
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
 ## 👤 Author
 
-**Vivek Aripalli**
-*   GitHub: [@vivek6325](https://github.com/vivek6325)
-*   LinkedIn: [Vivek Aripalli](https://linkedin.com/in/vivek-aripalli)
+**Vivek Aripalli**  
+- Portfolio / GitHub: [vivek6325](https://github.com/vivek6325)  
+- Role: Full Stack Engineer & Software Architect
