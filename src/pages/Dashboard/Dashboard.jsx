@@ -1,54 +1,61 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { interviewCategories } from '../../constants';
-import { getDashboardAnalytics, deleteInterview } from '../../services/api';
+import { getFullAnalytics, exportAnalyticsReport } from '../../services/analyticsService';
+import { deleteInterview } from '../../services/api';
 import { useToast } from '../../components/Toast/ToastContext';
 import ConfirmationModal from '../../components/Modal/ConfirmationModal';
+import AnalyticsCard from '../../components/analytics/AnalyticsCard';
+import SkillRadarChart from '../../components/analytics/SkillRadarChart';
+import ScoreTimelineChart from '../../components/analytics/ScoreTimelineChart';
+import DistributionCharts from '../../components/analytics/DistributionCharts';
+import ActivityHeatmap from '../../components/analytics/ActivityHeatmap';
+import WeaknessPriorityCard from '../../components/analytics/WeaknessPriorityCard';
+import PracticePlanCard from '../../components/analytics/PracticePlanCard';
+import BadgesMilestonesCard from '../../components/analytics/BadgesMilestonesCard';
 import { formatDate } from '../../utils/helpers';
 import '../History/History.css';
 import './Dashboard.css';
 
 /**
- * Dashboard Component
- * 
- * Renders user prep analytics summary and cards representing target roles.
- * Fetches real interview session analytics from the backend on load.
+ * Dashboard Component (Day 15 AI Career Coach & SaaS Analytics Upgrade)
+ * Renders executive analytics cards, AI insights, skill radar, score timeline,
+ * weakness detection, 4-week practice roadmap, and report export buttons.
  */
 function Dashboard() {
   const navigate = useNavigate();
   const { addToast } = useToast();
-  const [analytics, setAnalytics] = useState(null);
+
+  const [analyticsData, setAnalyticsData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showAnalytics, setShowAnalytics] = useState(true);
-  const [currentTime] = useState(() => Date.now());
+  const [exporting, setExporting] = useState(false);
 
   // Deletion Modal state
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedDeleteId, setSelectedDeleteId] = useState(null);
-
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const triggerRefresh = () => {
     setLoading(true);
     setError('');
-    setRefreshTrigger(prev => prev + 1);
+    setRefreshTrigger((prev) => prev + 1);
   };
 
   useEffect(() => {
     let active = true;
-    async function loadDashboardData() {
+    async function loadFullAnalyticsData() {
       try {
-        const response = await getDashboardAnalytics();
+        const response = await getFullAnalytics();
         const data = response?.data || response;
         if (active) {
-          setAnalytics(data);
+          setAnalyticsData(data);
           setError('');
         }
       } catch (err) {
-        console.error('Error loading dashboard analytics:', err);
+        console.error('Error loading analytics payload:', err);
         if (active) {
-          setError(err.message || 'Failed to connect to the backend server.');
+          setError(err.message || 'Failed to connect to the analytics server.');
         }
       } finally {
         if (active) {
@@ -56,86 +63,56 @@ function Dashboard() {
         }
       }
     }
-    loadDashboardData();
+    loadFullAnalyticsData();
     return () => {
       active = false;
     };
   }, [refreshTrigger]);
 
-  const completedList = useMemo(() => {
-    return (analytics?.recentInterviews || []).filter(i => i.status === 'completed');
-  }, [analytics]);
+  const summary = analyticsData?.summary || {};
+  const categories = analyticsData?.categories || {};
+  const charts = analyticsData?.charts || {};
+  const insights = analyticsData?.insights || {};
+  const weaknesses = analyticsData?.weaknesses || {};
+  const practicePlan = analyticsData?.practicePlan || {};
+  const milestones = analyticsData?.milestones || {};
+  const recentInterviews = analyticsData?.history?.interviews || [];
 
-  const stats = useMemo(() => {
-    const completedCount = analytics?.completedInterviews || 0;
-    const avgScoreRaw = analytics?.averageScore || 0;
-    const maxScoreRaw = analytics?.highestScore || 0;
-    const monthlyCount = analytics?.monthlyInterviews || 0;
-    const totalCount = analytics?.totalInterviews || 0;
-
-    const recentCompleted = (analytics?.recentInterviews || []).filter(i => i.status === 'completed');
-    let trend = 'Complete a mock practice to start tracking';
-    if (recentCompleted.length > 1) {
-      const sortedByDate = [...recentCompleted].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-      const lastScore = sortedByDate[sortedByDate.length - 1].overallScore || 0;
-      const prevScore = sortedByDate[sortedByDate.length - 2].overallScore || 0;
-      const diff = lastScore - prevScore;
-      if (diff > 0) {
-        trend = `Up +${diff.toFixed(1)} score last session`;
-      } else if (diff < 0) {
-        trend = `Down -${Math.abs(diff).toFixed(1)} score last session`;
-      } else {
-        trend = 'Maintained last score';
-      }
-    } else if (recentCompleted.length === 1) {
-      trend = 'First milestone unlocked';
+  const handleExportCSV = async () => {
+    try {
+      setExporting(true);
+      addToast('Generating CSV Analytics Report...', 'info');
+      await exportAnalyticsReport('csv');
+      addToast('CSV Analytics downloaded successfully!', 'success');
+    } catch (err) {
+      console.error(err);
+      addToast('Failed to export CSV report.', 'error');
+    } finally {
+      setExporting(false);
     }
+  };
 
-    const topicScores = {};
-    recentCompleted.forEach(item => {
-      const topic = item.title?.replace(' Mock Practice', '').replace(' Mock', '') || 'Other';
-      if (!topicScores[topic]) {
-        topicScores[topic] = [];
-      }
-      topicScores[topic].push(item.overallScore || 0);
-    });
-    
-    let strongest = 'None';
-    let weakest = 'None';
-    let maxAvg = -1;
-    let minAvg = 11;
-    
-    Object.keys(topicScores).forEach(topic => {
-      const avgTopic = topicScores[topic].reduce((s, v) => s + v, 0) / topicScores[topic].length;
-      if (avgTopic > maxAvg) {
-        maxAvg = avgTopic;
-        strongest = topic;
-      }
-      if (avgTopic < minAvg) {
-        minAvg = avgTopic;
-        weakest = topic;
-      }
-    });
+  const handleExportPDF = async () => {
+    try {
+      addToast('Opening print view for PDF export...', 'info');
+      window.print();
+    } catch (err) {
+      console.error(err);
+      addToast('Failed to initiate PDF print.', 'error');
+    }
+  };
 
-    return {
-      totalCompleted: completedCount,
-      totalInterviews: totalCount,
-      avgScore: avgScoreRaw,
-      highestScore: maxScoreRaw,
-      monthlyInterviews: monthlyCount,
-      totalPracticeTime: completedCount * 5,
-      strongestTopic: strongest,
-      weakestTopic: weakest,
-      trend
-    };
-  }, [analytics]);
-
-  // Handle starting a specific mock interview session
   const handleStartMock = (categoryName) => {
-    const catObj = interviewCategories.find(c => c.title === categoryName);
-    const role = categoryName.includes('DSA') || categoryName.includes('Algorithms') ? 'Software Engineer' :
-                 categoryName.includes('Frontend') ? 'Frontend Developer' :
-                 categoryName.includes('Backend') ? 'Backend Developer' : 'HR Specialist';
+    const catObj = interviewCategories.find((c) => c.title === categoryName);
+    const role =
+      categoryName.includes('DSA') || categoryName.includes('Algorithms')
+        ? 'Software Engineer'
+        : categoryName.includes('Frontend')
+        ? 'Frontend Developer'
+        : categoryName.includes('Backend')
+        ? 'Backend Developer'
+        : 'HR Specialist';
+
     navigate('/interview-setup', {
       state: {
         role,
@@ -154,251 +131,24 @@ function Dashboard() {
     if (!selectedDeleteId) return;
     try {
       await deleteInterview(selectedDeleteId);
-      addToast('Interview deleted successfully.', 'success');
-      setFetchedInterviews(prev => prev.filter(item => item._id !== selectedDeleteId));
+      addToast('Interview record deleted successfully.', 'success');
+      triggerRefresh();
     } catch (err) {
       console.error(err);
-      addToast('Failed to delete interview.', 'error');
+      addToast('Failed to delete interview record.', 'error');
     } finally {
       setDeleteModalOpen(false);
       setSelectedDeleteId(null);
     }
   };
 
-  // SVG Chart Render logic
-  const renderCharts = () => {
-    if (completedList.length === 0) {
-      return (
-        <div className="empty-charts-state">
-          <p>📊 Visual analytics will appear here after you finish your first practice mock.</p>
-        </div>
-      );
-    }
-
-    const nowTime = currentTime || 1774000000000;
-    const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
-    const weeklyCounts = [0, 0, 0, 0];
-
-    completedList.forEach(item => {
-      const createdTime = new Date(item.createdAt).getTime();
-      const diffMs = nowTime - createdTime;
-      if (diffMs >= 0 && diffMs < oneWeekMs) {
-        weeklyCounts[3]++;
-      } else if (diffMs >= oneWeekMs && diffMs < 2 * oneWeekMs) {
-        weeklyCounts[2]++;
-      } else if (diffMs >= 2 * oneWeekMs && diffMs < 3 * oneWeekMs) {
-        weeklyCounts[1]++;
-      } else if (diffMs >= 3 * oneWeekMs && diffMs < 4 * oneWeekMs) {
-        weeklyCounts[0]++;
-      }
-    });
-
-    const maxWeeklyCount = Math.max(...weeklyCounts, 3);
-
-    const chrono = [...completedList].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-    const points = chrono.map((item, idx) => {
-      const x = chrono.length > 1 ? (idx / (chrono.length - 1)) * 360 + 50 : 230;
-      const y = 150 - ((item.overallScore || 0) / 10) * 110;
-      return { x, y, score: item.overallScore, date: new Date(item.createdAt).toLocaleDateString() };
-    });
-
-    let linePath = '';
-    let areaPath = '';
-    if (points.length > 0) {
-      linePath = `M ${points[0].x} ${points[0].y} ` + points.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ');
-      areaPath = linePath + ` L ${points[points.length - 1].x} 150 L ${points[0].x} 150 Z`;
-    }
-
-    const categoryTotals = { DSA: [], Frontend: [], Backend: [], HR: [] };
-    completedList.forEach(item => {
-      const t = item.title?.toLowerCase() || '';
-      if (t.includes('data') || t.includes('dsa') || t.includes('algorithm')) categoryTotals.DSA.push(item.overallScore || 0);
-      else if (t.includes('front') || t.includes('react')) categoryTotals.Frontend.push(item.overallScore || 0);
-      else if (t.includes('back') || t.includes('database')) categoryTotals.Backend.push(item.overallScore || 0);
-      else if (t.includes('hr') || t.includes('human')) categoryTotals.HR.push(item.overallScore || 0);
-    });
-
-    const categoryScores = Object.keys(categoryTotals).map(cat => {
-      const list = categoryTotals[cat];
-      const avg = list.length > 0 ? parseFloat((list.reduce((s, v) => s + v, 0) / list.length).toFixed(1)) : 0;
-      return { name: cat, score: avg };
-    });
-
-    const easyNum = completedList.filter(i => i.difficulty?.toLowerCase() === 'easy').length;
-    const medNum = completedList.filter(i => i.difficulty?.toLowerCase() === 'medium').length;
-    const hardNum = completedList.filter(i => i.difficulty?.toLowerCase() === 'hard').length;
-    const totalDiff = easyNum + medNum + hardNum;
-    
-    const radius = 35;
-    const circ = 2 * Math.PI * radius;
-    const easyPct = totalDiff > 0 ? easyNum / totalDiff : 0;
-    const medPct = totalDiff > 0 ? medNum / totalDiff : 0;
-
-    const easyOffset = circ;
-    const medOffset = circ - (easyPct * circ);
-    const hardOffset = circ - ((easyPct + medPct) * circ);
-
-    return (
-      <div className="analytics-dashboard-grid">
-        <div className="chart-card">
-          <h4>Score Progression Trend</h4>
-          <div className="svg-chart-container">
-            <svg viewBox="0 0 460 180" width="100%" height="100%">
-              <defs>
-                <linearGradient id="chartGlow" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              
-              <line x1="40" y1="40" x2="420" y2="40" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
-              <line x1="40" y1="95" x2="420" y2="95" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
-              <line x1="40" y1="150" x2="420" y2="150" stroke="rgba(255,255,255,0.05)" strokeWidth="1.5" />
-              
-              <text x="15" y="44" fill="var(--text-muted)" fontSize="9" fontWeight="700">10.0</text>
-              <text x="15" y="99" fill="var(--text-muted)" fontSize="9" fontWeight="700">5.0</text>
-              <text x="15" y="154" fill="var(--text-muted)" fontSize="9" fontWeight="700">0.0</text>
-
-              {points.length > 0 && (
-                <>
-                  <path d={areaPath} fill="url(#chartGlow)" />
-                  <path d={linePath} fill="none" stroke="var(--primary)" strokeWidth="3.5" strokeLinecap="round" />
-                  {points.map((p, i) => (
-                    <g key={i} className="chart-dot-group">
-                      <circle cx={p.x} cy={p.y} r="5.5" fill="#fff" stroke="var(--primary)" strokeWidth="2.5" />
-                      <circle cx={p.x} cy={p.y} r="10" fill="transparent" style={{ cursor: 'pointer' }} />
-                      <title>Session {i+1}: {p.score}/10 on {p.date}</title>
-                    </g>
-                  ))}
-                </>
-              )}
-            </svg>
-          </div>
-          <div className="chart-legend-row">
-            <span>&bull; Horizontal axis tracks sequential mock practices</span>
-          </div>
-        </div>
-
-        <div className="chart-card">
-          <h4>Performance by Topic</h4>
-          <div className="bar-chart-layout">
-            {categoryScores.map((cat, idx) => (
-              <div key={idx} className="bar-row">
-                <span className="bar-row-label">{cat.name}</span>
-                <div className="bar-row-track-container">
-                  <div className="bar-row-track">
-                    <div 
-                      className="bar-row-fill" 
-                      style={{ 
-                        width: `${cat.score * 10}%`,
-                        background: cat.name === 'DSA' ? 'var(--danger)' : 
-                                    cat.name === 'Frontend' ? 'var(--primary)' :
-                                    cat.name === 'Backend' ? 'var(--accent)' : 'var(--success)'
-                      }}
-                    ></div>
-                  </div>
-                </div>
-                <span className="bar-row-score-value">{cat.score > 0 ? `${cat.score}/10` : '—'}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="chart-card donut-chart-card">
-          <h4>Difficulty Distribution</h4>
-          <div className="donut-chart-flex">
-            <div className="donut-svg-wrapper">
-              <svg viewBox="0 0 100 100" className="donut-svg">
-                <circle cx="50" cy="50" r={radius} fill="transparent" stroke="rgba(255,255,255,0.03)" strokeWidth="12" />
-                {easyNum > 0 && (
-                  <circle cx="50" cy="50" r={radius} fill="transparent" stroke="var(--success)" strokeWidth="12"
-                    strokeDasharray={circ} strokeDashoffset={easyOffset} strokeLinecap="round" transform="rotate(-90 50 50)" />
-                )}
-                {medNum > 0 && (
-                  <circle cx="50" cy="50" r={radius} fill="transparent" stroke="#a5b4fc" strokeWidth="12"
-                    strokeDasharray={circ} strokeDashoffset={medOffset} strokeLinecap="round" transform="rotate(-90 50 50)" />
-                )}
-                {hardNum > 0 && (
-                  <circle cx="50" cy="50" r={radius} fill="transparent" stroke="var(--danger)" strokeWidth="12"
-                    strokeDasharray={circ} strokeDashoffset={hardOffset} strokeLinecap="round" transform="rotate(-90 50 50)" />
-                )}
-              </svg>
-              <div className="donut-center-label">
-                <span className="count">{totalDiff}</span>
-                <span className="lbl">Taken</span>
-              </div>
-            </div>
-
-            <div className="donut-legend">
-              <div className="legend-item"><span className="legend-color-dot" style={{ background: 'var(--success)' }}></span> Easy: {easyNum}</div>
-              <div className="legend-item"><span className="legend-color-dot" style={{ background: '#a5b4fc' }}></span> Med: {medNum}</div>
-              <div className="legend-item"><span className="legend-color-dot" style={{ background: 'var(--danger)' }}></span> Hard: {hardNum}</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="chart-card">
-          <h4>Weekly Practice Trend</h4>
-          <div className="svg-chart-container">
-            <svg viewBox="0 0 240 120" width="100%" height="100%">
-              <line x1="20" y1="25" x2="220" y2="25" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
-              <line x1="20" y1="60" x2="220" y2="60" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
-              <line x1="20" y1="95" x2="220" y2="95" stroke="rgba(255,255,255,0.08)" strokeWidth="1.5" />
-              
-              <text x="5" y="28" fill="var(--text-muted)" fontSize="8" fontWeight="700">{maxWeeklyCount}</text>
-              <text x="5" y="63" fill="var(--text-muted)" fontSize="8" fontWeight="700">{Math.round(maxWeeklyCount / 2)}</text>
-              <text x="5" y="98" fill="var(--text-muted)" fontSize="8" fontWeight="700">0</text>
-
-              {weeklyCounts.map((count, idx) => {
-                const barHeight = (count / maxWeeklyCount) * 70;
-                const x = 35 + idx * 50;
-                const y = 95 - barHeight;
-                return (
-                  <g key={idx} className="weekly-bar-group">
-                    <rect 
-                      x={x} 
-                      y={y} 
-                      width="20" 
-                      height={barHeight} 
-                      rx="4" 
-                      ry="4" 
-                      fill="url(#barGradient)" 
-                    />
-                    <text x={x + 10} y={y - 6} fill="var(--accent)" fontSize="8" fontWeight="800" textAnchor="middle">
-                      {count > 0 ? count : ''}
-                    </text>
-                  </g>
-                );
-              })}
-
-              <text x="45" y="112" fill="var(--text-muted)" fontSize="8" fontWeight="600" textAnchor="middle">3w ago</text>
-              <text x="95" y="112" fill="var(--text-muted)" fontSize="8" fontWeight="600" textAnchor="middle">2w ago</text>
-              <text x="145" y="112" fill="var(--text-muted)" fontSize="8" fontWeight="600" textAnchor="middle">1w ago</text>
-              <text x="195" y="112" fill="var(--text-secondary)" fontSize="8" fontWeight="700" textAnchor="middle">This Wk</text>
-
-              <defs>
-                <linearGradient id="barGradient" x1="0" y1="1" x2="0" y2="0">
-                  <stop offset="0%" stopColor="var(--primary)" />
-                  <stop offset="100%" stopColor="var(--accent)" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
-          <div className="chart-legend-row">
-            <span>&bull; Mocks completed per weekly interval</span>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   if (loading) {
     return (
       <div className="dashboard-container">
-        <div className="spinner-container">
-          <div className="spinner"></div>
-          <h3>Retrieving Your Progress...</h3>
-          <p>Please hold on while we communicate with the cloud database.</p>
+        <div className="spinner-container text-center py-5">
+          <div className="spinner-border text-primary" style={{ width: '3rem', height: '3rem' }}></div>
+          <h3 className="h5 text-light mt-3 fw-bold">Analyzing Career Intelligence Data...</h3>
+          <p className="text-secondary">Computing category ratings, progress trends, and practice roadmaps.</p>
         </div>
       </div>
     );
@@ -407,17 +157,12 @@ function Dashboard() {
   if (error) {
     return (
       <div className="dashboard-container">
-        <header className="dashboard-header">
-          <h1>Interview Prep Dashboard</h1>
-          <p>Track your analytical progress and launch simulated AI interview panels.</p>
-        </header>
-
-        <div className="state-container error">
+        <div className="state-container error my-5">
           <div className="state-icon-wrapper">⚠️</div>
-          <h3>Database Connection Failed</h3>
+          <h3>Analytics Server Offline</h3>
           <p>{error}</p>
           <div>
-            <button className="state-btn" onClick={triggerRefresh}>Retry Loading</button>
+            <button className="state-btn" onClick={triggerRefresh}>Retry Connection</button>
             <button className="state-btn-secondary" onClick={() => navigate('/')}>Return Home</button>
           </div>
         </div>
@@ -428,149 +173,179 @@ function Dashboard() {
   return (
     <div className="dashboard-container">
       <div className="dashboard-glow-orb dashboard-orb-1"></div>
-      
-      <header className="dashboard-header">
-        <div className="header-badge">
-          <span className="badge-icon"></span>
-          <span>AI POWERED PLATFORM</span>
+
+      {/* Header Bar with Action Export Buttons */}
+      <header className="dashboard-header d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+          <div className="header-badge mb-2">
+            <span className="badge-icon">⚡</span>
+            <span>AI CAREER COACH DASHBOARD</span>
+          </div>
+          <h1 className="h2 fw-bold text-light mb-1">Executive Career & Practice Intelligence</h1>
+          <p className="text-secondary mb-0">Personalized AI insights, skill progress radar, weakness detection, and practice roadmaps.</p>
         </div>
-        <h1>Interview Prep Dashboard</h1>
-        <p>Track your analytical progress, review trends, and launch mock interviews.</p>
+
+        <div className="d-flex gap-2 mt-3 mt-md-0">
+          <button
+            type="button"
+            className="btn btn-outline-info btn-sm d-flex align-items-center gap-2"
+            onClick={handleExportCSV}
+            disabled={exporting}
+          >
+            <span>📥</span> Export CSV
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary btn-sm d-flex align-items-center gap-2 fw-bold"
+            onClick={handleExportPDF}
+          >
+            <span>📄</span> Export PDF Report
+          </button>
+        </div>
       </header>
 
-      <section className="stats-grid">
-        <div className="stat-card">
-          <span className="stat-icon">📋</span>
-          <div className="stat-info">
-            <span className="stat-label">Total Sessions</span>
-            <span className="stat-value">{stats.totalInterviews} Mock{stats.totalInterviews !== 1 && 's'}</span>
-          </div>
+      {/* SaaS Metric Cards Grid (Part 6) */}
+      <section className="row g-3 mb-4">
+        <div className="col-12 col-sm-6 col-md-4 col-lg-2">
+          <AnalyticsCard
+            title="Overall Score"
+            value={`${summary.averageScore || 0}%`}
+            icon="🏆"
+            trend={summary.improvementPercentage}
+            trendDirection={summary.trendDetection === 'Improving' ? 'up' : summary.trendDetection === 'Declining' ? 'down' : 'stable'}
+            subtitle="Current rating avg"
+          />
         </div>
 
-        <div className="stat-card">
-          <span className="stat-icon">✅</span>
-          <div className="stat-info">
-            <span className="stat-label">Interviews Completed</span>
-            <span className="stat-value">{stats.totalCompleted} Mock{stats.totalCompleted !== 1 && 's'}</span>
-          </div>
+        <div className="col-12 col-sm-6 col-md-4 col-lg-2">
+          <AnalyticsCard
+            title="Highest Score"
+            value={`${summary.highestScore || 0}%`}
+            icon="⭐"
+            badgeText="Peak"
+            badgeColor="success"
+            subtitle="Personal record"
+          />
         </div>
 
-        <div className="stat-card">
-          <span className="stat-icon">📈</span>
-          <div className="stat-info">
-            <span className="stat-label">Average Score</span>
-            <span className="stat-value">{stats.avgScore > 0 ? `${stats.avgScore}%` : '—'}</span>
-          </div>
+        <div className="col-12 col-sm-6 col-md-4 col-lg-2">
+          <AnalyticsCard
+            title="Latest Session"
+            value={`${summary.latestScore || 0}%`}
+            icon="⚡"
+            subtitle={`Trend: ${summary.trendDetection || 'Stable'}`}
+          />
         </div>
 
-        <div className="stat-card">
-          <span className="stat-icon">🏆</span>
-          <div className="stat-info">
-            <span className="stat-label">Highest Score</span>
-            <span className="stat-value">{stats.highestScore > 0 ? `${stats.highestScore}%` : '—'}</span>
-          </div>
+        <div className="col-12 col-sm-6 col-md-4 col-lg-2">
+          <AnalyticsCard
+            title="Total Sessions"
+            value={summary.totalInterviews || 0}
+            icon="📋"
+            progress={summary.completionRate}
+            subtitle={`${summary.completedInterviews || 0} Completed`}
+          />
         </div>
 
-        <div className="stat-card">
-          <span className="stat-icon">📅</span>
-          <div className="stat-info">
-            <span className="stat-label">This Month</span>
-            <span className="stat-value">{stats.monthlyInterviews} Practice{stats.monthlyInterviews !== 1 && 's'}</span>
-          </div>
+        <div className="col-12 col-sm-6 col-md-4 col-lg-2">
+          <AnalyticsCard
+            title="Learning Velocity"
+            value={insights.learningVelocity || 'Steady'}
+            icon="🚀"
+            badgeText={`${summary.weeklyCount || 0} This Wk`}
+            badgeColor="info"
+            subtitle="Pacing metric"
+          />
         </div>
 
-        <div className="stat-card">
-          <span className="stat-icon">✨</span>
-          <div className="stat-info">
-            <span className="stat-label">Improvement Trend</span>
-            <span className="stat-value" style={{ fontSize: '1.05rem', marginTop: '0.45rem', lineHeight: '1.3' }}>{stats.trend}</span>
-          </div>
+        <div className="col-12 col-sm-6 col-md-4 col-lg-2">
+          <AnalyticsCard
+            title="Readiness Index"
+            value={`${insights.readinessScore || 75}/100`}
+            icon="🎯"
+            badgeText={insights.readinessScore >= 80 ? 'Ready' : 'In Progress'}
+            badgeColor={insights.readinessScore >= 80 ? 'success' : 'warning'}
+            subtitle="AI readiness score"
+          />
         </div>
       </section>
 
-      <section className="analytics-collapsible-wrapper">
-        <button className="btn-analytics-toggle" onClick={() => setShowAnalytics(!showAnalytics)}>
-          <span>📊 Performance Analytics &amp; Progression Insights</span>
-          <span className="toggle-chevron">{showAnalytics ? '▲' : '▼'}</span>
-        </button>
-        {showAnalytics && (
-          <div className="analytics-collapsible-content">
-            {renderCharts()}
+      {/* AI Career Coach Insights Box (Part 2) */}
+      {insights.observations && insights.observations.length > 0 && (
+        <section className="card bg-dark text-light border border-info border-opacity-25 rounded-4 p-4 shadow-sm mb-4">
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h3 className="h5 fw-bold mb-0 text-info d-flex align-items-center gap-2">
+              <span>🤖</span> AI Career Coach Intelligence Observations
+            </h3>
+            <span className="badge bg-info-subtle text-info border border-info fs-8">
+              Confidence: {summary.aiRecommendationConfidence || 85}%
+            </span>
           </div>
-        )}
-      </section>
 
-      {/* Unlocked Achievements Section */}
-      {(() => {
-        const getAchievements = () => {
-          const list = [];
-          if (stats.totalCompleted >= 1) {
-            list.push({
-              id: 'novice',
-              title: 'STAR Novice',
-              description: 'Completed first AI mock practice.',
-              icon: '🥇',
-              color: '#10b981',
-              theme: 'easy'
-            });
-          }
-          if (stats.totalCompleted >= 3) {
-            list.push({
-              id: 'veteran',
-              title: 'Prep Veteran',
-              description: 'Completed 3+ mock sessions.',
-              icon: '🏆',
-              color: '#6366f1',
-              theme: 'medium'
-            });
-          }
-          if (stats.avgScore >= 8.0) {
-            list.push({
-              id: 'communicator',
-              title: 'Elite Speaker',
-              description: 'Scored 8.0+ average in speech depth.',
-              icon: '⚡',
-              color: '#22d3ee',
-              theme: 'hard'
-            });
-          }
-          if (stats.avgScore >= 7.0) {
-            list.push({
-              id: 'practitioner',
-              title: 'STAR Practitioner',
-              description: 'Maintained benchmark >= 7.0 overall rating.',
-              icon: '🎯',
-              color: '#a855f7',
-              theme: 'medium'
-            });
-          }
-          return list;
-        };
-        const achievements = getAchievements();
-        if (achievements.length === 0) return null;
-
-        return (
-          <section className="achievements-section" style={{ marginTop: '3rem' }}>
-            <h2 className="achievements-title">Unlocked Achievements</h2>
-            <div className="achievements-grid">
-              {achievements.map((ach) => (
-                <div key={ach.id} className={`achievement-badge-card ${ach.theme}`}>
-                  <span className="achievement-icon" style={{ textShadow: `0 0 10px ${ach.color}` }}>{ach.icon}</span>
-                  <div className="achievement-info">
-                     <h4>{ach.title}</h4>
-                     <p>{ach.description}</p>
-                  </div>
-                </div>
-              ))}
+          <div className="row g-3">
+            <div className="col-12 col-md-8">
+              <ul className="mb-0 ps-3 text-light d-flex flex-column gap-2 fs-7">
+                {insights.observations.map((obs, idx) => (
+                  <li key={idx} className="lh-base">💡 {obs}</li>
+                ))}
+              </ul>
             </div>
-          </section>
-        );
-      })()}
 
-      {/* Recent Practice Sessions (List/Table of Interviews) */}
-      <section className="recent-sessions-section" style={{ marginTop: '4rem' }}>
-        <h2>Recent Practice Sessions</h2>
-        {(analytics?.recentInterviews || []).length > 0 ? (
+            <div className="col-12 col-md-4">
+              <div className="p-3 rounded-3 bg-black bg-opacity-30 border border-secondary border-opacity-25 h-100">
+                <h5 className="fs-8 fw-bold text-secondary text-uppercase mb-2">Target Focus Areas</h5>
+                <div className="d-flex flex-wrap gap-1">
+                  {insights.recommendedFocusAreas?.map((area, aIdx) => (
+                    <span key={aIdx} className="badge bg-primary-subtle text-primary border border-primary fs-8">
+                      {area}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Visual Analytics Charts Grid (Part 3) */}
+      <section className="row g-3 mb-4">
+        <div className="col-12 col-lg-6">
+          <SkillRadarChart data={charts.radar} />
+        </div>
+
+        <div className="col-12 col-lg-6">
+          <ScoreTimelineChart data={charts.scoreTimeline} />
+        </div>
+      </section>
+
+      <section className="mb-4">
+        <DistributionCharts typeData={charts.typeDoughnut} difficultyData={charts.difficultyBar} />
+      </section>
+
+      {/* Weakness Detection & 4-Week Practice Plan Roadmap (Parts 4 & 5) */}
+      <section className="row g-3 mb-4">
+        <div className="col-12 col-lg-6">
+          <WeaknessPriorityCard data={weaknesses} />
+        </div>
+
+        <div className="col-12 col-lg-6">
+          <ActivityHeatmap activityMap={charts.activityMap} />
+        </div>
+      </section>
+
+      <section className="mb-4">
+        <PracticePlanCard data={practicePlan} />
+      </section>
+
+      {/* Milestones, Streaks & Readiness Meter (Bonus Part 12) */}
+      <section className="mb-4">
+        <BadgesMilestonesCard data={milestones} readinessScore={insights.readinessScore || 75} />
+      </section>
+
+      {/* Recent Practice Sessions Table */}
+      <section className="recent-sessions-section mt-5">
+        <h2 className="h4 fw-bold text-light mb-3">Recent Simulated Interview Sessions</h2>
+        {recentInterviews.length > 0 ? (
           <div className="history-table-container">
             <table className="history-table">
               <thead>
@@ -585,8 +360,12 @@ function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {analytics.recentInterviews.map((item) => (
-                  <tr key={item._id} className="history-row" onClick={() => item.status === 'completed' && navigate(`/results?id=${item._id}`)}>
+                {recentInterviews.map((item) => (
+                  <tr
+                    key={item._id}
+                    className="history-row"
+                    onClick={() => item.status === 'completed' && navigate(`/results?id=${item._id}`)}
+                  >
                     <td>
                       <span className="history-item-title">{item.title}</span>
                     </td>
@@ -626,7 +405,7 @@ function Dashboard() {
                             Start Mock
                           </button>
                         )}
-                        <button className="btn-table-action delete" onClick={(e) => handleDeleteClick(item._id, e)} title="Delete Practice Session">
+                        <button className="btn-table-action delete" onClick={(e) => handleDeleteClick(item._id, e)} title="Delete Session">
                           🗑
                         </button>
                       </div>
@@ -637,18 +416,18 @@ function Dashboard() {
             </table>
           </div>
         ) : (
-          <div className="state-container" style={{ margin: '1.5rem auto' }}>
+          <div className="state-container text-center py-4">
             <div className="state-icon-wrapper">📦</div>
-            <h3>No Interviews Yet</h3>
-            <p>Your practice history is empty. Start your preparation by taking your first mock interview!</p>
-            <button className="state-btn" onClick={() => navigate('/interview-setup')}>Start First Interview</button>
+            <h3>No Practice Sessions Recorded</h3>
+            <p>Select a practice track below to launch your first simulated AI interview panel.</p>
+            <button className="state-btn" onClick={() => navigate('/interview-setup')}>Start Mock Interview</button>
           </div>
         )}
       </section>
 
       {/* Available Session Tracks */}
-      <section className="roles-section" style={{ marginTop: '4rem' }}>
-        <h2>Choose Your Practice Domain</h2>
+      <section className="roles-section mt-5">
+        <h2 className="h4 fw-bold text-light mb-3">Choose Your Practice Domain</h2>
         <div className="roles-grid">
           {interviewCategories.map((category) => (
             <div key={category.id} className="role-card">
@@ -662,7 +441,7 @@ function Dashboard() {
               </div>
               <h3>{category.title}</h3>
               <p>{category.description}</p>
-              <button 
+              <button
                 className="btn-start-role-mock"
                 onClick={() => handleStartMock(category.title)}
               >
@@ -674,11 +453,11 @@ function Dashboard() {
         </div>
       </section>
 
-      {/* Custom Confirmation Dialog Modal Overlay */}
-      <ConfirmationModal 
+      {/* Confirmation Dialog Modal */}
+      <ConfirmationModal
         isOpen={deleteModalOpen}
         title="Delete Interview Record?"
-        message="Are you sure you want to permanently delete this practice record and all of its feedback metrics? This operation is destructive and cannot be undone."
+        message="Are you sure you want to permanently delete this practice record? This operation is destructive and cannot be undone."
         confirmText="Yes, Delete"
         cancelText="Keep Record"
         onConfirm={handleConfirmDelete}

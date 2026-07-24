@@ -35,7 +35,7 @@ const CATEGORY_QUESTIONS = {
  * @param {Object} options - Custom fetch configurations (method, headers, body)
  * @returns {Promise<Object>} Response payload from server
  */
-async function apiRequest(endpoint, options = {}) {
+export async function apiRequest(endpoint, options = {}) {
   const url = `${BASE_URL}${endpoint}`;
   
   const token = localStorage.getItem('token');

@@ -1,21 +1,39 @@
 import express from 'express';
-import { getDashboardAnalytics } from '../controllers/analyticsController.js';
+import {
+  getAnalytics,
+  getSummary,
+  getSkillMetrics,
+  getChartData,
+  getHistoryAnalytics,
+  getInsights,
+  getRecommendations,
+  getWeaknesses,
+  getPracticePlan,
+  exportAnalytics,
+  getDashboardAnalytics
+} from '../controllers/analyticsController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
-// Create a new router instance
 const router = express.Router();
 
 /**
  * Apply JWT authentication middleware to all analytics routes.
- * Every request below requires a valid Bearer token.
  */
 router.use(protect);
 
 /**
- * Route: GET /api/analytics/dashboard
- * Description: Fetch dashboard analytics and recent interview sessions for the authenticated user
- * Access: Private
+ * Analytics API Routes
  */
+router.get('/', getAnalytics);
 router.get('/dashboard', getDashboardAnalytics);
+router.get('/summary', getSummary);
+router.get('/skills', getSkillMetrics);
+router.get('/charts', getChartData);
+router.get('/history', getHistoryAnalytics);
+router.get('/insights', getInsights);
+router.get('/recommendations', getRecommendations);
+router.get('/weaknesses', getWeaknesses);
+router.get('/practice-plan', getPracticePlan);
+router.get('/export', exportAnalytics);
 
 export default router;
