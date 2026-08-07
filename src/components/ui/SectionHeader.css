@@ -1,0 +1,43 @@
+/* Vercel SectionHeader Component Styling */
+.ds-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: var(--space-6);
+  text-align: left;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.ds-section-badge {
+  margin-bottom: var(--space-2);
+}
+
+.ds-section-title {
+  font-family: var(--font-heading);
+  font-size: var(--font-2xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--ds-text-100);
+  letter-spacing: var(--letter-spacing-tight);
+  margin: 0 0 var(--space-1) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ds-section-icon {
+  color: var(--ds-blue-500);
+}
+
+.ds-section-subtitle {
+  font-size: var(--font-sm);
+  color: var(--ds-text-200);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.ds-section-header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}

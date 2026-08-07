@@ -17,10 +17,18 @@ export const helmetSecurity = helmet({
 // 2. CORS Whitelist Configuration
 export const corsSecurity = cors({
   origin: (origin, callback) => {
-    if (!origin || env.ALLOWED_ORIGINS.includes(origin) || env.NODE_ENV === 'development') {
+    if (
+      !origin ||
+      env.ALLOWED_ORIGINS.includes(origin) ||
+      env.NODE_ENV === 'development'
+    ) {
       callback(null, true);
     } else {
-      callback(new Error(`CORS Error: Origin ${origin} is not allowed by security policy.`));
+      callback(
+        new Error(
+          `CORS Error: Origin ${origin} is not allowed by security policy.`
+        )
+      );
     }
   },
   credentials: true,
@@ -36,7 +44,8 @@ export const generalLimiter = rateLimit({
   legacyHeaders: false,
   message: {
     success: false,
-    message: 'Too many requests sent from this IP address. Please try again after 15 minutes.'
+    message:
+      'Too many requests sent from this IP address. Please try again after 15 minutes.'
   }
 });
 
@@ -48,17 +57,28 @@ export const strictLimiter = rateLimit({
   legacyHeaders: false,
   message: {
     success: false,
-    message: 'Rate limit reached for sensitive AI/Auth operations. Please wait a few minutes before retrying.'
+    message:
+      'Rate limit reached for sensitive AI/Auth operations. Please wait a few minutes before retrying.'
   }
 });
 
-// 5. Request Response Time Performance Header
+// 5. Request Response Time Performance Logger
+// Logs request duration after the response has been sent.
+// NOTE:
+// Do NOT call res.setHeader() inside the "finish" event.
+// At that point, the headers have already been sent and Node.js
+// will throw ERR_HTTP_HEADERS_SENT.
 export const requestTimer = (req, res, next) => {
   const start = Date.now();
+
   res.on('finish', () => {
     const duration = Date.now() - start;
-    res.setHeader('X-Response-Time', `${duration}ms`);
+
+    console.log(
+      `${req.method} ${req.originalUrl} | ${res.statusCode} | ${duration}ms`
+    );
   });
+
   next();
 };
 

@@ -1,17 +1,18 @@
 import React from 'react';
+import { motion } from 'framer-motion';
+import { Mic, Square } from 'lucide-react';
 
 /**
- * Microphone Button Component
- * Rendered during voice recording sessions with pulse aura and accessible keyboard controls.
- * 
- * @param {Object} props
- * @param {boolean} props.isListening - Active mic recording state
- * @param {Function} props.onClick - Toggle click handler
- * @param {boolean} [props.disabled=false]
- * @param {boolean} [props.isSupported=true]
- * @param {string} [props.statusText='']
+ * MicrophoneButton Component (ChatGPT Voice / ElevenLabs Aesthetic)
+ * Focal animated microphone button with multi-layer aura and Framer Motion pulse.
  */
-export function MicrophoneButton({ isListening, onClick, disabled = false, isSupported = true, statusText = '' }) {
+export function MicrophoneButton({
+  isListening,
+  onClick,
+  disabled = false,
+  isSupported = true,
+  statusText = ''
+}) {
   const handleKeyDown = (e) => {
     if (e.key === ' ' || e.key === 'Enter') {
       e.preventDefault();
@@ -21,35 +22,39 @@ export function MicrophoneButton({ isListening, onClick, disabled = false, isSup
     }
   };
 
-  const getAriaLabel = () => {
-    if (!isSupported) return 'Voice recognition not supported in this browser';
-    if (isListening) return 'Stop recording speech answer';
-    return 'Start recording speech answer';
-  };
-
   return (
-    <div className="mic-button-wrapper text-center my-3">
-      <button
-        type="button"
-        className={`mic-button ${isListening ? 'listening' : ''} ${disabled || !isSupported ? 'disabled' : ''}`}
-        onClick={onClick}
-        onKeyDown={handleKeyDown}
-        disabled={disabled || !isSupported}
-        aria-label={getAriaLabel()}
-        aria-pressed={isListening}
-        tabIndex={0}
-      >
-        <div className="mic-pulse-ring ring-1"></div>
-        <div className="mic-pulse-ring ring-2"></div>
-        
-        <span className="mic-icon" role="img" aria-hidden="true">
-          {isListening ? '🔴' : '🎙️'}
-        </span>
-      </button>
+    <div className="mic-button-wrapper text-center my-4">
+      <div className="focal-mic-container">
+        {isListening && (
+          <>
+            <motion.div
+              className="mic-glow-aura aura-1"
+              animate={{ scale: [1, 1.35, 1], opacity: [0.6, 0.2, 0.6] }}
+              transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+            />
+            <motion.div
+              className="mic-glow-aura aura-2"
+              animate={{ scale: [1, 1.6, 1], opacity: [0.4, 0.1, 0.4] }}
+              transition={{ repeat: Infinity, duration: 2, delay: 0.4, ease: 'easeInOut' }}
+            />
+          </>
+        )}
 
-      <div className="mic-status-label mt-2">
-        <span className={`status-badge-pill ${isListening ? 'active' : 'idle'}`}>
-          {statusText || (isListening ? 'Recording... Speak now' : 'Click Mic or Press Space to Record')}
+        <button
+          type="button"
+          className={`focal-mic-btn-large ${isListening ? 'recording' : ''}`}
+          onClick={onClick}
+          onKeyDown={handleKeyDown}
+          disabled={disabled || !isSupported}
+          aria-label={isListening ? 'Stop recording' : 'Start recording'}
+        >
+          {isListening ? <Square size={28} className="icon-stop" /> : <Mic size={36} className="icon-mic" />}
+        </button>
+      </div>
+
+      <div className="mic-status-label mt-3">
+        <span className={`status-pill ${isListening ? 'active' : 'idle'}`}>
+          {statusText || (isListening ? '🔴 Recording Speech... Speak Now' : '🎙️ Tap Mic or Press Spacebar to Record')}
         </span>
       </div>
     </div>

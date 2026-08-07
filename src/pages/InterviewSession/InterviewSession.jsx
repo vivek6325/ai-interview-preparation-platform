@@ -518,104 +518,121 @@ function InterviewSession() {
       )}
 
       {sessionStatus === 'active' && (
-        <div className="session-card animate-fade-in">
-          <div className="session-header-row d-flex justify-content-between align-items-center mb-3">
-            <div className="session-meta d-flex align-items-center gap-2">
-              <span className="session-role">{role} Track</span>
-              <span className="meta-sep">•</span>
-              <span className={`difficulty-pill ${difficulty.toLowerCase()}`}>{difficulty}</span>
-              <span className="meta-sep">•</span>
-              <button
-                type="button"
-                className="btn btn-sm btn-outline-info py-0 px-2 rounded-pill fs-7"
-                onClick={() => setInterviewMode(prev => (prev === 'voice' ? 'text' : 'voice'))}
-              >
-                {interviewMode === 'voice' ? '🎙️ Voice Mode' : '✍️ Text Mode'}
-              </button>
+        <div className="session-active-grid-wrapper animate-fade-in">
+          {/* Top Progress Timeline Header */}
+          <div className="session-progress-timeline-bar mb-4">
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <div className="d-flex align-items-center gap-2">
+                <span className="badge bg-primary-subtle text-primary border border-primary px-3 py-1 rounded-pill fw-bold">
+                  Question {currentIndex + 1} of {questions.length}
+                </span>
+                <span className="session-track-pill">{role} Track</span>
+                <span className={`difficulty-pill ${difficulty.toLowerCase()}`}>{difficulty}</span>
+              </div>
+
+              <div className="d-flex align-items-center gap-3">
+                <Timer
+                  initialSeconds={120}
+                  onTimeUp={handleTimerExpired}
+                  autoStart={true}
+                />
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-info rounded-pill px-3 py-1"
+                  onClick={() => setInterviewMode(prev => (prev === 'voice' ? 'text' : 'voice'))}
+                >
+                  {interviewMode === 'voice' ? '🎙️ Voice Mode' : '✍️ Text Mode'}
+                </button>
+              </div>
             </div>
-            
-            <Timer 
-              initialSeconds={120} 
-              onTimeUp={handleTimerExpired} 
-              autoStart={true} 
+
+            <ProgressBar
+              current={currentIndex + 1}
+              total={questions.length}
             />
           </div>
 
-          <ProgressBar 
-            current={currentIndex + 1} 
-            total={questions.length} 
-          />
+          {/* 2-Column Main Interview Grid */}
+          <div className="interview-room-2col-grid">
+            {/* Left Column: Question Card & Voice Recorder */}
+            <div className="room-left-column">
+              <div className="question-presentation-card mb-4">
+                <div className="q-card-header-meta d-flex justify-content-between align-items-center mb-2">
+                  <span className="q-category-tag">Topic: {questions[currentIndex]?.topic || role}</span>
+                  <span className="q-time-tag">⏱️ Est. 120s Answer</span>
+                </div>
 
-          {/* Mode rendering: Voice Mode vs Text Mode */}
-          {interviewMode === 'voice' ? (
-            <div className="voice-interview-active-wrapper my-3">
-              <div className="card bg-dark text-light border-secondary p-3 mb-3 shadow-sm rounded-3">
-                <div className="d-flex justify-content-between align-items-start gap-2">
-                  <div>
-                    <span className="badge bg-primary mb-2">Question {currentIndex + 1} of {questions.length}</span>
-                    <h3 className="h4 text-light fw-bold mb-0">{questions[currentIndex]?.question}</h3>
-                  </div>
+                <h2 className="q-headline">{questions[currentIndex]?.question}</h2>
 
-                  <div className="d-flex gap-2">
-                    <button
-                      type="button"
-                      className="btn btn-outline-info btn-sm"
-                      onClick={handleReplayQuestion}
-                      title="Replay Question Aloud"
-                    >
-                      {isSpeaking ? '🔊 Speaking...' : '🔊 Replay'}
-                    </button>
+                <div className="q-actions-bar d-flex align-items-center justify-content-between mt-3 pt-3 border-top border-secondary border-opacity-25">
+                  <button
+                    type="button"
+                    className="btn btn-outline-info btn-sm d-flex align-items-center gap-2"
+                    onClick={handleReplayQuestion}
+                  >
+                    <span>🔊</span> {isSpeaking ? 'Reading Aloud...' : 'Replay Question'}
+                  </button>
 
-                    <button
-                      type="button"
-                      className={`btn btn-sm ${isMuted ? 'btn-outline-warning' : 'btn-outline-secondary'}`}
-                      onClick={handleToggleMute}
-                      title={isMuted ? 'Unmute Auto-read' : 'Mute Auto-read'}
-                    >
-                      {isMuted ? '🔇' : '🔊'}
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    className={`btn btn-sm ${isMuted ? 'btn-outline-warning' : 'btn-outline-secondary'}`}
+                    onClick={handleToggleMute}
+                  >
+                    {isMuted ? '🔇 Auto-read Muted' : '🔊 Auto-read Enabled'}
+                  </button>
                 </div>
               </div>
 
-              <VoiceRecorder
-                transcript={transcript}
-                interimTranscript={interimTranscript}
-                isListening={isListening}
-                isSpeaking={isSpeaking}
-                isMuted={isMuted}
-                error={recognitionError}
-                isSupported={isSttSupported}
+              {interviewMode === 'voice' ? (
+                <VoiceRecorder
+                  transcript={transcript}
+                  interimTranscript={interimTranscript}
+                  isListening={isListening}
+                  isSpeaking={isSpeaking}
+                  isMuted={isMuted}
+                  error={recognitionError}
+                  isSupported={isSttSupported}
+                  speakingDuration={speakingDuration}
+                  onStartRecording={handleStartRecordingVoice}
+                  onStopRecording={handleStopRecordingVoice}
+                  onTranscriptChange={handleVoiceTranscriptChange}
+                  onRetry={handleRetryVoice}
+                  onReplayQuestion={handleReplayQuestion}
+                  onToggleMute={handleToggleMute}
+                  onNext={handleNext}
+                  onSubmit={handleNext}
+                  settings={voiceSettings}
+                  onSaveSettings={updateVoiceSettings}
+                  voices={voices}
+                  isLastQuestion={currentIndex === questions.length - 1}
+                  hasAnswer={!!(answers[questions[currentIndex]?.id] || transcript)}
+                />
+              ) : (
+                <QuestionCard
+                  questionNumber={currentIndex + 1}
+                  totalQuestions={questions.length}
+                  questionText={questions[currentIndex]?.question}
+                  difficulty={questions[currentIndex]?.difficulty || difficulty}
+                  value={answers[questions[currentIndex]?.id] || ''}
+                  onChange={(val) => handleAnswerChange(questions[currentIndex]?.id, val)}
+                  onPrevious={handlePrevious}
+                  onNext={handleNext}
+                  isFirst={currentIndex === 0}
+                  isLast={currentIndex === questions.length - 1}
+                />
+              )}
+            </div>
+
+            {/* Right Column: AI Assistant Co-Pilot Side Panel */}
+            <div className="room-right-column">
+              <AIAssistantPanel
+                currentQuestion={questions[currentIndex]}
+                transcript={answers[questions[currentIndex]?.id] || transcript}
                 speakingDuration={speakingDuration}
-                onStartRecording={handleStartRecordingVoice}
-                onStopRecording={handleStopRecordingVoice}
-                onTranscriptChange={handleVoiceTranscriptChange}
-                onRetry={handleRetryVoice}
-                onReplayQuestion={handleReplayQuestion}
-                onToggleMute={handleToggleMute}
-                onNext={handleNext}
-                onSubmit={handleNext}
-                settings={voiceSettings}
-                onSaveSettings={updateVoiceSettings}
-                voices={voices}
-                isLastQuestion={currentIndex === questions.length - 1}
-                hasAnswer={!!(answers[questions[currentIndex]?.id] || transcript)}
+                parsedResumeDetails={parsedResumeDetails}
               />
             </div>
-          ) : (
-            <QuestionCard 
-              questionNumber={currentIndex + 1}
-              totalQuestions={questions.length}
-              questionText={questions[currentIndex]?.question}
-              difficulty={questions[currentIndex]?.difficulty || difficulty}
-              value={answers[questions[currentIndex]?.id] || ''}
-              onChange={(val) => handleAnswerChange(questions[currentIndex]?.id, val)}
-              onPrevious={handlePrevious}
-              onNext={handleNext}
-              isFirst={currentIndex === 0}
-              isLast={currentIndex === questions.length - 1}
-            />
-          )}
+          </div>
         </div>
       )}
 

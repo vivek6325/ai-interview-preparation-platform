@@ -1,0 +1,130 @@
+/* Vercel Button Component Styling */
+.ds-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-normal);
+  outline: none;
+  box-sizing: border-box;
+  text-decoration: none;
+}
+
+.ds-btn:focus-visible {
+  box-shadow: 0 0 0 2px var(--ds-bg-100), 0 0 0 4px var(--ds-blue-500);
+}
+
+.ds-btn:disabled, .ds-btn-loading {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.ds-btn-spinner {
+  animation: ds-spin 1s linear infinite;
+}
+
+@keyframes ds-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ds-btn-icon-left { margin-right: var(--space-2); }
+.ds-btn-icon-right { margin-left: var(--space-2); }
+
+/* Sizes (8-point Grid) */
+.ds-btn-sm {
+  height: 32px;
+  padding: 0 var(--space-3);
+  font-size: var(--font-xs);
+}
+
+.ds-btn-md {
+  height: 40px;
+  padding: 0 var(--space-4);
+  font-size: var(--font-sm);
+}
+
+.ds-btn-lg {
+  height: 48px;
+  padding: 0 var(--space-6);
+  font-size: var(--font-base);
+  border-radius: var(--radius-lg);
+}
+
+/* Variants */
+.ds-btn-primary {
+  background: var(--ds-blue-500);
+  color: #ffffff;
+  border-color: var(--ds-blue-600);
+  box-shadow: 0 4px 12px rgba(0, 112, 243, 0.25);
+}
+
+.ds-btn-primary:hover:not(:disabled) {
+  background: var(--ds-blue-600);
+  box-shadow: 0 6px 16px rgba(0, 112, 243, 0.4);
+  transform: translateY(-1px);
+}
+
+.ds-btn-secondary {
+  background: var(--ds-bg-400);
+  color: var(--ds-text-100);
+  border-color: var(--ds-border-100);
+}
+
+.ds-btn-secondary:hover:not(:disabled) {
+  background: var(--ds-bg-hover);
+  border-color: var(--ds-border-200);
+  color: #ffffff;
+}
+
+.ds-btn-outline {
+  background: transparent;
+  color: var(--ds-text-100);
+  border-color: var(--ds-border-200);
+}
+
+.ds-btn-outline:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--ds-border-300);
+}
+
+.ds-btn-ghost {
+  background: transparent;
+  color: var(--ds-text-200);
+  border-color: transparent;
+}
+
+.ds-btn-ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--ds-text-100);
+}
+
+.ds-btn-danger {
+  background: var(--ds-red-500);
+  color: #ffffff;
+  border-color: rgba(238, 0, 0, 0.8);
+  box-shadow: 0 4px 12px rgba(238, 0, 0, 0.25);
+}
+
+.ds-btn-danger:hover:not(:disabled) {
+  background: #cc0000;
+  box-shadow: 0 6px 16px rgba(238, 0, 0, 0.4);
+  transform: translateY(-1px);
+}
+
+.ds-btn-glow {
+  background: linear-gradient(135deg, var(--ds-blue-500) 0%, var(--ds-purple-500) 100%);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: var(--shadow-glow-purple);
+}
+
+.ds-btn-glow:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(121, 40, 202, 0.5);
+}

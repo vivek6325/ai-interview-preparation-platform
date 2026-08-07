@@ -1,0 +1,112 @@
+/**
+ * PrepAI Flagship SaaS Design System Tokens
+ * Palette: #7C5CFF Primary Purple, #4F8CFF Accent Blue, #09090B Base, #111827 Surface, #18181B Cards.
+ * Typography: Hero 56px, Page 42px, Section 28px, Card Value 32px, Body 16px, Caption 14px.
+ * Spacing: 8-point system (8, 16, 24, 32, 48, 64).
+ */
+
+:root {
+  /* 8-Point Spacing System */
+  --space-8: 8px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+  --space-64: 64px;
+
+  /* Compatibility aliases */
+  --space-1: 4px;
+  --space-2: var(--space-8);
+  --space-3: 12px;
+  --space-4: var(--space-16);
+  --space-5: 20px;
+  --space-6: var(--space-24);
+  --space-10: 40px;
+  --space-12: var(--space-48);
+
+  /* Color Palette */
+  --ds-primary: #7C5CFF;         /* Flagship Purple */
+  --ds-accent: #4F8CFF;          /* Flagship Blue */
+  --ds-success: #22C55E;         /* Emerald Success */
+  --ds-warning: #F59E0B;         /* Amber Warning */
+  --ds-danger: #EF4444;          /* Crimson Danger */
+
+  --ds-bg-100: #09090B;          /* Base Dark */
+  --ds-bg-200: #111827;          /* Surface Dark */
+  --ds-bg-300: #18181B;          /* Card Dark */
+  --ds-bg-400: #202025;          /* Hover Surface */
+  --ds-bg-hover: #26262e;
+
+  --ds-border-100: rgba(255, 255, 255, 0.08);
+  --ds-border-200: rgba(124, 92, 255, 0.3);
+  --ds-border-300: rgba(79, 140, 255, 0.4);
+
+  --ds-text-100: #F9FAFB;
+  --ds-text-200: #9CA3AF;
+  --ds-text-300: #6B7280;
+
+  /* Primary aliases */
+  --primary: var(--ds-primary);
+  --secondary: var(--ds-accent);
+  --accent: var(--ds-accent);
+  --success: var(--ds-success);
+  --warning: var(--ds-warning);
+  --danger: var(--ds-danger);
+  --bg-primary: var(--ds-bg-100);
+  --bg-secondary: var(--ds-bg-200);
+  --card-bg: var(--ds-bg-300);
+  --border: var(--ds-border-100);
+
+  /* Typography Scale */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', var(--font-sans);
+
+  --font-hero: 56px;
+  --font-page-title: 42px;
+  --font-section-title: 28px;
+  --font-card-value: 32px;
+  --font-body: 16px;
+  --font-caption: 14px;
+
+  --font-xs: 12px;
+  --font-sm: var(--font-caption);
+  --font-base: var(--font-body);
+  --font-lg: 18px;
+  --font-xl: 20px;
+  --font-2xl: 24px;
+  --font-3xl: var(--font-section-title);
+  --font-4xl: var(--font-page-title);
+  --font-5xl: var(--font-hero);
+
+  /* Border Radii (18-24px) */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Soft Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.55);
+  --shadow-glow-purple: 0 0 25px rgba(124, 92, 255, 0.35);
+  --shadow-glow-blue: 0 0 25px rgba(79, 140, 255, 0.35);
+
+  --transition-normal: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card {
+  background: var(--ds-bg-300);
+  border: 1px solid var(--ds-border-100);
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-md);
+  transition: var(--transition-normal);
+}
+
+.glass-card:hover {
+  border-color: var(--ds-border-200);
+  box-shadow: var(--shadow-lg), var(--shadow-glow-purple);
+  transform: translateY(-2px);
+}

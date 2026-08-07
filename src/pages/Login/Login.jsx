@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { Mail, Lock, LogIn } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/Toast/ToastContext';
+import { Card } from '../../components/ui/Card';
+import { Button } from '../../components/ui/Button';
+import { TextInput } from '../../components/ui/Input';
 import './Login.css';
 
 /**
- * Login Component
- * Provides a sleek, glassmorphic sign-in screen connecting directly to the AuthContext.
+ * Login Component (UI Audit Upgrade)
+ * Uses Vercel UI components for consistent design tokens & accessibility.
  */
 function Login() {
   const navigate = useNavigate();
@@ -54,11 +58,10 @@ function Login() {
 
   return (
     <div className="login-page-container">
-      {/* Background glow orbs for professional depth */}
       <div className="login-glow-orb purple-orb"></div>
       <div className="login-glow-orb indigo-orb"></div>
 
-      <div className="login-card">
+      <Card className="login-card">
         <div className="login-header">
           <h2>Welcome Back</h2>
           <p className="login-subtitle">Sign in to continue your interview prep journey</p>
@@ -67,41 +70,46 @@ function Login() {
         <form className="login-form" onSubmit={handleSubmit}>
           {error && <div className="login-error-message">{error}</div>}
 
-          <div className="form-group">
-            <label htmlFor="email">Email Address</label>
-            <input
-              type="email"
-              id="email"
-              placeholder="name@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-              required
-            />
-          </div>
+          <TextInput
+            label="Email Address"
+            type="email"
+            id="email"
+            placeholder="name@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
+            icon={Mail}
+            required
+          />
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-              required
-            />
-          </div>
+          <TextInput
+            label="Password"
+            type="password"
+            id="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={loading}
+            icon={Lock}
+            required
+          />
 
-          <button type="submit" className="btn-login-submit" disabled={loading}>
-            {loading ? 'Signing In...' : 'Sign In'}
-          </button>
+          <Button
+            type="submit"
+            variant="glow"
+            size="lg"
+            isLoading={loading}
+            rightIcon={LogIn}
+            className="w-100 mt-2"
+          >
+            Sign In
+          </Button>
         </form>
 
-        <div className="login-footer">
+        <div className="login-footer mt-4">
           <p>Don't have an account? <Link to="/register" className="mock-link">Sign up</Link></p>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

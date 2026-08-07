@@ -1,0 +1,48 @@
+/* Vercel EmptyState Component Styling */
+.ds-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-12) var(--space-6);
+  background: var(--ds-bg-300);
+  border: 1px dashed var(--ds-border-200);
+  border-radius: var(--radius-xl);
+  max-width: 520px;
+  margin: var(--space-8) auto;
+  box-sizing: border-box;
+}
+
+.ds-empty-icon-wrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--ds-bg-400);
+  border: 1px solid var(--ds-border-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ds-text-200);
+  margin-bottom: var(--space-4);
+}
+
+.ds-empty-title {
+  font-family: var(--font-heading);
+  font-size: var(--font-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--ds-text-100);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.ds-empty-description {
+  font-size: var(--font-sm);
+  color: var(--ds-text-200);
+  line-height: 1.5;
+  margin: 0 0 var(--space-6) 0;
+  max-width: 380px;
+}
+
+.ds-empty-action {
+  margin-top: var(--space-2);
+}

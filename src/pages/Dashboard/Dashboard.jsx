@@ -1,11 +1,41 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  Trophy,
+  Star,
+  Zap,
+  BarChart3,
+  Target,
+  Brain,
+  Sparkles,
+  Flame,
+  Calendar,
+  ArrowUpRight,
+  CheckCircle2,
+  AlertTriangle,
+  BookOpen,
+  Clock,
+  Activity,
+  Award,
+  Download,
+  Printer,
+  TrendingUp,
+  Compass,
+  PlayCircle,
+  Trash2,
+  Eye,
+  Layers,
+  ChevronRight
+} from 'lucide-react';
 import { interviewCategories } from '../../constants';
 import { getFullAnalytics, exportAnalyticsReport } from '../../services/analyticsService';
 import { deleteInterview } from '../../services/api';
 import { useToast } from '../../components/Toast/ToastContext';
 import ConfirmationModal from '../../components/Modal/ConfirmationModal';
-import AnalyticsCard from '../../components/analytics/AnalyticsCard';
+import DashboardHeader from '../../components/dashboard/DashboardHeader';
+import MetricCard from '../../components/dashboard/MetricCard';
+import InsightCard from '../../components/dashboard/InsightCard';
+
 import SkillRadarChart from '../../components/analytics/SkillRadarChart';
 import ScoreTimelineChart from '../../components/analytics/ScoreTimelineChart';
 import DistributionCharts from '../../components/analytics/DistributionCharts';
@@ -18,9 +48,10 @@ import '../History/History.css';
 import './Dashboard.css';
 
 /**
- * Dashboard Component (Day 15 AI Career Coach & SaaS Analytics Upgrade)
- * Renders executive analytics cards, AI insights, skill radar, score timeline,
- * weakness detection, 4-week practice roadmap, and report export buttons.
+ * Dashboard Component (Executive Redesign)
+ * CSS Grid layout (~1400px centered) with Header Hero card, 6 Metric Cards,
+ * 2-column Chart grid, AI Insights, Weakness analysis, 4-Week Practice Plan roadmap,
+ * and Recent Sessions table.
  */
 function Dashboard() {
   const navigate = useNavigate();
@@ -144,11 +175,11 @@ function Dashboard() {
 
   if (loading) {
     return (
-      <div className="dashboard-container">
-        <div className="spinner-container text-center py-5">
-          <div className="spinner-border text-primary" style={{ width: '3rem', height: '3rem' }}></div>
+      <div className="dashboard-page-wrapper">
+        <div className="dashboard-grid-container text-center py-5">
+          <div className="spinner-border text-indigo" style={{ width: '3rem', height: '3rem' }}></div>
           <h3 className="h5 text-light mt-3 fw-bold">Analyzing Career Intelligence Data...</h3>
-          <p className="text-secondary">Computing category ratings, progress trends, and practice roadmaps.</p>
+          <p className="text-secondary">Computing skill ratings, progress trends, and practice roadmaps.</p>
         </div>
       </div>
     );
@@ -156,14 +187,16 @@ function Dashboard() {
 
   if (error) {
     return (
-      <div className="dashboard-container">
-        <div className="state-container error my-5">
-          <div className="state-icon-wrapper">⚠️</div>
-          <h3>Analytics Server Offline</h3>
-          <p>{error}</p>
-          <div>
-            <button className="state-btn" onClick={triggerRefresh}>Retry Connection</button>
-            <button className="state-btn-secondary" onClick={() => navigate('/')}>Return Home</button>
+      <div className="dashboard-page-wrapper">
+        <div className="dashboard-grid-container">
+          <div className="state-container error my-5">
+            <div className="state-icon-wrapper">⚠️</div>
+            <h3>Analytics Server Offline</h3>
+            <p>{error}</p>
+            <div>
+              <button className="state-btn" onClick={triggerRefresh}>Retry Connection</button>
+              <button className="state-btn-secondary" onClick={() => navigate('/')}>Return Home</button>
+            </div>
           </div>
         </div>
       </div>
@@ -171,287 +204,282 @@ function Dashboard() {
   }
 
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-glow-orb dashboard-orb-1"></div>
+    <div className="dashboard-page-wrapper">
+      <div className="dashboard-bg-glow"></div>
 
-      {/* Header Bar with Action Export Buttons */}
-      <header className="dashboard-header d-flex flex-wrap justify-content-between align-items-center mb-4">
-        <div>
-          <div className="header-badge mb-2">
-            <span className="badge-icon">⚡</span>
-            <span>AI CAREER COACH DASHBOARD</span>
-          </div>
-          <h1 className="h2 fw-bold text-light mb-1">Executive Career & Practice Intelligence</h1>
-          <p className="text-secondary mb-0">Personalized AI insights, skill progress radar, weakness detection, and practice roadmaps.</p>
-        </div>
+      <div className="dashboard-grid-container">
+        {/* SECTION 1: HEADER HERO BANNER */}
+        <DashboardHeader
+          userName="Candidate"
+          streakDays={milestones?.currentStreak || 5}
+          readinessScore={insights.readinessScore || 78}
+          onStartSession={() => navigate('/interview-setup')}
+          onExportCSV={handleExportCSV}
+          onExportPDF={handleExportPDF}
+          exporting={exporting}
+        />
 
-        <div className="d-flex gap-2 mt-3 mt-md-0">
-          <button
-            type="button"
-            className="btn btn-outline-info btn-sm d-flex align-items-center gap-2"
-            onClick={handleExportCSV}
-            disabled={exporting}
-          >
-            <span>📥</span> Export CSV
-          </button>
-          <button
-            type="button"
-            className="btn btn-primary btn-sm d-flex align-items-center gap-2 fw-bold"
-            onClick={handleExportPDF}
-          >
-            <span>📄</span> Export PDF Report
-          </button>
-        </div>
-      </header>
-
-      {/* SaaS Metric Cards Grid (Part 6) */}
-      <section className="row g-3 mb-4">
-        <div className="col-12 col-sm-6 col-md-4 col-lg-2">
-          <AnalyticsCard
+        {/* SECTION 2: 6 METRIC CARDS GRID */}
+        <section className="metrics-6-grid">
+          <MetricCard
             title="Overall Score"
             value={`${summary.averageScore || 0}%`}
-            icon="🏆"
+            icon={Trophy}
             trend={summary.improvementPercentage}
             trendDirection={summary.trendDetection === 'Improving' ? 'up' : summary.trendDetection === 'Declining' ? 'down' : 'stable'}
             subtitle="Current rating avg"
+            accentColor="indigo"
           />
-        </div>
 
-        <div className="col-12 col-sm-6 col-md-4 col-lg-2">
-          <AnalyticsCard
+          <MetricCard
             title="Highest Score"
             value={`${summary.highestScore || 0}%`}
-            icon="⭐"
-            badgeText="Peak"
+            icon={Star}
+            badgeText="Peak Record"
             badgeColor="success"
-            subtitle="Personal record"
+            subtitle="Personal best"
+            accentColor="emerald"
           />
-        </div>
 
-        <div className="col-12 col-sm-6 col-md-4 col-lg-2">
-          <AnalyticsCard
+          <MetricCard
             title="Latest Session"
             value={`${summary.latestScore || 0}%`}
-            icon="⚡"
+            icon={Zap}
             subtitle={`Trend: ${summary.trendDetection || 'Stable'}`}
+            accentColor="sky"
           />
-        </div>
 
-        <div className="col-12 col-sm-6 col-md-4 col-lg-2">
-          <AnalyticsCard
+          <MetricCard
             title="Total Sessions"
             value={summary.totalInterviews || 0}
-            icon="📋"
+            icon={BarChart3}
             progress={summary.completionRate}
             subtitle={`${summary.completedInterviews || 0} Completed`}
+            accentColor="violet"
           />
-        </div>
 
-        <div className="col-12 col-sm-6 col-md-4 col-lg-2">
-          <AnalyticsCard
+          <MetricCard
             title="Learning Velocity"
             value={insights.learningVelocity || 'Steady'}
-            icon="🚀"
+            icon={TrendingUp}
             badgeText={`${summary.weeklyCount || 0} This Wk`}
             badgeColor="info"
             subtitle="Pacing metric"
+            accentColor="amber"
           />
-        </div>
 
-        <div className="col-12 col-sm-6 col-md-4 col-lg-2">
-          <AnalyticsCard
-            title="Readiness Index"
-            value={`${insights.readinessScore || 75}/100`}
-            icon="🎯"
+          <MetricCard
+            title="AI Readiness"
+            value={`${insights.readinessScore || 78}/100`}
+            icon={Target}
             badgeText={insights.readinessScore >= 80 ? 'Ready' : 'In Progress'}
             badgeColor={insights.readinessScore >= 80 ? 'success' : 'warning'}
-            subtitle="AI readiness score"
+            subtitle="Interview readiness"
+            accentColor="indigo"
           />
-        </div>
-      </section>
+        </section>
 
-      {/* AI Career Coach Insights Box (Part 2) */}
-      {insights.observations && insights.observations.length > 0 && (
-        <section className="card bg-dark text-light border border-info border-opacity-25 rounded-4 p-4 shadow-sm mb-4">
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h3 className="h5 fw-bold mb-0 text-info d-flex align-items-center gap-2">
-              <span>🤖</span> AI Career Coach Intelligence Observations
-            </h3>
-            <span className="badge bg-info-subtle text-info border border-info fs-8">
-              Confidence: {summary.aiRecommendationConfidence || 85}%
-            </span>
+        {/* SECTION 3: 2-COLUMN CHARTS GRID */}
+        <section className="charts-2col-grid mb-5">
+          <div className="grid-card chart-grid-item">
+            <SkillRadarChart data={charts.radar} />
           </div>
 
-          <div className="row g-3">
-            <div className="col-12 col-md-8">
-              <ul className="mb-0 ps-3 text-light d-flex flex-column gap-2 fs-7">
-                {insights.observations.map((obs, idx) => (
-                  <li key={idx} className="lh-base">💡 {obs}</li>
-                ))}
-              </ul>
+          <div className="grid-card chart-grid-item">
+            <ScoreTimelineChart data={charts.scoreTimeline} />
+          </div>
+        </section>
+
+        {/* SECTION 4: TYPE & DIFFICULTY DISTRIBUTIONS */}
+        <section className="mb-5">
+          <DistributionCharts typeData={charts.typeDoughnut} difficultyData={charts.difficultyBar} />
+        </section>
+
+        {/* SECTION 5: AI CAREER INSIGHTS GRID */}
+        {insights.observations && insights.observations.length > 0 && (
+          <section className="dashboard-section mb-5">
+            <div className="section-title-row">
+              <h2 className="section-heading">
+                <Brain className="icon-heading text-indigo" size={22} />
+                AI Career Coach Observations
+              </h2>
+              <span className="confidence-pill">
+                Confidence Rating: {summary.aiRecommendationConfidence || 85}%
+              </span>
             </div>
 
-            <div className="col-12 col-md-4">
-              <div className="p-3 rounded-3 bg-black bg-opacity-30 border border-secondary border-opacity-25 h-100">
-                <h5 className="fs-8 fw-bold text-secondary text-uppercase mb-2">Target Focus Areas</h5>
-                <div className="d-flex flex-wrap gap-1">
-                  {insights.recommendedFocusAreas?.map((area, aIdx) => (
-                    <span key={aIdx} className="badge bg-primary-subtle text-primary border border-primary fs-8">
+            <div className="insights-cards-grid">
+              {insights.observations.map((obs, idx) => (
+                <InsightCard key={idx} observation={obs} index={idx} />
+              ))}
+            </div>
+
+            {insights.recommendedFocusAreas && insights.recommendedFocusAreas.length > 0 && (
+              <div className="focus-areas-strip">
+                <span className="strip-label">Target Focus Topics:</span>
+                <div className="strip-pills">
+                  {insights.recommendedFocusAreas.map((area, aIdx) => (
+                    <span key={aIdx} className="focus-pill">
                       {area}
                     </span>
                   ))}
                 </div>
               </div>
-            </div>
+            )}
+          </section>
+        )}
+
+        {/* SECTION 6: WEAKNESS DETECTION & ACTIVITY HEATMAP */}
+        <section className="charts-2col-grid mb-5">
+          <div className="grid-card">
+            <WeaknessPriorityCard data={weaknesses} />
+          </div>
+
+          <div className="grid-card">
+            <ActivityHeatmap activityMap={charts.activityMap} />
           </div>
         </section>
-      )}
 
-      {/* Visual Analytics Charts Grid (Part 3) */}
-      <section className="row g-3 mb-4">
-        <div className="col-12 col-lg-6">
-          <SkillRadarChart data={charts.radar} />
-        </div>
+        {/* SECTION 7: 4-WEEK PRACTICE ROADMAP */}
+        <section className="mb-5">
+          <PracticePlanCard data={practicePlan} />
+        </section>
 
-        <div className="col-12 col-lg-6">
-          <ScoreTimelineChart data={charts.scoreTimeline} />
-        </div>
-      </section>
+        {/* SECTION 8: MILESTONES & STREAKS */}
+        <section className="mb-5">
+          <BadgesMilestonesCard data={milestones} readinessScore={insights.readinessScore || 78} />
+        </section>
 
-      <section className="mb-4">
-        <DistributionCharts typeData={charts.typeDoughnut} difficultyData={charts.difficultyBar} />
-      </section>
+        {/* SECTION 9: RECENT SESSIONS TABLE */}
+        <section className="dashboard-section mb-5">
+          <div className="section-title-row">
+            <h2 className="section-heading">
+              <Activity className="icon-heading text-emerald" size={22} />
+              Recent Practice Sessions
+            </h2>
+            <button
+              type="button"
+              className="btn-link-action"
+              onClick={() => navigate('/history')}
+            >
+              View Full Vault →
+            </button>
+          </div>
 
-      {/* Weakness Detection & 4-Week Practice Plan Roadmap (Parts 4 & 5) */}
-      <section className="row g-3 mb-4">
-        <div className="col-12 col-lg-6">
-          <WeaknessPriorityCard data={weaknesses} />
-        </div>
-
-        <div className="col-12 col-lg-6">
-          <ActivityHeatmap activityMap={charts.activityMap} />
-        </div>
-      </section>
-
-      <section className="mb-4">
-        <PracticePlanCard data={practicePlan} />
-      </section>
-
-      {/* Milestones, Streaks & Readiness Meter (Bonus Part 12) */}
-      <section className="mb-4">
-        <BadgesMilestonesCard data={milestones} readinessScore={insights.readinessScore || 75} />
-      </section>
-
-      {/* Recent Practice Sessions Table */}
-      <section className="recent-sessions-section mt-5">
-        <h2 className="h4 fw-bold text-light mb-3">Recent Simulated Interview Sessions</h2>
-        {recentInterviews.length > 0 ? (
-          <div className="history-table-container">
-            <table className="history-table">
-              <thead>
-                <tr>
-                  <th>Mock Practice Title</th>
-                  <th>Practice Topic / Role</th>
-                  <th>Difficulty</th>
-                  <th>Completed On</th>
-                  <th>Overall Score</th>
-                  <th>Status</th>
-                  <th style={{ textAlign: 'right' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentInterviews.map((item) => (
-                  <tr
-                    key={item._id}
-                    className="history-row"
-                    onClick={() => item.status === 'completed' && navigate(`/results?id=${item._id}`)}
-                  >
-                    <td>
-                      <span className="history-item-title">{item.title}</span>
-                    </td>
-                    <td>
-                      <span className="history-item-role">{item.role}</span>
-                    </td>
-                    <td>
-                      <span className={`difficulty-pill ${item.difficulty?.toLowerCase()}`}>
-                        {item.difficulty}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="history-item-date">{formatDate(item.createdAt)}</span>
-                    </td>
-                    <td>
-                      <span className="history-item-score">
-                        {item.status === 'completed' ? (
-                          item.overallScore !== null && item.overallScore !== undefined ? (
-                            item.overallScore <= 10 ? `${item.overallScore} / 10` : `${item.overallScore}%`
-                          ) : '—'
-                        ) : '—'}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`status-tag ${item.status}`}>
-                        {item.status === 'completed' ? 'Completed' : 'Pending'}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="history-actions-cell" onClick={(e) => e.stopPropagation()}>
-                        {item.status === 'completed' ? (
-                          <button className="btn-table-action view" onClick={() => navigate(`/results?id=${item._id}`)}>
-                            View Report
-                          </button>
-                        ) : (
-                          <button className="btn-table-action start" onClick={() => navigate('/interview', { state: { id: item._id } })}>
-                            Start Mock
-                          </button>
-                        )}
-                        <button className="btn-table-action delete" onClick={(e) => handleDeleteClick(item._id, e)} title="Delete Session">
-                          🗑
-                        </button>
-                      </div>
-                    </td>
+          {recentInterviews.length > 0 ? (
+            <div className="history-table-container">
+              <table className="history-table">
+                <thead>
+                  <tr>
+                    <th>Mock Practice Title</th>
+                    <th>Practice Topic / Role</th>
+                    <th>Difficulty</th>
+                    <th>Completed On</th>
+                    <th>Overall Score</th>
+                    <th>Status</th>
+                    <th style={{ textAlign: 'right' }}>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="state-container text-center py-4">
-            <div className="state-icon-wrapper">📦</div>
-            <h3>No Practice Sessions Recorded</h3>
-            <p>Select a practice track below to launch your first simulated AI interview panel.</p>
-            <button className="state-btn" onClick={() => navigate('/interview-setup')}>Start Mock Interview</button>
-          </div>
-        )}
-      </section>
-
-      {/* Available Session Tracks */}
-      <section className="roles-section mt-5">
-        <h2 className="h4 fw-bold text-light mb-3">Choose Your Practice Domain</h2>
-        <div className="roles-grid">
-          {interviewCategories.map((category) => (
-            <div key={category.id} className="role-card">
-              <div className="role-card-header">
-                <span className={`difficulty-pill ${category.theme}`}>
-                  {category.difficulty}
-                </span>
-                <span className="question-count">
-                  <span className="icon-badge">{category.icon}</span> {category.questions} Questions
-                </span>
-              </div>
-              <h3>{category.title}</h3>
-              <p>{category.description}</p>
-              <button
-                className="btn-start-role-mock"
-                onClick={() => handleStartMock(category.title)}
-              >
-                Start Interview
-                <span className="arrow">→</span>
-              </button>
+                </thead>
+                <tbody>
+                  {recentInterviews.slice(0, 5).map((item) => (
+                    <tr
+                      key={item._id}
+                      className="history-row"
+                      onClick={() => item.status === 'completed' && navigate(`/results?id=${item._id}`)}
+                    >
+                      <td>
+                        <span className="history-item-title">{item.title}</span>
+                      </td>
+                      <td>
+                        <span className="history-item-role">{item.role}</span>
+                      </td>
+                      <td>
+                        <span className={`difficulty-pill ${item.difficulty?.toLowerCase()}`}>
+                          {item.difficulty}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="history-item-date">{formatDate(item.createdAt)}</span>
+                      </td>
+                      <td>
+                        <span className="history-item-score">
+                          {item.status === 'completed' ? (
+                            item.overallScore !== null && item.overallScore !== undefined ? (
+                              item.overallScore <= 10 ? `${item.overallScore} / 10` : `${item.overallScore}%`
+                            ) : '—'
+                          ) : '—'}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`status-tag ${item.status}`}>
+                          {item.status === 'completed' ? 'Completed' : 'Pending'}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="history-actions-cell" onClick={(e) => e.stopPropagation()}>
+                          {item.status === 'completed' ? (
+                            <button className="btn-table-action view" onClick={() => navigate(`/results?id=${item._id}`)}>
+                              View Report
+                            </button>
+                          ) : (
+                            <button className="btn-table-action start" onClick={() => navigate('/interview', { state: { id: item._id } })}>
+                              Start Mock
+                            </button>
+                          )}
+                          <button className="btn-table-action delete" onClick={(e) => handleDeleteClick(item._id, e)} title="Delete Session">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          ))}
-        </div>
-      </section>
+          ) : (
+            <div className="state-container text-center py-4">
+              <div className="state-icon-wrapper">📦</div>
+              <h3>No Practice Sessions Recorded</h3>
+              <p>Select a practice track below to launch your first simulated AI interview panel.</p>
+              <button className="state-btn" onClick={() => navigate('/interview-setup')}>Start Mock Interview</button>
+            </div>
+          )}
+        </section>
+
+        {/* SECTION 10: PRACTICE DOMAIN TRACKS */}
+        <section className="dashboard-section">
+          <div className="section-title-row">
+            <h2 className="section-heading">
+              <Compass className="icon-heading text-sky" size={22} />
+              Choose Your Practice Track
+            </h2>
+          </div>
+
+          <div className="roles-grid">
+            {interviewCategories.map((category) => (
+              <div key={category.id} className="role-card">
+                <div className="role-card-header">
+                  <span className={`difficulty-pill ${category.theme}`}>
+                    {category.difficulty}
+                  </span>
+                  <span className="question-count">
+                    <span className="icon-badge">{category.icon}</span> {category.questions} Questions
+                  </span>
+                </div>
+                <h3>{category.title}</h3>
+                <p>{category.description}</p>
+                <button
+                  className="btn-start-role-mock"
+                  onClick={() => handleStartMock(category.title)}
+                >
+                  <span>Start Interview</span>
+                  <ChevronRight size={16} className="arrow" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
 
       {/* Confirmation Dialog Modal */}
       <ConfirmationModal

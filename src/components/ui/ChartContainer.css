@@ -1,0 +1,24 @@
+/* Vercel ChartContainer Component Styling */
+.ds-chart-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.ds-chart-body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  min-height: 220px;
+}
+
+.ds-chart-loading, .ds-chart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}

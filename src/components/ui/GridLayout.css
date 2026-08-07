@@ -1,0 +1,54 @@
+/* Vercel Grid System Styling */
+.ds-container {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--space-6);
+  box-sizing: border-box;
+}
+
+.ds-grid {
+  display: grid;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ds-gap-1 { gap: var(--space-1); }
+.ds-gap-2 { gap: var(--space-2); }
+.ds-gap-3 { gap: var(--space-3); }
+.ds-gap-4 { gap: var(--space-4); }
+.ds-gap-6 { gap: var(--space-6); }
+.ds-gap-8 { gap: var(--space-8); }
+
+.ds-grid-cols-1 { grid-template-columns: repeat(1, 1fr); }
+.ds-grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.ds-grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.ds-grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+.ds-grid-cols-6 { grid-template-columns: repeat(6, 1fr); }
+.ds-grid-cols-12 { grid-template-columns: repeat(12, 1fr); }
+
+.ds-col {
+  box-sizing: border-box;
+}
+
+.ds-col-12 { grid-column: span 12 / span 12; }
+.ds-col-6 { grid-column: span 6 / span 6; }
+.ds-col-4 { grid-column: span 4 / span 4; }
+.ds-col-3 { grid-column: span 3 / span 3; }
+.ds-col-2 { grid-column: span 2 / span 2; }
+.ds-col-1 { grid-column: span 1 / span 1; }
+
+@media (max-width: 1024px) {
+  .ds-col-lg-12 { grid-column: span 12 / span 12; }
+  .ds-col-lg-6 { grid-column: span 6 / span 6; }
+  .ds-col-lg-4 { grid-column: span 4 / span 4; }
+}
+
+@media (max-width: 768px) {
+  .ds-col-md-12 { grid-column: span 12 / span 12; }
+  .ds-col-md-6 { grid-column: span 6 / span 6; }
+  .ds-container { padding: 0 var(--space-4); }
+}
+
+@media (max-width: 480px) {
+  .ds-col-sm-12 { grid-column: span 12 / span 12; }
+}

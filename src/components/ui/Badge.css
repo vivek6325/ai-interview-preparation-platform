@@ -1,0 +1,67 @@
+/* Vercel Badge Component Styling */
+.ds-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.ds-badge-sm {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+}
+
+.ds-badge-md {
+  font-size: var(--font-xs);
+  padding: 4px 12px;
+}
+
+/* Variants */
+.ds-badge-primary {
+  background: rgba(0, 112, 243, 0.12);
+  color: #3291ff;
+  border-color: rgba(0, 112, 243, 0.3);
+}
+
+.ds-badge-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--ds-text-200);
+  border-color: var(--ds-border-100);
+}
+
+.ds-badge-success {
+  background: rgba(80, 227, 194, 0.12);
+  color: var(--ds-emerald-500);
+  border-color: rgba(80, 227, 194, 0.3);
+}
+
+.ds-badge-warning {
+  background: rgba(245, 166, 35, 0.12);
+  color: var(--ds-amber-500);
+  border-color: rgba(245, 166, 35, 0.3);
+}
+
+.ds-badge-danger {
+  background: rgba(238, 0, 0, 0.12);
+  color: var(--ds-red-500);
+  border-color: rgba(238, 0, 0, 0.3);
+}
+
+.ds-badge-purple {
+  background: rgba(121, 40, 202, 0.12);
+  color: #a855f7;
+  border-color: rgba(121, 40, 202, 0.3);
+}
+
+.ds-badge-glow {
+  background: linear-gradient(135deg, rgba(0, 112, 243, 0.15) 0%, rgba(121, 40, 202, 0.15) 100%);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 10px rgba(0, 112, 243, 0.2);
+}

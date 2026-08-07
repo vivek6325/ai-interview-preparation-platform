@@ -37,7 +37,7 @@ const CATEGORY_QUESTIONS = {
  */
 export async function apiRequest(endpoint, options = {}) {
   const url = `${BASE_URL}${endpoint}`;
-  
+
   const token = localStorage.getItem('token');
   const defaultHeaders = {
     'Content-Type': 'application/json',
@@ -63,8 +63,8 @@ export async function apiRequest(endpoint, options = {}) {
         localStorage.removeItem('user');
         localStorage.removeItem('isAuthenticated');
         if (
-          !window.location.pathname.includes('/login') && 
-          !window.location.pathname.includes('/register') && 
+          !window.location.pathname.includes('/login') &&
+          !window.location.pathname.includes('/register') &&
           window.location.pathname !== '/'
         ) {
           window.location.href = '/login';
@@ -165,9 +165,9 @@ export async function getQuestions(category) {
   // Simulate minor network latency for realistic UX feel
   await new Promise((resolve) => setTimeout(resolve, 300));
   const key = category?.toLowerCase().includes('dsa') || category?.toLowerCase().includes('algorithm') ? 'dsa' :
-              category?.toLowerCase().includes('front') ? 'frontend' :
-              category?.toLowerCase().includes('back') ? 'backend' :
-              category?.toLowerCase().includes('hr') || category?.toLowerCase().includes('human') ? 'hr' : 'frontend';
+    category?.toLowerCase().includes('front') ? 'frontend' :
+      category?.toLowerCase().includes('back') ? 'backend' :
+        category?.toLowerCase().includes('hr') || category?.toLowerCase().includes('human') ? 'hr' : 'frontend';
   return CATEGORY_QUESTIONS[key];
 }
 
