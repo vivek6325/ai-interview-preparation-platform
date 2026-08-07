@@ -198,4 +198,80 @@ export async function getDashboardAnalytics() {
   return await apiRequest('/analytics/dashboard');
 }
 
+/**
+ * Uploads candidate resume file (PDF or DOCX).
+ */
+export async function uploadResumeApi(file) {
+  const formData = new FormData();
+  formData.append('resume', file);
+
+  const url = `${BASE_URL}/resume/upload`;
+  const token = localStorage.getItem('token');
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || 'Failed to upload resume file.');
+  }
+
+  return await res.json();
+}
+
+/**
+ * Uploads & parses raw text from a candidate resume file.
+ */
+export async function parseResumeApi(file) {
+  const formData = new FormData();
+  formData.append('resume', file);
+
+  const url = `${BASE_URL}/resume/parse`;
+  const token = localStorage.getItem('token');
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || 'Unable to parse resume.');
+  }
+
+  return await res.json();
+}
+
+/**
+ * Extracts structured JSON profile (skills, experience, projects, etc.) from resume text or file.
+ */
+export async function extractResumeApi(textOrPayload) {
+  if (typeof textOrPayload === 'string') {
+    return await apiRequest('/resume/extract', {
+      method: 'POST',
+      body: { text: textOrPayload }
+    });
+  }
+
+  return await apiRequest('/resume/extract', {
+    method: 'POST',
+    body: textOrPayload
+  });
+}
+
+/**
+ * Generates 15-20 personalized interview questions based on candidate structured resume JSON.
+ */
+export async function generateResumeQuestionsApi(resumeData) {
+  return await apiRequest('/resume/questions', {
+    method: 'POST',
+    body: { resumeData }
+  });
+}
+
+
 

@@ -3,10 +3,12 @@ import { uploadResume } from '../middleware/uploadResume.js';
 import { uploadResumeFile } from '../controllers/resumeController.js';
 import { parseResume } from '../controllers/resumeParserController.js';
 import { extractResumeInfo } from '../controllers/resumeExtractorController.js';
+import { generateResumeQuestionsController } from '../controllers/questionGeneratorController.js';
 
 /**
  * Resume Router
- * Configures endpoints for candidate resume uploads, text parsing, and AI structured data extraction.
+ * Configures endpoints for candidate resume uploads, text parsing, AI structured data extraction,
+ * and personalized interview question generation.
  */
 const router = express.Router();
 
@@ -41,5 +43,12 @@ router.post('/parse', uploadResume, parseResume);
  * @access  Public
  */
 router.post('/extract', optionalUploadResume, extractResumeInfo);
+
+/**
+ * @route   POST /api/resume/questions
+ * @desc    Generate 15-20 personalized interview questions based on structured resume JSON
+ * @access  Public
+ */
+router.post('/questions', generateResumeQuestionsController);
 
 export default router;
