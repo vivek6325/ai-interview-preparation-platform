@@ -11,6 +11,7 @@ import interviewRoutes from './src/routes/interviewRoutes.js';
 import aiRoutes from './src/routes/aiRoutes.js';
 import authRoutes from './src/routes/authRoutes.js';
 import analyticsRoutes from './src/routes/analyticsRoutes.js';
+import resumeRoutes from './src/routes/resumeRoutes.js';
 
 // Configure DNS servers
 dns.setServers(['8.8.8.8', '1.1.1.1']);
@@ -42,6 +43,7 @@ app.use('/api/ai/generate', strictLimiter);
 app.use('/api/interviews', interviewRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/resume', resumeRoutes);
 
 /**
  * Enhanced Health Check Endpoint
