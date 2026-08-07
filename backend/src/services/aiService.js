@@ -31,7 +31,7 @@ function getAIClient() {
  * @param {boolean} isJsonResponse - Whether to validate and parse output as JSON.
  * @returns {Promise<any>} Response text or parsed JSON object.
  */
-async function callGemini(prompt, isJsonResponse = true) {
+export async function callGemini(prompt, isJsonResponse = true) {
   const client = getAIClient();
 
   const model = client.getGenerativeModel({
