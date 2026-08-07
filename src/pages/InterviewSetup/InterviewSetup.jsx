@@ -5,6 +5,7 @@ import {
   generateAIInterview,
   extractResumeApi,
   generateResumeQuestionsApi,
+  saveResumeApi,
   createInterview
 } from '../../services/api';
 import { useToast } from '../../components/Toast/ToastContext';
@@ -142,7 +143,18 @@ function InterviewSetup() {
         throw new Error('AI Question Generator returned no questions.');
       }
 
-      // Step 2: Create Session in Database
+      // Step 2: Persist Resume document in MongoDB (PART B)
+      await saveResumeApi({
+        originalFileName: resumeState.fileDetails?.name || resumeState.file?.name || 'Resume.pdf',
+        storedFileName: resumeState.fileDetails?.name || resumeState.file?.name || 'resume.pdf',
+        fileType: (resumeState.fileDetails?.extension || 'PDF').toUpperCase(),
+        fileSize: resumeState.fileDetails?.size || resumeState.file?.size || 0,
+        extractedData: extractedResumeData,
+        interviewQuestions: combinedQuestions,
+        status: 'questions_generated'
+      }).catch((err) => console.warn('⚠️ Could not save resume record to history:', err.message));
+
+      // Step 3: Create Session in Database
       const sessionTitle = extractedResumeData?.name
         ? `${extractedResumeData.name} - Resume AI Session`
         : 'Resume AI Interview';

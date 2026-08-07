@@ -273,5 +273,39 @@ export async function generateResumeQuestionsApi(resumeData) {
   });
 }
 
+/**
+ * Saves candidate resume metadata and questions in MongoDB.
+ */
+export async function saveResumeApi(data) {
+  return await apiRequest('/resume/save', {
+    method: 'POST',
+    body: data
+  });
+}
+
+/**
+ * Fetches all uploaded candidate resumes for history view.
+ */
+export async function getResumesApi() {
+  return await apiRequest('/resume');
+}
+
+/**
+ * Fetches a single resume details by ID.
+ */
+export async function getResumeByIdApi(id) {
+  return await apiRequest(`/resume/${id}`);
+}
+
+/**
+ * Deletes a resume record from MongoDB and disk storage.
+ */
+export async function deleteResumeApi(id) {
+  return await apiRequest(`/resume/${id}`, {
+    method: 'DELETE'
+  });
+}
+
+
 
 

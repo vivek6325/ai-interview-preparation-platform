@@ -34,6 +34,9 @@ function Navbar() {
               <NavLink to="/interview-session">AI Session</NavLink>
             </li>
             <li className="nav-item">
+              <NavLink to="/resume-history">Resumes</NavLink>
+            </li>
+            <li className="nav-item">
               <NavLink to="/history">History</NavLink>
             </li>
             <li className="nav-item">

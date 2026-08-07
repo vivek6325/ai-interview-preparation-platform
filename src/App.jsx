@@ -17,6 +17,7 @@ const Results = lazy(() => import('./pages/Results/Results'));
 const History = lazy(() => import('./pages/History/History'));
 const Profile = lazy(() => import('./pages/Profile/Profile'));
 const InterviewSession = lazy(() => import('./pages/InterviewSession/InterviewSession'));
+const ResumeHistory = lazy(() => import('./pages/ResumeHistory/ResumeHistory'));
 const NotFound = lazy(() => import('./pages/NotFound/NotFound'));
 
 /**
@@ -46,6 +47,7 @@ function App() {
                 <Route path="/results/:id" element={<ProtectedRoute><Results /></ProtectedRoute>} />
                 <Route path="/results" element={<ProtectedRoute><Results /></ProtectedRoute>} />
                 <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+                <Route path="/resume-history" element={<ProtectedRoute><ResumeHistory /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 <Route path="/interview-session" element={<ProtectedRoute><InterviewSession /></ProtectedRoute>} />
 
