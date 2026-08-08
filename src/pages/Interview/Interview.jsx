@@ -157,6 +157,7 @@ function Interview() {
     setSaveStatus(nextAnswerText ? 'saved' : 'idle');
     setTimeLeft(60);
     setErrorMsg('');
+    setIsRecording(false);
   };
 
   async function saveAnswerAndAdvance(answerToSave) {
@@ -285,14 +286,6 @@ function Interview() {
     }
   };
 
-  const toggleRecording = () => {
-    if (!isRecording) {
-      addToast('Speech analyzer simulation online. Start speaking...', 'info');
-    } else {
-      addToast('Audio transcription finalized.', 'success');
-    }
-    setIsRecording(!isRecording);
-  };
 
   const handleExitClick = () => {
     setExitModalOpen(true);
@@ -383,8 +376,7 @@ function Interview() {
           answerText={answerText}
           setAnswerText={handleAnswerChange}
           errorMsg={errorMsg}
-          isRecording={isRecording}
-          toggleRecording={toggleRecording}
+          onRecordingStateChange={setIsRecording}
           handlePrevQuestion={handlePrevQuestion}
           handleSkipQuestion={handleSkipQuestion}
           handleNextQuestion={handleNextQuestion}

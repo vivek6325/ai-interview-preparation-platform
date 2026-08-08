@@ -1,7 +1,9 @@
 
+import VoiceRecorderCard from './VoiceRecorderCard';
+
 /**
  * QuestionBoard Component
- * Renders the question card, textarea text fields, and validation feedback logs.
+ * Renders the question card, audio recorder, text response fields, and navigation actions.
  */
 export function QuestionBoard({
   currentQuestionIdx,
@@ -11,8 +13,7 @@ export function QuestionBoard({
   answerText,
   setAnswerText,
   errorMsg,
-  isRecording,
-  toggleRecording,
+  onRecordingStateChange,
   handlePrevQuestion,
   handleSkipQuestion,
   handleNextQuestion,
@@ -65,10 +66,19 @@ export function QuestionBoard({
             </span>
           )}
         </div>
+
+        {/* Voice Recording Infrastructure */}
+        <div style={{ marginBottom: '12px' }}>
+          <VoiceRecorderCard
+            key={`voice-recorder-${currentQuestionIdx}`}
+            onRecordingStateChange={onRecordingStateChange}
+          />
+        </div>
+
         <textarea
           id="answer-input"
-          rows="8"
-          placeholder="Type your detailed response here. Explain concepts clearly, structural points, and use examples..."
+          rows="6"
+          placeholder="Type or refine your response text here. Explain concepts clearly with structured points and examples..."
           value={answerText}
           onChange={(e) => setAnswerText(e.target.value)}
         />
@@ -81,19 +91,7 @@ export function QuestionBoard({
 
       {/* Action Panel */}
       <div className="action-panel">
-        <div className="record-panel">
-          <button 
-            className={`btn-record ${isRecording ? 'recording' : ''}`}
-            onClick={toggleRecording}
-            title={isRecording ? 'Pause Recording' : 'Start Voice Simulation'}
-          >
-            <span className="microphone-icon">{isRecording ? '🛑' : '🎙️'}</span>
-            {isRecording ? 'Stop Recording' : 'Record Speaking'}
-          </button>
-          {isRecording && <span className="recording-timer">Pace: 135 WPM (Good)</span>}
-        </div>
-
-        <div className="navigation-actions">
+        <div className="navigation-actions" style={{ width: '100%', justifyContent: 'space-between' }}>
           <button 
             className="btn-exit-interview"
             onClick={handleExitClick}
@@ -101,34 +99,36 @@ export function QuestionBoard({
             Exit Room
           </button>
 
-          <button 
-            className="btn-nav-page" 
-            onClick={handlePrevQuestion}
-            disabled={currentQuestionIdx === 0}
-          >
-            Previous
-          </button>
-
-          <button 
-            className="btn-nav-page" 
-            onClick={handleSkipQuestion}
-            style={{ marginLeft: '8px', marginRight: '8px', borderColor: 'rgba(255,255,255,0.06)' }}
-          >
-            Skip
-          </button>
-          
-          {isLastQuestion ? (
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
             <button 
-              className="btn-submit-interview"
-              onClick={handleNextQuestion}
+              className="btn-nav-page" 
+              onClick={handlePrevQuestion}
+              disabled={currentQuestionIdx === 0}
             >
-              Submit & Finish
+              Previous
             </button>
-          ) : (
-            <button className="btn-nav-page" onClick={handleNextQuestion} style={{ color: '#a5b4fc', borderColor: 'rgba(99, 102, 241, 0.4)' }}>
-              Next Question
+
+            <button 
+              className="btn-nav-page" 
+              onClick={handleSkipQuestion}
+              style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+            >
+              Skip
             </button>
-          )}
+            
+            {isLastQuestion ? (
+              <button 
+                className="btn-submit-interview"
+                onClick={handleNextQuestion}
+              >
+                Submit & Finish
+              </button>
+            ) : (
+              <button className="btn-nav-page" onClick={handleNextQuestion} style={{ color: '#a5b4fc', borderColor: 'rgba(99, 102, 241, 0.4)' }}>
+                Next Question
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -136,3 +136,4 @@ export function QuestionBoard({
 }
 
 export default QuestionBoard;
+
