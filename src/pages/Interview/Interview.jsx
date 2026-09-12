@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { getInterview, updateInterview, deleteInterview, evaluateAIInterview } from '../../services/api';
 import ProgressBar from './components/ProgressBar';
@@ -6,6 +6,7 @@ import AvatarSection from './components/AvatarSection';
 import QuestionBoard from './components/QuestionBoard';
 import ConfirmationModal from '../../components/Modal/ConfirmationModal';
 import { validateAnswer } from '../../utils/helpers';
+import { aggregateVoiceAnalytics } from '../../utils/speechAnalytics';
 import { useToast } from '../../components/Toast/ToastContext';
 import './Interview.css';
 
@@ -15,7 +16,7 @@ import './Interview.css';
  * Simulates a live mock interview room.
  * Fetches the session details from the database by ID (URL param or router state),
  * and performs dynamic saves on navigation changes (Next, Skip, Previous, Timeout)
- * along with visual Saving/Saved badges.
+ * along with visual Saving/Saved badges and Day 18 voice analytics persistence.
  */
 function Interview() {
   const navigate = useNavigate();
@@ -47,11 +48,58 @@ function Interview() {
   
   const answersRef = useRef(answers);
   const lastSavedAnswersRef = useRef([]);
+  const voiceAnalyticsMapRef = useRef({});
 
   // Keep ref up to date with answers state to support interval reads without re-runs
   useEffect(() => {
     answersRef.current = answers;
   }, [answers]);
+
+  // Handle voice analytics payload updates from QuestionBoard
+  const handleVoiceAnalyticsChange = useCallback(({ questionIdx, type, voiceAnalytics, followUpQuestion, followUpAnswer }) => {
+    if (questionIdx === undefined || questionIdx === null) return;
+
+    if (!voiceAnalyticsMapRef.current[questionIdx]) {
+      voiceAnalyticsMapRef.current[questionIdx] = {};
+    }
+
+    if (type === 'main') {
+      voiceAnalyticsMapRef.current[questionIdx].main = voiceAnalytics;
+    } else if (type === 'followup') {
+      voiceAnalyticsMapRef.current[questionIdx].followup = voiceAnalytics;
+      if (followUpQuestion) voiceAnalyticsMapRef.current[questionIdx].followUpQuestion = followUpQuestion;
+      if (followUpAnswer) voiceAnalyticsMapRef.current[questionIdx].followUpAnswer = followUpAnswer;
+    }
+  }, []);
+
+  // Helper to build payload including per-question and aggregate voice analytics
+  const buildQuestionsPayload = useCallback((targetAnswers) => {
+    const allAnalyzedList = [];
+
+    const questionsPayload = questions.map((q, idx) => {
+      const itemAnalytics = voiceAnalyticsMapRef.current[idx] || {};
+      
+      if (itemAnalytics.main) allAnalyzedList.push(itemAnalytics.main);
+      if (itemAnalytics.followup) allAnalyzedList.push(itemAnalytics.followup);
+
+      return {
+        questionText: q,
+        userAnswer: targetAnswers[idx] || '',
+        voiceAnalytics: itemAnalytics.main || null,
+        followUpVoiceAnalytics: itemAnalytics.followup || null,
+        followUpQuestion: itemAnalytics.followUpQuestion || '',
+        followUpAnswer: itemAnalytics.followUpAnswer || '',
+        hasFollowUp: Boolean(itemAnalytics.followUpQuestion)
+      };
+    });
+
+    const sessionVoiceAnalytics = aggregateVoiceAnalytics(allAnalyzedList);
+
+    return {
+      questions: questionsPayload,
+      voiceAnalytics: sessionVoiceAnalytics.analyzedAnswersCount > 0 ? sessionVoiceAnalytics : null
+    };
+  }, [questions]);
 
   // Background Autosave interval effect
   useEffect(() => {
@@ -67,18 +115,16 @@ function Interview() {
 
       try {
         setSaveStatus('saving');
-        const questionsWithAnswers = questions.map((q, idx) => ({
-          questionText: q,
-          userAnswer: currentAnswers[idx] || ''
-        }));
+        const { questions: questionsPayload, voiceAnalytics: sessionAnalytics } = buildQuestionsPayload(currentAnswers);
         
         await updateInterview(sessionId, {
-          questions: questionsWithAnswers
+          questions: questionsPayload,
+          ...(sessionAnalytics ? { voiceAnalytics: sessionAnalytics } : {})
         });
         
         lastSavedAnswersRef.current = [...currentAnswers];
         setSaveStatus('saved');
-        console.log('📝 Mock answers autosaved in background.');
+        console.log('📝 Mock answers & voice analytics autosaved in background.');
       } catch (err) {
         console.warn('⚠️ Background autosave failed:', err.message);
         setSaveStatus('error');
@@ -86,7 +132,7 @@ function Interview() {
     }, 5000);
 
     return () => clearInterval(autosaveInterval);
-  }, [isLoading, isEvaluating, questions, sessionId]);
+  }, [isLoading, isEvaluating, questions, sessionId, buildQuestionsPayload]);
 
   /**
    * Persists the candidate's answers directly to MongoDB.
@@ -96,13 +142,11 @@ function Interview() {
   const persistAnswerToDB = async (targetAnswers) => {
     try {
       setSaveStatus('saving');
-      const questionsWithAnswers = questions.map((q, idx) => ({
-        questionText: q,
-        userAnswer: targetAnswers[idx] || ''
-      }));
+      const { questions: questionsPayload, voiceAnalytics: sessionAnalytics } = buildQuestionsPayload(targetAnswers);
       
       await updateInterview(sessionId, {
-        questions: questionsWithAnswers
+        questions: questionsPayload,
+        ...(sessionAnalytics ? { voiceAnalytics: sessionAnalytics } : {})
       });
       
       lastSavedAnswersRef.current = [...targetAnswers];
@@ -311,6 +355,18 @@ function Interview() {
     }
   };
 
+  const [turnFlags, setTurnFlags] = useState({
+    isAiSpeaking: false,
+    isTranscribing: false,
+    isAnalyzing: false,
+    isRecording: false
+  });
+
+  // Callback to track active turn state from QuestionBoard
+  const handleTurnStateChange = useCallback((flags) => {
+    setTurnFlags(flags);
+  }, []);
+
   if (isLoading) {
     return (
       <div className="interview-room-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -368,10 +424,36 @@ function Interview() {
     <div className="interview-room-container">
       <div className="interview-orb-bg"></div>
 
+      {/* Top Header Bar */}
+      <div className="interview-room-header">
+        <button 
+          className="btn-header-exit" 
+          onClick={handleExitClick}
+          title="Exit interview room"
+        >
+          ← Exit Room
+        </button>
+
+        <div className="interview-room-title-group">
+          <span className="room-title">🎙️ AI Voice Interview Room</span>
+          <span className="room-subtitle">{interviewRole} • {interviewDifficulty} track</span>
+        </div>
+
+        <div className="interview-room-progress-badge">
+          Question {currentQuestionIdx + 1} of {questions.length} ({Math.round(progressPercent)}%)
+        </div>
+      </div>
+
       <ProgressBar percent={progressPercent} />
 
       <div className="interview-main-layout">
-        <AvatarSection isRecording={isRecording} timeLeft={timeLeft} />
+        <AvatarSection 
+          isRecording={isRecording || turnFlags.isRecording} 
+          timeLeft={timeLeft}
+          isAiSpeaking={turnFlags.isAiSpeaking}
+          isTranscribing={turnFlags.isTranscribing}
+          isAnalyzing={turnFlags.isAnalyzing}
+        />
 
         <QuestionBoard 
           currentQuestionIdx={currentQuestionIdx}
@@ -392,6 +474,8 @@ function Interview() {
           difficulty={interviewDifficulty}
           questions={questions}
           answers={answers}
+          onVoiceAnalyticsChange={handleVoiceAnalyticsChange}
+          onTurnStateChange={handleTurnStateChange}
         />
       </div>
 

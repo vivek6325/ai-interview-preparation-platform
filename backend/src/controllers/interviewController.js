@@ -445,7 +445,7 @@ export const updateInterview = async (req, res) => {
         });
       }
 
-      // Selectively update questions[].userAnswer
+      // Selectively update questions[].userAnswer and voiceAnalytics
       if (updatePayload.questions && Array.isArray(updatePayload.questions)) {
         updatePayload.questions.forEach((qp) => {
           const dbQ = interview.questions.find(
@@ -454,6 +454,11 @@ export const updateInterview = async (req, res) => {
           );
           if (dbQ) {
             dbQ.userAnswer = qp.userAnswer ?? dbQ.userAnswer;
+            if (qp.voiceAnalytics !== undefined) dbQ.voiceAnalytics = qp.voiceAnalytics;
+            if (qp.followUpVoiceAnalytics !== undefined) dbQ.followUpVoiceAnalytics = qp.followUpVoiceAnalytics;
+            if (qp.followUpQuestion !== undefined) dbQ.followUpQuestion = qp.followUpQuestion;
+            if (qp.followUpAnswer !== undefined) dbQ.followUpAnswer = qp.followUpAnswer;
+            if (qp.hasFollowUp !== undefined) dbQ.hasFollowUp = qp.hasFollowUp;
           }
         });
         delete updatePayload.questions;
@@ -498,7 +503,7 @@ export const updateInterview = async (req, res) => {
       };
     }
 
-    // Selectively update questions[].userAnswer in memory
+    // Selectively update questions[].userAnswer and voiceAnalytics in memory
     if (updatePayload.questions && Array.isArray(updatePayload.questions)) {
       existing.questions.forEach((q) => {
         const qp = updatePayload.questions.find(
@@ -506,6 +511,11 @@ export const updateInterview = async (req, res) => {
         );
         if (qp) {
           q.userAnswer = qp.userAnswer ?? q.userAnswer;
+          if (qp.voiceAnalytics !== undefined) q.voiceAnalytics = qp.voiceAnalytics;
+          if (qp.followUpVoiceAnalytics !== undefined) q.followUpVoiceAnalytics = qp.followUpVoiceAnalytics;
+          if (qp.followUpQuestion !== undefined) q.followUpQuestion = qp.followUpQuestion;
+          if (qp.followUpAnswer !== undefined) q.followUpAnswer = qp.followUpAnswer;
+          if (qp.hasFollowUp !== undefined) q.hasFollowUp = qp.hasFollowUp;
         }
       });
       delete updatePayload.questions;

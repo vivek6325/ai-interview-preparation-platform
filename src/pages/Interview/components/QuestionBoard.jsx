@@ -27,7 +27,9 @@ export function QuestionBoard({
   role = 'Software Engineer',
   difficulty = 'medium',
   questions = [],
-  answers = []
+  answers = [],
+  onVoiceAnalyticsChange,
+  onTurnStateChange
 }) {
   const [interviewMode, setInterviewMode] = useState(() => {
     try {
@@ -69,6 +71,19 @@ export function QuestionBoard({
   } = useSpeechSynthesis();
 
   const isAiSpeaking = isTurnAiSpeaking || isTtsEngineSpeaking;
+
+  // Notify parent of active turn state changes
+  useEffect(() => {
+    if (onTurnStateChange) {
+      onTurnStateChange({
+        isAiSpeaking,
+        isTranscribing: isTurnTranscribing,
+        isAnalyzing: isTurnAnalyzing,
+        isRecording: isTurnRecording,
+        isFollowUpReady
+      });
+    }
+  }, [isAiSpeaking, isTurnTranscribing, isTurnAnalyzing, isTurnRecording, isFollowUpReady, onTurnStateChange]);
 
   // Initialize new turn state when main question index changes
   useEffect(() => {
@@ -353,6 +368,17 @@ export function QuestionBoard({
                 onRecordingStateChange(recording);
               }}
               onTranscriptGenerated={handleFollowUpTranscriptGenerated}
+              onAudioReady={(payload) => {
+                if (onVoiceAnalyticsChange) {
+                  onVoiceAnalyticsChange({
+                    questionIdx: currentQuestionIdx,
+                    type: 'followup',
+                    voiceAnalytics: payload?.voiceAnalytics || null,
+                    followUpQuestion: followUpQuestionText,
+                    followUpAnswer: followUpAnswerText
+                  });
+                }
+              }}
             />
           ) : (
             <VoiceRecorderCard
@@ -366,6 +392,15 @@ export function QuestionBoard({
                 onRecordingStateChange(recording);
               }}
               onTranscriptGenerated={handleMainTranscriptGenerated}
+              onAudioReady={(payload) => {
+                if (onVoiceAnalyticsChange) {
+                  onVoiceAnalyticsChange({
+                    questionIdx: currentQuestionIdx,
+                    type: 'main',
+                    voiceAnalytics: payload?.voiceAnalytics || null
+                  });
+                }
+              }}
             />
           )}
         </div>

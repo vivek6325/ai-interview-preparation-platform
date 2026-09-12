@@ -639,4 +639,89 @@ export function analyzeVoiceAnalytics(transcript = '', durationSeconds = 0, volu
   };
 }
 
+/**
+ * Aggregates individual question voice analytics into session-level communication metrics.
+ * 
+ * @param {Array<Object>} analyticsList Array of valid voiceAnalytics objects
+ * @returns {Object} Aggregate voice analytics summary
+ */
+export function aggregateVoiceAnalytics(analyticsList = []) {
+  const valid = (analyticsList || []).filter(a => a && typeof a === 'object' && a.wordCount > 0);
+  
+  if (valid.length === 0) {
+    return {
+      analyzedAnswersCount: 0,
+      averageWpm: 0,
+      totalWords: 0,
+      totalDurationSeconds: 0,
+      totalFillers: 0,
+      averageFillerPercentage: 0,
+      averageConfidenceScore: null,
+      averageCommunicationScore: null,
+      toneCounts: {},
+      dominantTone: 'N/A'
+    };
+  }
+
+  let totalWords = 0;
+  let totalDurationSeconds = 0;
+  let totalWpmSum = 0;
+  let totalFillers = 0;
+  let fillerPercentageSum = 0;
+  let confidenceScoreSum = 0;
+  let confidenceCount = 0;
+  let communicationScoreSum = 0;
+  let communicationCount = 0;
+  const toneCounts = {};
+
+  valid.forEach((item) => {
+    totalWords += item.wordCount || 0;
+    totalDurationSeconds += item.durationSeconds || 0;
+    totalWpmSum += item.wordsPerMinute || 0;
+
+    if (item.fillerAnalysis) {
+      totalFillers += item.fillerAnalysis.totalFillers || 0;
+      fillerPercentageSum += item.fillerAnalysis.fillerPercentage || 0;
+    }
+
+    if (item.confidenceAnalysis && typeof item.confidenceAnalysis.score === 'number') {
+      confidenceScoreSum += item.confidenceAnalysis.score;
+      confidenceCount++;
+    }
+
+    if (item.communicationScore && typeof item.communicationScore.score === 'number') {
+      communicationScoreSum += item.communicationScore.score;
+      communicationCount++;
+    }
+
+    if (item.toneAnalysis && item.toneAnalysis.tone) {
+      const t = item.toneAnalysis.tone;
+      toneCounts[t] = (toneCounts[t] || 0) + 1;
+    }
+  });
+
+  const count = valid.length;
+  let dominantTone = 'Neutral';
+  let maxToneCount = 0;
+  Object.entries(toneCounts).forEach(([toneName, toneCnt]) => {
+    if (toneCnt > maxToneCount) {
+      maxToneCount = toneCnt;
+      dominantTone = toneName;
+    }
+  });
+
+  return {
+    analyzedAnswersCount: count,
+    averageWpm: Math.round(totalWpmSum / count),
+    totalWords,
+    totalDurationSeconds,
+    totalFillers,
+    averageFillerPercentage: Math.round((fillerPercentageSum / count) * 10) / 10,
+    averageConfidenceScore: confidenceCount > 0 ? Math.round(confidenceScoreSum / confidenceCount) : null,
+    averageCommunicationScore: communicationCount > 0 ? Math.round(communicationScoreSum / communicationCount) : null,
+    toneCounts,
+    dominantTone
+  };
+}
+
 export default analyzeVoiceAnalytics;

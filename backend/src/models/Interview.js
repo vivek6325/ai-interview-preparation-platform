@@ -74,6 +74,14 @@ const QuestionSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  voiceAnalytics: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null,
+  },
+  followUpVoiceAnalytics: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null,
+  },
 });
 
 /**
