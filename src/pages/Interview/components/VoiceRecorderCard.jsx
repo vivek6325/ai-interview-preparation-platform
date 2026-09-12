@@ -1,29 +1,34 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import useAudioRecorder, { formatAudioTimer } from '../../../hooks/useAudioRecorder';
 import useVoiceTranscription from '../../../hooks/useVoiceTranscription';
 import useSpeechRecognition from '../../../hooks/useSpeechRecognition';
 import useSpeechAnalytics from '../../../hooks/useSpeechAnalytics';
+import { evaluateCommunication } from '../../../services/aiService';
 import './VoiceRecorderCard.css';
 
 /**
- * VoiceRecorderCard Component (Part 1 + Part 2 STT + Part 3 Speaking Pace Analysis)
+ * VoiceRecorderCard Component (Part 1 + STT + Speaking Pace + Fillers + Confidence + Tone + AI Communication Score)
  * 
  * Reusable Voice Recording & Speech Analytics component for interview responses.
- * Provides controls for Start Recording, Stop Recording, Re-recording, Audio Playback,
- * Transcribe Answer, and displays speaking duration, word count, WPM, pace rating, and feedback.
  * 
  * @param {Object} props
+ * @param {string} [props.questionText] Optional context question text for AI evaluation
  * @param {Function} [props.onRecordingStateChange] Callback notifying parent of recording state
- * @param {Function} [props.onAudioReady] Callback receiving { blob, url, duration, transcript, voiceResponse, voiceAnalytics }
+ * @param {Function} [props.onAudioReady] Callback receiving audio & analytics payload
  * @param {Function} [props.onTranscriptGenerated] Callback passing transcript text directly to answer input
  * @param {boolean} [props.disabled] Optional flag to disable controls
  */
 export function VoiceRecorderCard({
+  questionText = '',
   onRecordingStateChange,
   onAudioReady,
   onTranscriptGenerated,
   disabled = false
 }) {
+  const [aiCommunicationFeedback, setAiCommunicationFeedback] = useState(null);
+  const [isEvaluatingAi, setIsEvaluatingAi] = useState(false);
+  const [aiError, setAiError] = useState(null);
+
   const {
     status: recordingStatus,
     isRecording,
@@ -58,8 +63,55 @@ export function VoiceRecorderCard({
     resetTranscription
   } = useVoiceTranscription();
 
-  // Calculate Voice Analytics (Speaking Pace + Filler Words + Voice Confidence + Tone & Sentiment - Day 18 Parts 3, 4 & 5)
-  const voiceAnalytics = useSpeechAnalytics(transcript, duration, volumeSamples);
+  // Calculate Voice Analytics (Pace, Fillers, Confidence, Tone, Communication Score)
+  const voiceAnalytics = useSpeechAnalytics(transcript, duration, volumeSamples, aiCommunicationFeedback);
+
+  // Trigger AI Communication Quality evaluation when transcript is generated
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchAiFeedback() {
+      if (!isTranscribeSuccess || !transcript || transcript.trim().split(/\s+/).length < 5) {
+        return;
+      }
+
+      setIsEvaluatingAi(true);
+      setAiError(null);
+
+      try {
+        const response = await evaluateCommunication(
+          transcript,
+          {
+            wordsPerMinute: voiceAnalytics.wordsPerMinute,
+            pace: voiceAnalytics.pace,
+            fillerAnalysis: voiceAnalytics.fillerAnalysis,
+            confidenceAnalysis: voiceAnalytics.confidenceAnalysis,
+            toneAnalysis: voiceAnalytics.toneAnalysis
+          },
+          questionText
+        );
+
+        if (isMounted && response?.data) {
+          setAiCommunicationFeedback(response.data);
+        }
+      } catch (err) {
+        if (isMounted) {
+          console.warn('AI communication feedback evaluation error handled:', err);
+          setAiError('AI feedback temporarily unavailable. (Showing deterministic communication breakdown)');
+        }
+      } finally {
+        if (isMounted) {
+          setIsEvaluatingAi(false);
+        }
+      }
+    }
+
+    fetchAiFeedback();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isTranscribeSuccess, transcript]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Notify parent of recording state changes
   useEffect(() => {
@@ -75,8 +127,10 @@ export function VoiceRecorderCard({
     }
   }, [recordingStatus, audioUrl, audioBlob, duration, volumeSamples, prepareReadyToTranscribe]);
 
-  // Handle Start Recording (starts audio recorder + live speech listener)
+  // Handle Start Recording
   const handleStartRecording = useCallback(() => {
+    setAiCommunicationFeedback(null);
+    setAiError(null);
     resetTranscription();
     resetLiveStt();
     startAudioRecord();
@@ -91,6 +145,8 @@ export function VoiceRecorderCard({
 
   // Handle Re-recording
   const handleResetRecording = useCallback(() => {
+    setAiCommunicationFeedback(null);
+    setAiError(null);
     resetTranscription();
     resetLiveStt();
     resetAudioRecord();
@@ -101,6 +157,8 @@ export function VoiceRecorderCard({
     if (!audioBlob || isTranscribing) return;
 
     try {
+      setAiCommunicationFeedback(null);
+      setAiError(null);
       const generatedText = await transcribe(
         { blob: audioBlob, url: audioUrl, duration, volumeSamples },
         liveTranscript
@@ -130,8 +188,9 @@ export function VoiceRecorderCard({
 
   // Status text for top badge
   const getStatusText = () => {
-    if (isTranscribing) return 'Transcribing answer & analyzing tone...';
-    if (isTranscribeSuccess) return 'Transcript ready & full voice analyzed';
+    if (isTranscribing) return 'Transcribing answer...';
+    if (isEvaluatingAi) return 'Analyzing communication score & AI feedback...';
+    if (isTranscribeSuccess) return 'Voice analysis & communication score ready';
     if (isTranscribeError) return 'Transcription failed';
     if (recordingStatus === 'recording') return 'Recording...';
     if (recordingStatus === 'recorded') return 'Recording complete — Ready to transcribe';
@@ -142,7 +201,7 @@ export function VoiceRecorderCard({
   };
 
   const getStatusClass = () => {
-    if (isTranscribing) return 'status-transcribing';
+    if (isTranscribing || isEvaluatingAi) return 'status-transcribing';
     if (isTranscribeSuccess) return 'status-success';
     if (isTranscribeError) return 'status-error';
     switch (recordingStatus) {
@@ -173,7 +232,7 @@ export function VoiceRecorderCard({
         >
           {isRecording ? (
             <span className="recording-indicator-dot pulse" aria-hidden="true" />
-          ) : isTranscribing ? (
+          ) : isTranscribing || isEvaluatingAi ? (
             <span className="transcribing-spinner" aria-hidden="true" />
           ) : (
             <span className="recording-indicator-dot" aria-hidden="true" style={{ opacity: recordingStatus === 'recorded' ? 1 : 0.4 }} />
@@ -466,8 +525,129 @@ export function VoiceRecorderCard({
           </div>
         </div>
       )}
+
+      {/* AI Communication Score & Feedback Card (Day 18 Part 6) */}
+      {transcript && isTranscribeSuccess && voiceAnalytics.communicationScore && (
+        <div className="communication-score-section mt-3">
+          <div className="communication-score-header d-flex justify-content-between align-items-center mb-2">
+            <span className="communication-score-title">🤖 AI Communication Score & Feedback</span>
+            {voiceAnalytics.communicationScore.isInsufficientData ? (
+              <span className="score-badge score-badge-insufficient">Insufficient Data</span>
+            ) : (
+              <span className={`score-badge ${voiceAnalytics.communicationScore.ratingCategory?.badgeClass || 'score-badge-good'}`}>
+                {voiceAnalytics.communicationScore.level}
+              </span>
+            )}
+          </div>
+
+          {voiceAnalytics.communicationScore.isInsufficientData ? (
+            <div className="insufficient-data-box p-3">
+              <span className="me-2" aria-hidden="true">⚠️</span>
+              <span className="insufficient-text">{voiceAnalytics.communicationScore.insufficientMessage}</span>
+            </div>
+          ) : (
+            <>
+              {/* Overall Score Banner */}
+              <div className="score-meter-box p-3">
+                <div className="d-flex justify-content-between align-items-baseline mb-2">
+                  <div className="score-main-display">
+                    <span className="score-number">{voiceAnalytics.communicationScore.score}</span>
+                    <span className="score-total"> / 100</span>
+                  </div>
+                  <span className="score-level-text">{voiceAnalytics.communicationScore.level} Delivery</span>
+                </div>
+
+                <div className="score-progress-bar-container">
+                  <div
+                    className={`score-progress-bar-fill ${voiceAnalytics.communicationScore.ratingCategory?.badgeClass || 'score-badge-good'}`}
+                    style={{ width: `${voiceAnalytics.communicationScore.score}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Component Score Breakdown */}
+              <div className="score-breakdown-wrapper mt-3">
+                <h6 className="breakdown-section-title">📊 Score Breakdown</h6>
+                <div className="score-breakdown-grid">
+                  {voiceAnalytics.communicationScore.breakdown &&
+                    Object.entries(voiceAnalytics.communicationScore.breakdown).map(([key, item]) => (
+                      <div key={key} className="breakdown-card">
+                        <span className="breakdown-label">{item.label}</span>
+                        <span className="breakdown-value">
+                          {item.available ? `${item.score} / 100` : 'N/A'}
+                        </span>
+                        <span className="breakdown-weight">Weight {item.weightPercentage}%</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              {/* AI Evaluation Spinner / Status */}
+              {isEvaluatingAi && (
+                <div className="ai-feedback-loading p-2 mt-2">
+                  <span className="transcribing-spinner me-2" aria-hidden="true" />
+                  <span>Analyzing communication quality with AI...</span>
+                </div>
+              )}
+
+              {aiError && (
+                <div className="ai-feedback-error p-2 mt-2">
+                  <span aria-hidden="true">⚠️ </span>
+                  <span>{aiError}</span>
+                </div>
+              )}
+
+              {/* AI Personal Feedback Cards */}
+              <div className="ai-feedback-details mt-3">
+                {voiceAnalytics.communicationScore.overallAssessment && (
+                  <div className="feedback-narrative-box p-3 mb-3">
+                    <span className="feedback-icon" aria-hidden="true">💡</span>
+                    <p className="narrative-text mb-0">{voiceAnalytics.communicationScore.overallAssessment}</p>
+                  </div>
+                )}
+
+                <div className="feedback-lists-grid">
+                  {voiceAnalytics.communicationScore.strengths.length > 0 && (
+                    <div className="feedback-list-card strengths-card">
+                      <h6 className="list-title text-success">✓ Strengths</h6>
+                      <ul>
+                        {voiceAnalytics.communicationScore.strengths.map((str, idx) => (
+                          <li key={idx}>{str}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {voiceAnalytics.communicationScore.areasToImprove.length > 0 && (
+                    <div className="feedback-list-card improve-card">
+                      <h6 className="list-title text-warning">• Areas to Improve</h6>
+                      <ul>
+                        {voiceAnalytics.communicationScore.areasToImprove.map((item, idx) => (
+                          <li key={idx}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {voiceAnalytics.communicationScore.recommendations.length > 0 && (
+                    <div className="feedback-list-card rec-card">
+                      <h6 className="list-title text-info">💡 Recommendations</h6>
+                      <ul>
+                        {voiceAnalytics.communicationScore.recommendations.map((rec, idx) => (
+                          <li key={idx}>{rec}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
 export default VoiceRecorderCard;
+

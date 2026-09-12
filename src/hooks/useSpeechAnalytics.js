@@ -11,12 +11,13 @@ import { analyzeVoiceAnalytics } from '../utils/speechAnalytics';
  * @param {Array<number>} [volumeSamples] Physical volume level samples from audio recorder
  * @returns {Object} voiceAnalytics object { durationSeconds, wordCount, wordsPerMinute, pace, fillerAnalysis, confidenceAnalysis, toneAnalysis }
  */
-export function useSpeechAnalytics(transcript = '', durationSeconds = 0, volumeSamples = []) {
+export function useSpeechAnalytics(transcript = '', durationSeconds = 0, volumeSamples = [], qualityAssessment = null) {
   const analytics = useMemo(() => {
-    return analyzeVoiceAnalytics(transcript, durationSeconds, volumeSamples);
-  }, [transcript, durationSeconds, volumeSamples]);
+    return analyzeVoiceAnalytics(transcript, durationSeconds, volumeSamples, qualityAssessment);
+  }, [transcript, durationSeconds, volumeSamples, qualityAssessment]);
 
   return analytics;
 }
 
 export default useSpeechAnalytics;
+

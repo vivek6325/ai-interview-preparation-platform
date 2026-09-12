@@ -8,7 +8,8 @@ import {
   resumeUploadController,
   evaluateFeedbackController,
   generateInterviewReportController,
-  transcribeAudioController
+  transcribeAudioController,
+  evaluateCommunicationController
 } from '../controllers/aiController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -78,5 +79,12 @@ router.post('/interview-report', protect, generateInterviewReportController);
  * Access: Private
  */
 router.post('/transcribe', protect, upload.single('audio'), transcribeAudioController);
+
+/**
+ * Route: POST /api/ai/communication-feedback
+ * Description: Evaluates candidate spoken communication quality and returns structured coaching feedback
+ * Access: Private
+ */
+router.post('/communication-feedback', protect, evaluateCommunicationController);
 
 export default router;

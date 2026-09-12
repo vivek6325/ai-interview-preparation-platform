@@ -136,3 +136,39 @@ Return a JSON object, and nothing else. Do not wrap in markdown tags. Match this
   "hiringRecommendation": "Strong Hire | Hire | No Hire assessment with short rationale explanation"
 }`;
 };
+
+/**
+ * Prompt for analyzing interview response communication quality and personalized feedback
+ */
+export const buildCommunicationFeedbackPrompt = (transcript, analytics = {}, question = '') => {
+  return `You are an expert executive communication coach for technical interviews. Analyze the candidate's spoken interview response and voice analytics metrics:
+- Question Context: "${question || 'General technical interview question'}"
+- Transcript: "${transcript}"
+- Speaking Pace: ${analytics.wordsPerMinute ? analytics.wordsPerMinute + ' WPM (' + (analytics.pace?.label || 'N/A') + ')' : 'N/A'}
+- Filler Words: ${analytics.fillerAnalysis?.totalFillers ?? 0} fillers (${analytics.fillerAnalysis?.fillerPercentage ?? 0}%)
+- Voice Delivery Confidence: ${analytics.confidenceAnalysis?.score ? analytics.confidenceAnalysis.score + '/100 (' + (analytics.confidenceAnalysis?.level || 'N/A') + ')' : 'N/A'}
+- Tone & Sentiment: ${analytics.toneAnalysis?.tone || 'Neutral'} tone, ${analytics.toneAnalysis?.sentiment || 'Neutral'} sentiment (${analytics.toneAnalysis?.uncertaintyIndicators ?? 0} uncertainty indicators)
+
+Evaluate candidate transcript communication quality (clarity, coherence, professionalism, directness).
+Return a JSON object ONLY. Do not wrap in markdown tags or extra text. Match this exact schema:
+{
+  "communicationQualityScore": 82,
+  "clarity": 85,
+  "directness": 78,
+  "coherence": 84,
+  "professionalism": 88,
+  "overallAssessment": "2-3 sentence summary of candidate's delivery and communication strengths and areas to refine.",
+  "strengths": [
+    "Concrete strength 1 based on pace, tone, or structure",
+    "Concrete strength 2 based on delivery"
+  ],
+  "areasToImprove": [
+    "Actionable area to improve 1",
+    "Actionable area to improve 2"
+  ],
+  "recommendations": [
+    "Practical recommendation 1 for upcoming mock practice",
+    "Practical recommendation 2 for upcoming mock practice"
+  ]
+}`;
+};

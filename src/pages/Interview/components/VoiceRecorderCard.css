@@ -880,5 +880,291 @@
   }
 }
 
+/* AI Communication Score & Feedback Section (Day 18 Part 6) */
+.communication-score-section {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  border-radius: 14px;
+  padding: 1.25rem 1.4rem;
+  margin-top: 0.85rem;
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.communication-score-header {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.communication-score-title {
+  color: #d8b4fe;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+}
+
+/* Score Badges */
+.score-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.8rem;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.score-badge-excellent {
+  background: rgba(16, 185, 129, 0.18);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.5);
+}
+
+.score-badge-strong {
+  background: rgba(99, 102, 241, 0.18);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.5);
+}
+
+.score-badge-good {
+  background: rgba(59, 130, 246, 0.18);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.5);
+}
+
+.score-badge-needs-improvement {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.5);
+}
+
+.score-badge-significant-improvement {
+  background: rgba(239, 68, 68, 0.18);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+}
+
+.score-badge-insufficient {
+  background: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+/* Insufficient Data Warning Box */
+.insufficient-data-box {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 10px;
+  color: #fcd34d;
+  font-size: 0.88rem;
+  display: flex;
+  align-items: center;
+}
+
+.insufficient-text {
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Score Main Display & Progress Bar */
+.score-meter-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+.score-main-display {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+
+.score-number {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #f3e8ff;
+  font-family: var(--mono);
+  line-height: 1;
+}
+
+.score-total {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.score-level-text {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #c084fc;
+}
+
+.score-progress-bar-container {
+  width: 100%;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.score-progress-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Breakdown Grid */
+.score-breakdown-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.breakdown-section-title {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.score-breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.6rem;
+}
+
+.breakdown-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 0.6rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  transition: var(--transition-smooth);
+}
+
+.breakdown-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+.breakdown-label {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.breakdown-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #e9d5ff;
+  font-family: var(--mono);
+}
+
+.breakdown-weight {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* AI Status & Loading Indicators */
+.ai-feedback-loading {
+  background: rgba(168, 85, 247, 0.08);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: 8px;
+  font-size: 0.83rem;
+  color: #d8b4fe;
+  display: flex;
+  align-items: center;
+}
+
+.ai-feedback-error {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 8px;
+  font-size: 0.83rem;
+  color: #fcd34d;
+  display: flex;
+  align-items: center;
+}
+
+/* AI Feedback Cards & Lists */
+.feedback-narrative-box {
+  background: rgba(168, 85, 247, 0.06);
+  border-left: 3px solid #c084fc;
+  border-radius: 4px 10px 10px 4px;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.narrative-text {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #f3e8ff;
+}
+
+.feedback-lists-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.feedback-list-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 0.8rem 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.feedback-list-card .list-title {
+  font-size: 0.83rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.feedback-list-card ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.feedback-list-card li {
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  line-height: 1.45;
+}
+
+@media (max-width: 900px) {
+  .score-breakdown-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .feedback-lists-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .score-breakdown-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+
 
 

@@ -2,7 +2,7 @@ import fs from 'fs';
 import Interview from '../models/Interview.js';
 import { generateInterviewQuestions, evaluateInterviewAnswers } from '../services/aiService.js';
 import { generateQuestions, generateQuestionsFromResume } from '../services/ai/questionGenerator.js';
-import { generateFeedback, generateInterviewReport } from '../services/ai/feedbackGenerator.js';
+import { generateFeedback, generateInterviewReport, generateCommunicationFeedback } from '../services/ai/feedbackGenerator.js';
 import { analyzeResume } from '../services/ai/resumeAnalyzer.js';
 import { transcribeAudioFile } from '../services/ai/transcriber.js';
 
@@ -367,4 +367,35 @@ export const transcribeAudioController = async (req, res) => {
     });
   }
 };
+
+/**
+ * Endpoint to generate AI Communication Quality & Feedback for a spoken interview response
+ * POST /api/ai/communication-feedback
+ */
+export const evaluateCommunicationController = async (req, res) => {
+  try {
+    const { transcript, analytics, question } = req.body;
+
+    if (!transcript || typeof transcript !== 'string' || transcript.trim().length === 0) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'transcript parameter is required.'
+      });
+    }
+
+    const communicationData = await generateCommunicationFeedback(transcript, analytics || {}, question || '');
+    
+    res.status(200).json({
+      status: 'success',
+      data: communicationData
+    });
+  } catch (error) {
+    console.error('Error generating AI communication feedback:', error);
+    res.status(500).json({
+      status: 'error',
+      message: error.message || 'Failed to generate communication feedback.'
+    });
+  }
+};
+
 

@@ -100,3 +100,15 @@ export async function transcribeAudio(audioBlob) {
   });
 }
 
+/**
+ * Request AI communication quality evaluation and personalized feedback.
+ * POST /api/ai/communication-feedback
+ */
+export async function evaluateCommunication(transcript, analytics = {}, question = '') {
+  return await aiRequest('/ai/communication-feedback', {
+    method: 'POST',
+    body: { transcript, analytics, question }
+  });
+}
+
+

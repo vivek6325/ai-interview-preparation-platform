@@ -42,6 +42,8 @@ export function calculateWpm(wordCount = 0, durationSeconds = 0) {
   return Math.round(wpm);
 }
 
+import { calculateCommunicationScore } from './communicationScoring.js';
+
 /**
  * Centralized Pace Classification Thresholds & Feedback Configurations
  */
@@ -618,20 +620,28 @@ export function analyzeToneAndSentiment(transcript = '') {
  * @param {Array<number>} [volumeSamples] 
  * @returns {Object} unified voiceAnalytics object
  */
-export function analyzeVoiceAnalytics(transcript = '', durationSeconds = 0, volumeSamples = []) {
+export function analyzeVoiceAnalytics(transcript = '', durationSeconds = 0, volumeSamples = [], qualityAssessment = null) {
   const speakingPace = analyzeSpeakingPace(transcript, durationSeconds);
   const fillerAnalysis = analyzeFillerWords(transcript);
   const confidenceAnalysis = analyzeVoiceConfidence(transcript, durationSeconds, volumeSamples);
   const toneAnalysis = analyzeToneAndSentiment(transcript);
 
-  return {
+  const baseAnalytics = {
     durationSeconds: speakingPace.durationSeconds,
     wordCount: speakingPace.wordCount,
     wordsPerMinute: speakingPace.wordsPerMinute,
     pace: speakingPace.pace,
     fillerAnalysis,
     confidenceAnalysis,
-    toneAnalysis
+    toneAnalysis,
+    transcript
+  };
+
+  const communicationScore = calculateCommunicationScore(baseAnalytics, qualityAssessment);
+
+  return {
+    ...baseAnalytics,
+    communicationScore
   };
 }
 
