@@ -1,8 +1,10 @@
+import fs from 'fs';
 import Interview from '../models/Interview.js';
 import { generateInterviewQuestions, evaluateInterviewAnswers } from '../services/aiService.js';
 import { generateQuestions, generateQuestionsFromResume } from '../services/ai/questionGenerator.js';
 import { generateFeedback, generateInterviewReport } from '../services/ai/feedbackGenerator.js';
 import { analyzeResume } from '../services/ai/resumeAnalyzer.js';
+import { transcribeAudioFile } from '../services/ai/transcriber.js';
 
 /**
  * Handles creation and dynamic question generation for an interview.
@@ -321,3 +323,48 @@ export const generateInterviewReportController = async (req, res) => {
     });
   }
 };
+
+/**
+ * Endpoint to transcribe recorded audio response using Gemini AI
+ * POST /api/ai/transcribe
+ */
+export const transcribeAudioController = async (req, res) => {
+  let filePath = null;
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'No audio file uploaded for transcription.'
+      });
+    }
+
+    filePath = req.file.path;
+    const mimeType = req.file.mimetype || 'audio/webm';
+
+    const transcriptText = await transcribeAudioFile(filePath, mimeType);
+
+    // Clean up temporary upload file asynchronously
+    if (filePath && fs.existsSync(filePath)) {
+      fs.unlink(filePath, (err) => {
+        if (err) console.warn('Could not clean up uploaded audio file:', err);
+      });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      transcript: transcriptText
+    });
+  } catch (error) {
+    console.error('Error transcribing audio recording:', error);
+    
+    if (filePath && fs.existsSync(filePath)) {
+      fs.unlink(filePath, () => {});
+    }
+
+    res.status(500).json({
+      status: 'error',
+      message: error.message || 'Speech-to-text audio transcription failed.'
+    });
+  }
+};
+

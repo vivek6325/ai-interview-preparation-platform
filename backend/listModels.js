@@ -3,29 +3,20 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+console.log("API KEY EXISTS:", !!process.env.GEMINI_API_KEY);
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-const models = [
-    "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
-    "gemini-2.5-pro",
-    "gemini-2.0-flash",
-    "gemini-1.5-flash"
-];
+async function main() {
+    console.log("Trying to list models...");
 
-for (const modelName of models) {
     try {
-        console.log(`\nTesting ${modelName}...`);
-
-        const model = genAI.getGenerativeModel({
-            model: modelName,
-        });
-
-        const result = await model.generateContent("Say Hello");
-        console.log("✅ SUCCESS:", modelName);
-        console.log(result.response.text());
+        const models = await genAI.listModels();
+        console.log(models);
     } catch (err) {
-        console.log("❌ FAILED:", modelName);
-        console.log(err.message);
+        console.error("ERROR:");
+        console.error(err);
     }
 }
+
+main();

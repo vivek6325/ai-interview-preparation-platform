@@ -7,7 +7,8 @@ import {
   generateQuestionsController,
   resumeUploadController,
   evaluateFeedbackController,
-  generateInterviewReportController
+  generateInterviewReportController,
+  transcribeAudioController
 } from '../controllers/aiController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -70,5 +71,12 @@ router.post('/feedback', protect, evaluateFeedbackController);
  * Access: Private
  */
 router.post('/interview-report', protect, generateInterviewReportController);
+
+/**
+ * Route: POST /api/ai/transcribe
+ * Description: Transcribes an uploaded audio recording into text using Gemini AI
+ * Access: Private
+ */
+router.post('/transcribe', protect, upload.single('audio'), transcribeAudioController);
 
 export default router;

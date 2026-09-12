@@ -82,3 +82,21 @@ export async function generateInterviewReport(interviewId, role, difficulty, que
     body: { interviewId, role, difficulty, questions }
   });
 }
+
+/**
+ * Transcribe recorded audio Blob using backend Gemini Speech-to-Text API.
+ * POST /api/ai/transcribe
+ * @param {Blob} audioBlob 
+ * @returns {Promise<{ status: string, transcript: string }>}
+ */
+export async function transcribeAudio(audioBlob) {
+  const formData = new FormData();
+  const fileExt = audioBlob.type?.includes('mp4') ? 'mp4' : audioBlob.type?.includes('ogg') ? 'ogg' : 'webm';
+  formData.append('audio', audioBlob, `recording.${fileExt}`);
+
+  return await aiRequest('/ai/transcribe', {
+    method: 'POST',
+    body: formData
+  });
+}
+

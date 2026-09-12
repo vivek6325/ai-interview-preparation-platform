@@ -72,6 +72,7 @@ export function QuestionBoard({
           <VoiceRecorderCard
             key={`voice-recorder-${currentQuestionIdx}`}
             onRecordingStateChange={onRecordingStateChange}
+            onTranscriptGenerated={(transcribedText) => setAnswerText(transcribedText)}
           />
         </div>
 
