@@ -1,0 +1,738 @@
+/* VoiceAnalyticsDashboard Scoped Styles (Day 18 — Part 7) */
+
+.voice-analytics-dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 1. Dashboard Top Action Toolbar & Badge */
+.dashboard-top-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.85rem 1.1rem;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.dashboard-main-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: rgba(16, 185, 129, 0.12);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+.badge-dot.pulse {
+  animation: pulse-dot 1.5s infinite ease-in-out;
+}
+
+.dashboard-audio-player-wrapper {
+  min-width: 220px;
+  height: 36px;
+}
+
+.dashboard-audio-player {
+  width: 100%;
+  height: 36px;
+  border-radius: 12px;
+}
+
+/* Action Buttons */
+.btn-dashboard-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 10px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  transition: var(--transition-smooth);
+}
+
+.btn-dashboard-action:hover {
+  background: rgba(255, 255, 255, 0.09);
+  transform: translateY(-1px);
+}
+
+.btn-toggle-transcript.active {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: #a5b4fc;
+}
+
+.btn-apply-text {
+  background: rgba(168, 85, 247, 0.12);
+  border-color: rgba(168, 85, 247, 0.35);
+  color: #d8b4fe;
+}
+
+.btn-apply-text:hover {
+  background: rgba(168, 85, 247, 0.25);
+  color: #f3e8ff;
+}
+
+/* 2. Expandable Transcript Drawer */
+.dashboard-transcript-drawer {
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 14px;
+  padding: 1.1rem 1.3rem;
+  animation: slideDown 0.3s ease-out;
+}
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+.drawer-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #a5b4fc;
+}
+
+.drawer-word-count {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  font-family: var(--mono);
+}
+
+.drawer-transcript-quote {
+  background: rgba(255, 255, 255, 0.02);
+  border-left: 3px solid #818cf8;
+  padding: 0.85rem 1.1rem;
+  border-radius: 4px 10px 10px 4px;
+  font-size: 0.93rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  margin: 0;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+/* 3. Hero Section: Overall AI Communication Score */
+.dashboard-hero-card {
+  background: linear-gradient(135deg, rgba(30, 27, 75, 0.85), rgba(15, 23, 42, 0.95));
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  border-radius: 16px;
+  padding: 1.35rem 1.6rem;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
+}
+
+.hero-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+}
+
+.hero-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hero-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.hero-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f3e8ff;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.hero-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin: 0.2rem 0 0 0;
+}
+
+.hero-body-grid {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.hero-score-ring-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.score-gauge-circle {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.gauge-score-val {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: #f3e8ff;
+  font-family: var(--mono);
+  line-height: 1;
+}
+
+.gauge-max {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.gauge-bar-wrapper {
+  width: 100%;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.gauge-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero-assessment-box {
+  background: rgba(168, 85, 247, 0.07);
+  border-left: 3px solid #c084fc;
+  border-radius: 4px 12px 12px 4px;
+  padding: 1.1rem 1.3rem;
+}
+
+.assessment-heading {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #d8b4fe;
+  margin: 0 0 0.4rem 0;
+  letter-spacing: -0.01em;
+}
+
+.assessment-text {
+  font-size: 0.91rem;
+  line-height: 1.6;
+  color: #f3e8ff;
+  margin: 0;
+}
+
+/* 4. Quick Performance Overview Cards Grid */
+.dashboard-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.75rem;
+}
+
+.overview-metric-card {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  transition: var(--transition-smooth);
+}
+
+.overview-metric-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(168, 85, 247, 0.35);
+  transform: translateY(-2px);
+}
+
+.card-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-icon {
+  font-size: 1.1rem;
+}
+
+.mini-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+.sentiment-badge {
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.card-val {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--mono);
+}
+
+.card-lbl {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* 5. Score Breakdown Visualization */
+.dashboard-section-card {
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 1.25rem 1.4rem;
+}
+
+.section-title-bar {
+  margin-bottom: 1rem;
+}
+
+.section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.section-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  display: block;
+  margin-top: 0.2rem;
+}
+
+.breakdown-bars-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.breakdown-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.bar-header-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+}
+
+.bar-label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.bar-weight-tag {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin-left: auto;
+  margin-right: 0.75rem;
+}
+
+.bar-score-val {
+  font-weight: 700;
+  color: #c084fc;
+  font-family: var(--mono);
+}
+
+.bar-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #a855f7);
+  border-radius: 9999px;
+  transition: width 0.6s ease-out;
+}
+
+/* 6. Speech & Voice Delivery Deep-Dive Analytics Grid */
+.dashboard-analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.card-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.85rem;
+}
+
+.header-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.metrics-subgrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.65rem;
+  margin-bottom: 0.85rem;
+}
+
+.metrics-subgrid.four-col {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.submetric-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.submetric-box.highlighted {
+  border-color: rgba(99, 102, 241, 0.35);
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.sub-lbl {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.sub-val {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--mono);
+}
+
+.detected-fillers-row {
+  margin-bottom: 0.85rem;
+}
+
+.tags-label {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 600;
+}
+
+.fillers-tags-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.filler-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(236, 72, 153, 0.12);
+  border: 1px solid rgba(236, 72, 153, 0.3);
+  border-radius: 6px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.8rem;
+  color: #fbcfe8;
+}
+
+.pill-count {
+  color: #f472b6;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.positive-empty-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 8px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #6ee7b7;
+}
+
+.card-feedback-footer {
+  background: rgba(255, 255, 255, 0.025);
+  border-left: 3px solid #818cf8;
+  border-radius: 4px 8px 8px 4px;
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.footer-icon {
+  font-size: 0.95rem;
+}
+
+.footer-text {
+  font-size: 0.83rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* 7. AI Personalized Coaching Section */
+.ai-coaching-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.coaching-loading-banner {
+  background: rgba(168, 85, 247, 0.08);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  font-size: 0.85rem;
+  color: #d8b4fe;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.coaching-error-banner {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  font-size: 0.85rem;
+  color: #fcd34d;
+}
+
+.coaching-lists-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem;
+}
+
+.coaching-list-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 0.95rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.coaching-list-card .list-heading {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.coaching-list-card ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.coaching-list-card li {
+  font-size: 0.83rem;
+  color: var(--text-primary);
+  line-height: 1.45;
+}
+
+.empty-list-text {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 0;
+}
+
+/* Empty & Loading Standalone States */
+.voice-dashboard-empty-state {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.empty-state-icon {
+  font-size: 2.5rem;
+}
+
+.empty-state-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.empty-state-description {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  max-width: 480px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.btn-record-prompt {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: #a5b4fc;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.voice-dashboard-loading-state {
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.dashboard-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(168, 85, 247, 0.25);
+  border-top-color: #c084fc;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+.dashboard-spinner.sm {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+}
+
+/* Animations */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Media Queries */
+@media (max-width: 1024px) {
+  .dashboard-overview-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .hero-body-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .coaching-lists-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-analytics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metrics-subgrid,
+  .metrics-subgrid.four-col {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dashboard-overview-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metrics-subgrid,
+  .metrics-subgrid.four-col {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-top-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar-left,
+  .toolbar-right {
+    justify-content: space-between;
+  }
+}
