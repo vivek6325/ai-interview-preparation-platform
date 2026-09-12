@@ -445,11 +445,7 @@ export function analyzeVoiceConfidence(transcript = '', durationSeconds = 0, vol
   )));
 
   // Classify Confidence Level
-  let levelConfig = {
-    level: 'Very Confident',
-    badgeClass: 'confidence-badge-excellent',
-    feedback: 'Your vocal delivery is strong and consistent. Maintain this steady energy while continuing to use natural pauses.'
-  };
+  let levelConfig;
 
   if (totalScore >= 80) {
     levelConfig = {
@@ -565,9 +561,9 @@ export function analyzeToneAndSentiment(transcript = '') {
   });
 
   // Classify Tone
-  let tone = 'Professional';
-  let badgeClass = 'tone-badge-professional';
-  let feedback = 'Your response uses professional and constructive language. Reduce unnecessary hedging to make your answers more direct.';
+  let tone;
+  let badgeClass;
+  let feedback;
 
   if (uncertaintyCount >= 3) {
     tone = 'Uncertain';
@@ -588,11 +584,9 @@ export function analyzeToneAndSentiment(transcript = '') {
   }
 
   // Classify Sentiment
-  let sentiment = 'Neutral';
+  let sentiment;
   if (positiveWordCount > uncertaintyCount && positiveWordCount > 0) {
     sentiment = 'Positive';
-  } else if (uncertaintyCount > positiveWordCount + 1) {
-    sentiment = 'Neutral';
   } else {
     sentiment = 'Neutral';
   }
