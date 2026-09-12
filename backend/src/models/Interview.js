@@ -60,6 +60,20 @@ const QuestionSchema = new mongoose.Schema({
     default: '',
     trim: true,
   },
+  followUpQuestion: {
+    type: String,
+    default: '',
+    trim: true,
+  },
+  followUpAnswer: {
+    type: String,
+    default: '',
+    trim: true,
+  },
+  hasFollowUp: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 /**

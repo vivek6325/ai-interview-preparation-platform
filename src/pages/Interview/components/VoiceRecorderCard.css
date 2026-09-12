@@ -1442,6 +1442,59 @@
   }
 }
 
+/* Day 19 Part 4: Adaptive AI Follow-up Question Styles */
+.followup-analyzing-bar {
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  color: #c7d2fe;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  margin-top: 0.75rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.followup-question-box {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(99, 102, 241, 0.12));
+  border: 1px solid rgba(168, 85, 247, 0.38);
+  border-radius: 12px;
+  padding: 1.15rem 1.35rem;
+  margin-top: 0.85rem;
+  margin-bottom: 0.85rem;
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.12);
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.followup-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(168, 85, 247, 0.2);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  color: #f3e8ff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  margin-bottom: 0.65rem;
+  letter-spacing: 0.02em;
+}
+
+.badge-sparkle {
+  font-size: 0.85rem;
+}
+
+.followup-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.5;
+  margin: 0;
+}
+
 
 
 

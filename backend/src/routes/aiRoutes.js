@@ -9,7 +9,8 @@ import {
   evaluateFeedbackController,
   generateInterviewReportController,
   transcribeAudioController,
-  evaluateCommunicationController
+  evaluateCommunicationController,
+  generateFollowUpController
 } from '../controllers/aiController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -86,5 +87,12 @@ router.post('/transcribe', protect, upload.single('audio'), transcribeAudioContr
  * Access: Private
  */
 router.post('/communication-feedback', protect, evaluateCommunicationController);
+
+/**
+ * Route: POST /api/ai/follow-up
+ * Description: Generates an adaptive follow-up question based on the candidate's latest answer
+ * Access: Private
+ */
+router.post('/follow-up', protect, generateFollowUpController);
 
 export default router;

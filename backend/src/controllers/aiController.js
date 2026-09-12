@@ -5,6 +5,7 @@ import { generateQuestions, generateQuestionsFromResume } from '../services/ai/q
 import { generateFeedback, generateInterviewReport, generateCommunicationFeedback } from '../services/ai/feedbackGenerator.js';
 import { analyzeResume } from '../services/ai/resumeAnalyzer.js';
 import { transcribeAudioFile } from '../services/ai/transcriber.js';
+import { generateFollowUpQuestion } from '../services/ai/followUpGenerator.js';
 
 /**
  * Handles creation and dynamic question generation for an interview.
@@ -394,6 +395,44 @@ export const evaluateCommunicationController = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: error.message || 'Failed to generate communication feedback.'
+    });
+  }
+};
+
+/**
+ * Endpoint to generate an adaptive AI follow-up question
+ * POST /api/ai/follow-up
+ */
+export const generateFollowUpController = async (req, res) => {
+  try {
+    const { question, answer, role, difficulty } = req.body;
+
+    if (!question || !answer) {
+      return res.status(200).json({
+        status: 'success',
+        data: {
+          shouldFollowUp: false,
+          followUpQuestion: '',
+          reason: 'Question and answer parameters required.'
+        }
+      });
+    }
+
+    const result = await generateFollowUpQuestion({ question, answer, role, difficulty });
+
+    res.status(200).json({
+      status: 'success',
+      data: result
+    });
+  } catch (error) {
+    console.warn('⚠️ Error in generateFollowUpController (falling back gracefully):', error.message);
+    res.status(200).json({
+      status: 'success',
+      data: {
+        shouldFollowUp: false,
+        followUpQuestion: '',
+        reason: 'Fallback triggered due to AI exception.'
+      }
     });
   }
 };

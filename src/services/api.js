@@ -306,6 +306,24 @@ export async function deleteResumeApi(id) {
   });
 }
 
+/**
+ * Generates an adaptive AI follow-up question based on the candidate's latest response.
+ */
+export async function generateFollowUpQuestionApi({ question, answer, role, difficulty }) {
+  try {
+    return await apiRequest('/ai/follow-up', {
+      method: 'POST',
+      body: { question, answer, role, difficulty }
+    });
+  } catch (err) {
+    console.warn('⚠️ Follow-up API call failed gracefully, continuing interview:', err.message);
+    return {
+      status: 'success',
+      data: { shouldFollowUp: false, followUpQuestion: '', reason: 'API call exception' }
+    };
+  }
+}
+
 
 
 
