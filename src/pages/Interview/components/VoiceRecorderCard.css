@@ -89,6 +89,51 @@
   color: var(--text-secondary);
 }
 
+/* Interview Mode Toggle Button (Day 19 Part 3) */
+.btn-interview-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-interview-mode-toggle.mode-voice {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(168, 85, 247, 0.18));
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  color: #d8b4fe;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.15);
+}
+
+.btn-interview-mode-toggle.mode-voice:hover {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(168, 85, 247, 0.3));
+  color: #ffffff;
+}
+
+.btn-interview-mode-toggle.mode-text {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-secondary);
+}
+
+.btn-interview-mode-toggle.mode-text:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+.btn-voice-start.disabled-ai-speaking {
+  opacity: 0.65;
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: #a5b4fc;
+  cursor: not-allowed;
+  animation: pulse-tts-speaking 2s infinite;
+}
+
 /* Auto-Speak Toggle Button */
 .btn-autospeak-toggle {
   display: inline-flex;

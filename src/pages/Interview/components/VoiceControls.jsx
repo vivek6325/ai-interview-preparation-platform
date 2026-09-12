@@ -12,7 +12,9 @@ export function VoiceControls({
   updateSettings,
   voices = [],
   onPlayReplay,
-  onStop
+  onStop,
+  interviewMode = 'voice',
+  onToggleInterviewMode
 }) {
   const [showSettingsPopover, setShowSettingsPopover] = useState(false);
   const popoverRef = useRef(null);
@@ -50,6 +52,18 @@ export function VoiceControls({
 
   return (
     <div className="voice-controls-toolbar" ref={popoverRef}>
+      {/* Mode Switch Toggle Button */}
+      {onToggleInterviewMode && (
+        <button
+          type="button"
+          className={`btn-interview-mode-toggle ${interviewMode === 'voice' ? 'mode-voice' : 'mode-text'}`}
+          onClick={onToggleInterviewMode}
+          aria-label={`Current mode: ${interviewMode === 'voice' ? 'Voice Mode' : 'Text Mode'}. Click to toggle.`}
+          title={interviewMode === 'voice' ? 'Conversational Voice Mode active (Click to switch to Text Mode)' : 'Standard Text Mode active (Click to switch to Voice Mode)'}
+        >
+          <span>{interviewMode === 'voice' ? '🎙️ Voice Mode' : '💬 Text Mode'}</span>
+        </button>
+      )}
       {/* Auto-Speak Toggle Button */}
       <button
         type="button"

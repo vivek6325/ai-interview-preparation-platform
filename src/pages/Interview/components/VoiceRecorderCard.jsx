@@ -18,13 +18,17 @@ import './VoiceRecorderCard.css';
  * @param {Function} [props.onAudioReady] Callback receiving audio & analytics payload
  * @param {Function} [props.onTranscriptGenerated] Callback passing transcript text directly to answer input
  * @param {boolean} [props.disabled] Optional flag to disable controls
+ * @param {boolean} [props.isAiSpeaking] Flag indicating AI is currently speaking question via TTS
+ * @param {boolean} [props.autoTranscribeOnStop] Auto-trigger STT transcription when recording stops
  */
 export function VoiceRecorderCard({
   questionText = '',
   onRecordingStateChange,
   onAudioReady,
   onTranscriptGenerated,
-  disabled = false
+  disabled = false,
+  isAiSpeaking = false,
+  autoTranscribeOnStop = false
 }) {
   const [aiCommunicationFeedback, setAiCommunicationFeedback] = useState(null);
   const [isEvaluatingAi, setIsEvaluatingAi] = useState(false);
@@ -173,6 +177,31 @@ export function VoiceRecorderCard({
     }
   }, [audioBlob, audioUrl, duration, volumeSamples, isTranscribing, liveTranscript, transcribe, onTranscriptGenerated]);
 
+  // Automatic Transcription on Stop (Day 19 Part 3 Conversational Voice Mode)
+  useEffect(() => {
+    if (
+      autoTranscribeOnStop &&
+      recordingStatus === 'recorded' &&
+      audioBlob &&
+      !isTranscribing &&
+      !isTranscribeSuccess &&
+      !isTranscribeError
+    ) {
+      const timer = setTimeout(() => {
+        handleTranscribeAnswer();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [
+    autoTranscribeOnStop,
+    recordingStatus,
+    audioBlob,
+    isTranscribing,
+    isTranscribeSuccess,
+    isTranscribeError,
+    handleTranscribeAnswer
+  ]);
+
   // Notify parent when audio & transcription payload are updated
   useEffect(() => {
     if (recordingStatus === 'recorded' && audioUrl && audioBlob && onAudioReady) {
@@ -189,6 +218,7 @@ export function VoiceRecorderCard({
 
   // Status text for top badge
   const getStatusText = () => {
+    if (isAiSpeaking) return '🎙️ AI Speaking... (Wait to Answer)';
     if (isTranscribing) return 'Transcribing answer...';
     if (isEvaluatingAi) return 'Analyzing communication score & AI feedback...';
     if (isTranscribeSuccess) return 'Voice analysis & communication score ready';
@@ -202,6 +232,7 @@ export function VoiceRecorderCard({
   };
 
   const getStatusClass = () => {
+    if (isAiSpeaking) return 'status-transcribing';
     if (isTranscribing || isEvaluatingAi) return 'status-transcribing';
     if (isTranscribeSuccess) return 'status-success';
     if (isTranscribeError) return 'status-error';
@@ -233,7 +264,7 @@ export function VoiceRecorderCard({
         >
           {isRecording ? (
             <span className="recording-indicator-dot pulse" aria-hidden="true" />
-          ) : isTranscribing || isEvaluatingAi ? (
+          ) : isTranscribing || isEvaluatingAi || isAiSpeaking ? (
             <span className="transcribing-spinner" aria-hidden="true" />
           ) : (
             <span className="recording-indicator-dot" aria-hidden="true" style={{ opacity: recordingStatus === 'recorded' ? 1 : 0.4 }} />
@@ -250,10 +281,14 @@ export function VoiceRecorderCard({
       </div>
 
       {/* Error alert box */}
-      {(recorderError || transcriptionError) && (
+      {(recorderError || transcriptionError || recordingStatus === 'permission_denied') && (
         <div className="voice-recorder-alert" role="alert">
           <span aria-hidden="true">⚠️</span>
-          <span>{transcriptionError || recorderError}</span>
+          <span>
+            {recordingStatus === 'permission_denied'
+              ? 'Microphone access is required to record your answer. Please allow microphone access in your browser and click Start Recording again.'
+              : transcriptionError || recorderError}
+          </span>
         </div>
       )}
 
@@ -262,13 +297,14 @@ export function VoiceRecorderCard({
         {recordingStatus !== 'recording' && recordingStatus !== 'recorded' && (
           <button
             type="button"
-            className="btn-voice-action btn-voice-start"
+            className={`btn-voice-action btn-voice-start ${isAiSpeaking ? 'disabled-ai-speaking' : ''}`}
             onClick={handleStartRecording}
-            disabled={disabled || !isAudioSupported}
-            aria-label="Start recording audio response"
+            disabled={disabled || !isAudioSupported || isAiSpeaking}
+            aria-label={isAiSpeaking ? 'Recording locked while AI is speaking question' : 'Start recording audio response'}
+            title={isAiSpeaking ? 'Please wait for AI question playback to finish' : 'Click to start recording your answer'}
           >
-            <span aria-hidden="true">🎙️</span>
-            <span>Start Recording</span>
+            <span aria-hidden="true">{isAiSpeaking ? '🔊' : '🎙️'}</span>
+            <span>{isAiSpeaking ? 'AI Speaking... (Wait)' : 'Start Answer'}</span>
           </button>
         )}
 

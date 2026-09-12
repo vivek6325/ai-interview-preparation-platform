@@ -1,11 +1,11 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import useSpeechSynthesis from '../../../hooks/useSpeechSynthesis';
 import VoiceControls from './VoiceControls';
 import VoiceRecorderCard from './VoiceRecorderCard';
 
 /**
- * QuestionBoard Component (Day 19 Part 2 — Voice Controls & Automatic Read-Aloud)
- * Renders the question card, VoiceControls toolbar, audio recorder, response inputs, and navigation panel.
+ * QuestionBoard Component (Day 19 Part 3 — Conversational Voice Interview Flow)
+ * Renders the active question, VoiceControls toolbar, mode toggle, VoiceRecorderCard, response textarea, and action navigation.
  */
 export function QuestionBoard({
   currentQuestionIdx,
@@ -23,6 +23,14 @@ export function QuestionBoard({
   handleExitClick,
   saveStatus
 }) {
+  const [interviewMode, setInterviewMode] = useState(() => {
+    try {
+      return localStorage.getItem('ai_interview_mode') || 'voice';
+    } catch {
+      return 'voice';
+    }
+  });
+
   const {
     speechState,
     isSpeaking,
@@ -44,6 +52,19 @@ export function QuestionBoard({
     };
   }, [currentQuestionIdx, questionText, isTtsSupported, speakQuestion, stopSpeech]);
 
+  // Toggle Mode Handler ('voice' <-> 'text')
+  const handleToggleInterviewMode = () => {
+    setInterviewMode((prev) => {
+      const next = prev === 'voice' ? 'text' : 'voice';
+      try {
+        localStorage.setItem('ai_interview_mode', next);
+      } catch (err) {
+        console.warn('Failed to save interview mode to localStorage:', err);
+      }
+      return next;
+    });
+  };
+
   // Handle Play / Replay Button Click
   const handlePlayReplayClick = () => {
     if (questionText && isTtsSupported) {
@@ -64,7 +85,7 @@ export function QuestionBoard({
         </span>
 
         <div className="board-header-right d-flex align-items-center gap-2">
-          {/* Day 19 Part 2: Integrated Voice Controls Toolbar */}
+          {/* Day 19 Part 3: Integrated Voice Controls & Mode Toggle */}
           <VoiceControls
             speechState={speechState}
             isSpeaking={isSpeaking}
@@ -74,6 +95,8 @@ export function QuestionBoard({
             voices={voices}
             onPlayReplay={handlePlayReplayClick}
             onStop={handleStopClick}
+            interviewMode={interviewMode}
+            onToggleInterviewMode={handleToggleInterviewMode}
           />
 
           <span 
@@ -99,7 +122,9 @@ export function QuestionBoard({
 
       <div className="response-container">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <label htmlFor="answer-input" style={{ margin: 0 }}>Your Answer Response</label>
+          <label htmlFor="answer-input" style={{ margin: 0 }}>
+            {interviewMode === 'voice' ? 'Your Voice Response & Transcript' : 'Your Text Answer Response'}
+          </label>
           {saveStatus === 'saving' && (
             <span className="save-status-indicator" style={{ color: '#60a5fa', fontSize: '0.85rem', fontWeight: '600' }}>
               Saving...
@@ -117,10 +142,13 @@ export function QuestionBoard({
           )}
         </div>
 
-        {/* Voice Recording Infrastructure */}
+        {/* Voice Recording Infrastructure with Conversational Flow Support */}
         <div style={{ marginBottom: '12px' }}>
           <VoiceRecorderCard
             key={`voice-recorder-${currentQuestionIdx}`}
+            questionText={questionText}
+            isAiSpeaking={isSpeaking}
+            autoTranscribeOnStop={interviewMode === 'voice'}
             onRecordingStateChange={onRecordingStateChange}
             onTranscriptGenerated={(transcribedText) => setAnswerText(transcribedText)}
           />
@@ -128,8 +156,12 @@ export function QuestionBoard({
 
         <textarea
           id="answer-input"
-          rows="6"
-          placeholder="Type or refine your response text here. Explain concepts clearly with structured points and examples..."
+          rows="5"
+          placeholder={
+            interviewMode === 'voice'
+              ? 'Voice transcript will automatically populate here after recording. You can also edit or refine text directly...'
+              : 'Type or refine your response text here. Explain concepts clearly with structured points and examples...'
+          }
           value={answerText}
           onChange={(e) => setAnswerText(e.target.value)}
         />
@@ -176,7 +208,7 @@ export function QuestionBoard({
               </button>
             ) : (
               <button className="btn-nav-page" onClick={handleNextQuestion} style={{ color: '#a5b4fc', borderColor: 'rgba(99, 102, 241, 0.4)' }}>
-                Next Question
+                Next Question →
               </button>
             )}
           </div>
