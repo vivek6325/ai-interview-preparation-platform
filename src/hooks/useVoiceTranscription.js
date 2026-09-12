@@ -38,17 +38,19 @@ export function useVoiceTranscription() {
   /**
    * Prepares recorder state when audio recording completes
    */
-  const prepareReadyToTranscribe = useCallback(({ blob, url, duration }) => {
+  const prepareReadyToTranscribe = useCallback(({ blob, url, duration, volumeSamples = [] }) => {
     setStatus('ready');
     setError(null);
-    const initialAnalytics = analyzeVoiceAnalytics('', duration || 0);
+    const initialAnalytics = analyzeVoiceAnalytics('', duration || 0, volumeSamples);
     setVoiceResponse({
       audio: { blob, url },
       transcript: '',
       duration: duration || 0,
       analysis: {
         speakingPace: initialAnalytics.pace,
-        fillerAnalysis: initialAnalytics.fillerAnalysis
+        fillerAnalysis: initialAnalytics.fillerAnalysis,
+        confidenceAnalysis: initialAnalytics.confidenceAnalysis,
+        toneAnalysis: initialAnalytics.toneAnalysis
       },
       voiceAnalytics: initialAnalytics
     });
@@ -57,10 +59,10 @@ export function useVoiceTranscription() {
   /**
    * Transcribes recorded audio blob or uses captured Web Speech API live transcript
    * 
-   * @param {Object} audioParams { blob, url, duration }
+   * @param {Object} audioParams { blob, url, duration, volumeSamples }
    * @param {string} [liveTranscript] Optional transcript captured live during recording
    */
-  const transcribe = useCallback(async ({ blob, url, duration }, liveTranscript = '') => {
+  const transcribe = useCallback(async ({ blob, url, duration, volumeSamples = [] }, liveTranscript = '') => {
     if (status === 'transcribing') return; // Prevent duplicate concurrent requests
 
     setStatus('transcribing');
@@ -83,7 +85,7 @@ export function useVoiceTranscription() {
         throw new Error('No speech detected in audio recording. Please speak clearly and try again.');
       }
 
-      const analytics = analyzeVoiceAnalytics(resultText, duration || 0);
+      const analytics = analyzeVoiceAnalytics(resultText, duration || 0, volumeSamples);
 
       setTranscript(resultText);
       setStatus('success');
@@ -93,7 +95,9 @@ export function useVoiceTranscription() {
         duration: duration || 0,
         analysis: {
           speakingPace: analytics.pace,
-          fillerAnalysis: analytics.fillerAnalysis
+          fillerAnalysis: analytics.fillerAnalysis,
+          confidenceAnalysis: analytics.confidenceAnalysis,
+          toneAnalysis: analytics.toneAnalysis
         },
         voiceAnalytics: analytics
       });

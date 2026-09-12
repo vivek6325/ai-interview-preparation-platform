@@ -24,11 +24,15 @@ export function useAudioRecorder() {
   const [audioBlob, setAudioBlob] = useState(null);
   const [audioUrl, setAudioUrl] = useState(null);
   const [error, setError] = useState(null);
+  const [volumeSamples, setVolumeSamples] = useState([]);
 
   const mediaRecorderRef = useRef(null);
   const streamRef = useRef(null);
   const chunksRef = useRef([]);
   const timerRef = useRef(null);
+  const audioCtxRef = useRef(null);
+  const analyserRef = useRef(null);
+  const volumeSamplesRef = useRef([]);
 
   const isRecording = status === 'recording';
   const isSupported = Boolean(
@@ -37,8 +41,18 @@ export function useAudioRecorder() {
     window?.MediaRecorder
   );
 
-  // Helper to release microphone stream tracks
+  // Helper to release microphone stream tracks and audio context
   const stopStreamTracks = useCallback(() => {
+    if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
+      try {
+        audioCtxRef.current.close();
+      } catch (e) {
+        console.warn('Failed to close AudioContext:', e);
+      }
+      audioCtxRef.current = null;
+    }
+    analyserRef.current = null;
+
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => {
         try {
@@ -92,10 +106,12 @@ export function useAudioRecorder() {
 
     setAudioUrl(null);
     setAudioBlob(null);
+    setVolumeSamples([]);
     setDuration(0);
     setError(null);
     setStatus('idle');
     chunksRef.current = [];
+    volumeSamplesRef.current = [];
   }, [audioUrl, cleanupAudioUrl, clearTimer, stopStreamTracks]);
 
   /**
@@ -116,6 +132,22 @@ export function useAudioRecorder() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
+      // AudioContext AnalyserNode for volume level sampling
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          const audioCtx = new AudioContextClass();
+          const analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 256;
+          const source = audioCtx.createMediaStreamSource(stream);
+          source.connect(analyser);
+          audioCtxRef.current = audioCtx;
+          analyserRef.current = analyser;
+        }
+      } catch (e) {
+        console.warn('Volume level sampling initialization skipped:', e);
+      }
+
       // Select supported mimeType
       let mimeType = '';
       if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
@@ -132,6 +164,7 @@ export function useAudioRecorder() {
       const mediaRecorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
+      volumeSamplesRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data && event.data.size > 0) {
@@ -148,6 +181,7 @@ export function useAudioRecorder() {
       };
 
       mediaRecorder.onstop = () => {
+        setVolumeSamples([...volumeSamplesRef.current]);
         stopStreamTracks();
         clearTimer();
 
@@ -175,9 +209,25 @@ export function useAudioRecorder() {
       setStatus('recording');
       setDuration(0);
 
-      // Start elapsed duration timer
+      // Start elapsed duration timer & volume sampling interval
       timerRef.current = setInterval(() => {
         setDuration((prev) => prev + 1);
+
+        // Sample volume frequency amplitude
+        if (analyserRef.current) {
+          try {
+            const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+            analyserRef.current.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) {
+              sum += dataArray[i];
+            }
+            const avgVol = Math.round(sum / dataArray.length);
+            volumeSamplesRef.current.push(avgVol);
+          } catch (e) {
+            // ignore frame sampling errors
+          }
+        }
       }, 1000);
 
     } catch (err) {
@@ -236,6 +286,7 @@ export function useAudioRecorder() {
     formattedTime: formatAudioTimer(duration),
     audioBlob,
     audioUrl,
+    volumeSamples,
     error,
     startRecording,
     stopRecording,

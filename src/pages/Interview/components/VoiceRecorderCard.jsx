@@ -32,6 +32,7 @@ export function VoiceRecorderCard({
     formattedTime,
     audioBlob,
     audioUrl,
+    volumeSamples,
     error: recorderError,
     startRecording: startAudioRecord,
     stopRecording: stopAudioRecord,
@@ -57,8 +58,8 @@ export function VoiceRecorderCard({
     resetTranscription
   } = useVoiceTranscription();
 
-  // Calculate Voice Analytics (Speaking Pace + Filler Word Detection - Day 18 Parts 3 & 4)
-  const voiceAnalytics = useSpeechAnalytics(transcript, duration);
+  // Calculate Voice Analytics (Speaking Pace + Filler Words + Voice Confidence + Tone & Sentiment - Day 18 Parts 3, 4 & 5)
+  const voiceAnalytics = useSpeechAnalytics(transcript, duration, volumeSamples);
 
   // Notify parent of recording state changes
   useEffect(() => {
@@ -70,9 +71,9 @@ export function VoiceRecorderCard({
   // When audio recording finishes, prepare transcription state
   useEffect(() => {
     if (recordingStatus === 'recorded' && audioUrl && audioBlob) {
-      prepareReadyToTranscribe({ blob: audioBlob, url: audioUrl, duration });
+      prepareReadyToTranscribe({ blob: audioBlob, url: audioUrl, duration, volumeSamples });
     }
-  }, [recordingStatus, audioUrl, audioBlob, duration, prepareReadyToTranscribe]);
+  }, [recordingStatus, audioUrl, audioBlob, duration, volumeSamples, prepareReadyToTranscribe]);
 
   // Handle Start Recording (starts audio recorder + live speech listener)
   const handleStartRecording = useCallback(() => {
@@ -101,7 +102,7 @@ export function VoiceRecorderCard({
 
     try {
       const generatedText = await transcribe(
-        { blob: audioBlob, url: audioUrl, duration },
+        { blob: audioBlob, url: audioUrl, duration, volumeSamples },
         liveTranscript
       );
 
@@ -111,7 +112,7 @@ export function VoiceRecorderCard({
     } catch (err) {
       console.warn('Transcription request error handled in UI:', err);
     }
-  }, [audioBlob, audioUrl, duration, isTranscribing, liveTranscript, transcribe, onTranscriptGenerated]);
+  }, [audioBlob, audioUrl, duration, volumeSamples, isTranscribing, liveTranscript, transcribe, onTranscriptGenerated]);
 
   // Notify parent when audio & transcription payload are updated
   useEffect(() => {
@@ -129,8 +130,8 @@ export function VoiceRecorderCard({
 
   // Status text for top badge
   const getStatusText = () => {
-    if (isTranscribing) return 'Transcribing answer...';
-    if (isTranscribeSuccess) return 'Transcript ready & voice analyzed';
+    if (isTranscribing) return 'Transcribing answer & analyzing tone...';
+    if (isTranscribeSuccess) return 'Transcript ready & full voice analyzed';
     if (isTranscribeError) return 'Transcription failed';
     if (recordingStatus === 'recording') return 'Recording...';
     if (recordingStatus === 'recorded') return 'Recording complete — Ready to transcribe';
@@ -392,10 +393,81 @@ export function VoiceRecorderCard({
           </div>
         </div>
       )}
+
+      {/* Voice Delivery Confidence Card (Day 18 Part 5) */}
+      {transcript && isTranscribeSuccess && voiceAnalytics.confidenceAnalysis && (
+        <div className="confidence-analytics-section mt-3">
+          <div className="confidence-analytics-header d-flex justify-content-between align-items-center mb-2">
+            <span className="confidence-analytics-title">🎙️ Voice Delivery Confidence</span>
+            <span className={`confidence-badge ${voiceAnalytics.confidenceAnalysis.badgeClass}`}>
+              {voiceAnalytics.confidenceAnalysis.level}
+            </span>
+          </div>
+
+          <div className="confidence-metrics-grid">
+            <div className="confidence-metric-card score-card">
+              <span className="metric-label">🏆 Delivery Score</span>
+              <span className="metric-value">{voiceAnalytics.confidenceAnalysis.score} / 100</span>
+            </div>
+
+            <div className="confidence-metric-card">
+              <span className="metric-label">⚡ Vocal Energy</span>
+              <span className="metric-value">{voiceAnalytics.confidenceAnalysis.indicators.vocalEnergy}</span>
+            </div>
+
+            <div className="confidence-metric-card">
+              <span className="metric-label">🔊 Volume Consistency</span>
+              <span className="metric-value">{voiceAnalytics.confidenceAnalysis.indicators.volumeConsistency}</span>
+            </div>
+
+            <div className="confidence-metric-card">
+              <span className="metric-label">🎯 Speech Stability</span>
+              <span className="metric-value">{voiceAnalytics.confidenceAnalysis.indicators.speechStability}</span>
+            </div>
+          </div>
+
+          <div className="confidence-feedback-box mt-2">
+            <span className="feedback-icon" aria-hidden="true">💡</span>
+            <p className="feedback-text">{voiceAnalytics.confidenceAnalysis.feedback}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Tone & Sentiment Analytics Card (Day 18 Part 5) */}
+      {transcript && isTranscribeSuccess && voiceAnalytics.toneAnalysis && (
+        <div className="tone-analytics-section mt-3">
+          <div className="tone-analytics-header d-flex justify-content-between align-items-center mb-2">
+            <span className="tone-analytics-title">😊 Communication Tone & Sentiment</span>
+            <span className={`tone-badge ${voiceAnalytics.toneAnalysis.badgeClass}`}>
+              {voiceAnalytics.toneAnalysis.tone} Tone
+            </span>
+          </div>
+
+          <div className="tone-metrics-grid">
+            <div className="tone-metric-card">
+              <span className="metric-label">🎭 Tone</span>
+              <span className="metric-value">{voiceAnalytics.toneAnalysis.tone}</span>
+            </div>
+
+            <div className="tone-metric-card">
+              <span className="metric-label">💬 Sentiment</span>
+              <span className="metric-value">{voiceAnalytics.toneAnalysis.sentiment}</span>
+            </div>
+
+            <div className="tone-metric-card">
+              <span className="metric-label">❓ Uncertainty Phrases</span>
+              <span className="metric-value">{voiceAnalytics.toneAnalysis.uncertaintyIndicators}</span>
+            </div>
+          </div>
+
+          <div className="tone-feedback-box mt-2">
+            <span className="feedback-icon" aria-hidden="true">💡</span>
+            <p className="feedback-text">{voiceAnalytics.toneAnalysis.feedback}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 export default VoiceRecorderCard;
-
-

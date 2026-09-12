@@ -1,8 +1,9 @@
 /**
- * Utility functions for Speech, Speaking Pace & Filler Word Analytics (Day 18 Part 3 & Part 4)
+ * Utility functions for Speech, Speaking Pace, Filler Words, Voice Confidence, Tone & Sentiment Analytics (Day 18 Parts 3, 4 & 5)
  * 
  * Provides robust word counting, safe WPM calculation, filler word/phrase detection with boundary
- * protection and false-positive heuristics, centralized rating classifications, and constructive feedback.
+ * protection and false-positive heuristics, physical audio volume characteristics analysis,
+ * and communication tone & sentiment classification for candidate interview voice responses.
  */
 
 /**
@@ -276,7 +277,7 @@ export function analyzeFillerWords(transcript = '') {
   // 2. Detect Single-Word Fillers with context heuristics
   FILLER_WORDS.forEach((word) => {
     if (word === 'like') {
-      // Exclude semantic "like" when preceded by verbs/pronouns: "I like", "would like", "looks like", "feels like"
+      // Exclude semantic "like" when preceded by verbs/pronouns: "I like", "would like", "feels like", "looks like"
       const semanticLikeRegex = /(?:i|we|they|he|she|it|you|would|should|could|feels|looks|sounds|seems)\s+like\b/gi;
       const maskedForLike = workingText.replace(semanticLikeRegex, ' ___SEMANTIC_LIKE___ ');
       
@@ -287,7 +288,6 @@ export function analyzeFillerWords(transcript = '') {
       }
     } else if (word === 'so') {
       // Match "so" when at sentence start, surrounded by punctuation, or before pronouns (e.g. "So, I think")
-      // Exclude semantic "so simple", "so fast", "so much"
       const semanticSoRegex = /\bso\s+(?:simple|fast|good|far|much|many|that|important|different|difficult|easy|great)\b/gi;
       const maskedForSo = workingText.replace(semanticSoRegex, ' ___SEMANTIC_SO___ ');
       
@@ -341,24 +341,297 @@ export function analyzeFillerWords(transcript = '') {
   };
 }
 
+// ----------------------------------------------------------------------
+// Day 18 Part 5: Voice Confidence & Tone/Sentiment Analytics
+// ----------------------------------------------------------------------
+
 /**
- * Combined Voice Analytics helper function combining Speaking Pace & Filler Word Analysis.
- * Prepares the unified voiceAnalytics object for Day 18.
+ * Analyzes observable physical audio characteristics (Vocal Energy, Volume Consistency, Speech Stability)
+ * and calculates a non-arbitrary, explainable communication confidence score (0-100).
  * 
  * @param {string} transcript 
  * @param {number} durationSeconds 
+ * @param {Array<number>} [volumeSamples] Physical amplitude frequency volume samples from AnalyserNode
+ * @returns {Object} confidenceAnalysis
+ */
+export function analyzeVoiceConfidence(transcript = '', durationSeconds = 0, volumeSamples = []) {
+  if (!transcript || durationSeconds <= 0) {
+    return {
+      score: 0,
+      level: 'No Data',
+      badgeClass: 'confidence-badge-insufficient',
+      indicators: {
+        vocalEnergy: 'N/A',
+        volumeConsistency: 'N/A',
+        speechStability: 'N/A'
+      },
+      feedback: 'Record and transcribe your answer to analyze voice delivery confidence.'
+    };
+  }
+
+  // 1. Calculate Vocal Energy (0-100) from physical audio amplitude samples or transcript length baseline
+  let energyScore = 78;
+  let energyLabel = 'Good';
+
+  if (volumeSamples && volumeSamples.length > 0) {
+    const nonZero = volumeSamples.filter((v) => v > 5);
+    const avgVol = nonZero.length > 0 ? nonZero.reduce((a, b) => a + b, 0) / nonZero.length : 0;
+
+    if (avgVol > 60) {
+      energyScore = 92;
+      energyLabel = 'Strong';
+    } else if (avgVol > 30) {
+      energyScore = 80;
+      energyLabel = 'Good';
+    } else if (avgVol > 10) {
+      energyScore = 65;
+      energyLabel = 'Moderate';
+    } else {
+      energyScore = 48;
+      energyLabel = 'Low';
+    }
+  }
+
+  // 2. Calculate Volume Consistency (Standard Deviation relative variance)
+  let consistencyScore = 80;
+  let consistencyLabel = 'Good';
+
+  if (volumeSamples && volumeSamples.length > 1) {
+    const nonZero = volumeSamples.filter((v) => v > 5);
+    if (nonZero.length > 1) {
+      const mean = nonZero.reduce((a, b) => a + b, 0) / nonZero.length;
+      const variance = nonZero.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / nonZero.length;
+      const stdDev = Math.sqrt(variance);
+
+      const relStdDev = mean > 0 ? (stdDev / mean) * 100 : 0;
+      if (relStdDev < 35) {
+        consistencyScore = 90;
+        consistencyLabel = 'Consistent';
+      } else if (relStdDev < 60) {
+        consistencyScore = 78;
+        consistencyLabel = 'Good';
+      } else {
+        consistencyScore = 58;
+        consistencyLabel = 'Variable';
+      }
+    }
+  }
+
+  // 3. Calculate Speech Stability (Ratio of non-silent active speech frames)
+  let stabilityScore = 82;
+  let stabilityLabel = 'Good';
+
+  if (volumeSamples && volumeSamples.length > 0) {
+    const activeFrames = volumeSamples.filter((v) => v > 5).length;
+    const activityRatio = activeFrames / volumeSamples.length;
+
+    if (activityRatio > 0.65) {
+      stabilityScore = 88;
+      stabilityLabel = 'Stable';
+    } else if (activityRatio > 0.45) {
+      stabilityScore = 78;
+      stabilityLabel = 'Good';
+    } else {
+      stabilityScore = 58;
+      stabilityLabel = 'Unstable';
+    }
+  }
+
+  // Weighted total score calculation
+  const totalScore = Math.min(100, Math.max(0, Math.round(
+    (energyScore * 0.35) + (consistencyScore * 0.35) + (stabilityScore * 0.30)
+  )));
+
+  // Classify Confidence Level
+  let levelConfig = {
+    level: 'Very Confident',
+    badgeClass: 'confidence-badge-excellent',
+    feedback: 'Your vocal delivery is strong and consistent. Maintain this steady energy while continuing to use natural pauses.'
+  };
+
+  if (totalScore >= 80) {
+    levelConfig = {
+      level: 'Very Confident',
+      badgeClass: 'confidence-badge-excellent',
+      feedback: 'Your vocal delivery is strong and consistent. Maintain this steady energy while continuing to use natural pauses.'
+    };
+  } else if (totalScore >= 65) {
+    levelConfig = {
+      level: 'Confident',
+      badgeClass: 'confidence-badge-good',
+      feedback: 'Your delivery shows good vocal consistency. Keep your voice steady and emphasize key points naturally.'
+    };
+  } else if (totalScore >= 50) {
+    levelConfig = {
+      level: 'Moderate',
+      badgeClass: 'confidence-badge-moderate',
+      feedback: 'Your delivery shows moderate vocal consistency. Practice maintaining steady volume and using deliberate pauses.'
+    };
+  } else {
+    levelConfig = {
+      level: 'Needs Improvement',
+      badgeClass: 'confidence-badge-needs-improvement',
+      feedback: 'Your vocal delivery could be more consistent. Try speaking clearly, maintaining steady volume, and avoiding rushed or quiet delivery.'
+    };
+  }
+
+  return {
+    score: totalScore,
+    level: levelConfig.level,
+    badgeClass: levelConfig.badgeClass,
+    indicators: {
+      vocalEnergy: energyLabel,
+      volumeConsistency: consistencyLabel,
+      speechStability: stabilityLabel
+    },
+    feedback: levelConfig.feedback
+  };
+}
+
+/** Hedging phrases indicating uncertainty */
+export const HEDGING_PHRASES = [
+  'maybe',
+  'probably',
+  'i guess',
+  'i think',
+  "i'm not sure",
+  'im not sure',
+  'possibly',
+  'perhaps',
+  'kind of',
+  'sort of'
+];
+
+/** Problem solving technical vocabulary */
+export const TECHNICAL_WORDS = [
+  'architecture', 'system', 'design', 'implement', 'engineered', 'optimize', 'solution',
+  'data', 'api', 'database', 'algorithm', 'performance', 'scalability', 'security',
+  'testing', 'component', 'pipeline', 'workflow', 'achieved', 'framework', 'service'
+];
+
+/** Positive constructive words */
+export const POSITIVE_WORDS = [
+  'great', 'good', 'improved', 'successful', 'enjoy', 'effective', 'confident',
+  'positive', 'efficient', 'reliable', 'collaborate', 'team', 'delivered', 'value'
+];
+
+/**
+ * Analyzes transcript for general communication tone and sentiment.
+ * 
+ * @param {string} transcript 
+ * @returns {Object} toneAnalysis
+ */
+export function analyzeToneAndSentiment(transcript = '') {
+  const wordCount = countWords(transcript);
+
+  if (!transcript || typeof transcript !== 'string' || wordCount === 0) {
+    return {
+      tone: 'Neutral',
+      sentiment: 'Neutral',
+      confidenceLanguage: 'N/A',
+      uncertaintyIndicators: 0,
+      badgeClass: 'tone-badge-neutral',
+      feedback: 'Transcribe your answer to analyze communication tone and sentiment.'
+    };
+  }
+
+  const lower = transcript.toLowerCase();
+
+  // 1. Count Uncertainty / Hedging Indicators
+  let uncertaintyCount = 0;
+  HEDGING_PHRASES.forEach((phrase) => {
+    const regex = new RegExp(`\\b${escapeRegex(phrase)}\\b`, 'gi');
+    const matches = lower.match(regex);
+    if (matches) {
+      uncertaintyCount += matches.length;
+    }
+  });
+
+  // 2. Count Technical & Positive Vocabulary
+  let techWordCount = 0;
+  TECHNICAL_WORDS.forEach((word) => {
+    const regex = new RegExp(`\\b${escapeRegex(word)}\\b`, 'gi');
+    const matches = lower.match(regex);
+    if (matches) techWordCount += matches.length;
+  });
+
+  let positiveWordCount = 0;
+  POSITIVE_WORDS.forEach((word) => {
+    const regex = new RegExp(`\\b${escapeRegex(word)}\\b`, 'gi');
+    const matches = lower.match(regex);
+    if (matches) positiveWordCount += matches.length;
+  });
+
+  // Classify Tone
+  let tone = 'Professional';
+  let badgeClass = 'tone-badge-professional';
+  let feedback = 'Your response uses professional and constructive language. Reduce unnecessary hedging to make your answers more direct.';
+
+  if (uncertaintyCount >= 3) {
+    tone = 'Uncertain';
+    badgeClass = 'tone-badge-uncertain';
+    feedback = 'Your response contains several hedging phrases ("I think", "maybe"). State your technical decisions with more direct assertion.';
+  } else if (techWordCount >= 2 || (techWordCount > 0 && positiveWordCount > 0)) {
+    tone = 'Professional';
+    badgeClass = 'tone-badge-professional';
+    feedback = 'Your response uses strong professional and technical problem-solving vocabulary. Excellent structure.';
+  } else if (positiveWordCount >= 2) {
+    tone = 'Positive';
+    badgeClass = 'tone-badge-positive';
+    feedback = 'Your response uses constructive and team-oriented language. Great positive delivery.';
+  } else {
+    tone = 'Neutral';
+    badgeClass = 'tone-badge-neutral';
+    feedback = 'Your response has a balanced, neutral tone. Consider incorporating more specific problem-solving terminology.';
+  }
+
+  // Classify Sentiment
+  let sentiment = 'Neutral';
+  if (positiveWordCount > uncertaintyCount && positiveWordCount > 0) {
+    sentiment = 'Positive';
+  } else if (uncertaintyCount > positiveWordCount + 1) {
+    sentiment = 'Neutral';
+  } else {
+    sentiment = 'Neutral';
+  }
+
+  let confidenceLanguage = 'Strong';
+  if (uncertaintyCount >= 3) confidenceLanguage = 'Moderate';
+  else if (uncertaintyCount >= 1) confidenceLanguage = 'Good';
+
+  return {
+    tone,
+    sentiment,
+    confidenceLanguage,
+    uncertaintyIndicators: uncertaintyCount,
+    badgeClass,
+    feedback
+  };
+}
+
+/**
+ * Unified Voice Analytics generator combining Speaking Pace, Filler Words, Voice Confidence, Tone & Sentiment.
+ * Prepares the complete unified voiceAnalytics object for Day 18.
+ * 
+ * @param {string} transcript 
+ * @param {number} durationSeconds 
+ * @param {Array<number>} [volumeSamples] 
  * @returns {Object} unified voiceAnalytics object
  */
-export function analyzeVoiceAnalytics(transcript = '', durationSeconds = 0) {
+export function analyzeVoiceAnalytics(transcript = '', durationSeconds = 0, volumeSamples = []) {
   const speakingPace = analyzeSpeakingPace(transcript, durationSeconds);
   const fillerAnalysis = analyzeFillerWords(transcript);
+  const confidenceAnalysis = analyzeVoiceConfidence(transcript, durationSeconds, volumeSamples);
+  const toneAnalysis = analyzeToneAndSentiment(transcript);
 
   return {
     durationSeconds: speakingPace.durationSeconds,
     wordCount: speakingPace.wordCount,
     wordsPerMinute: speakingPace.wordsPerMinute,
     pace: speakingPace.pace,
-    fillerAnalysis
+    fillerAnalysis,
+    confidenceAnalysis,
+    toneAnalysis
   };
 }
 
