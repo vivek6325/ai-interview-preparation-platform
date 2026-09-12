@@ -22,12 +22,19 @@
   background: rgba(16, 185, 129, 0.03);
 }
 
-/* Day 19 Part 1: TTS Play & Replay Action Buttons */
+/* Day 19 Part 1 & 2: TTS Play, Replay & Voice Controls */
+.voice-controls-toolbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+}
+
 .btn-tts-action {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.3rem 0.75rem;
+  padding: 0.35rem 0.75rem;
   border-radius: 8px;
   font-size: 0.8rem;
   font-weight: 600;
@@ -51,6 +58,19 @@
   animation: pulse-tts-speaking 1.8s infinite;
 }
 
+.btn-tts-action.btn-tts-stop {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+}
+
+.btn-tts-action.btn-tts-stop:hover {
+  background: rgba(239, 68, 68, 0.28);
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #ffffff;
+}
+
 @keyframes pulse-tts-speaking {
   0% {
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
@@ -67,6 +87,162 @@
   background: rgba(255, 255, 255, 0.04);
   border-color: rgba(255, 255, 255, 0.15);
   color: var(--text-secondary);
+}
+
+/* Auto-Speak Toggle Button */
+.btn-autospeak-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-autospeak-toggle.autospeak-on {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #6ee7b7;
+}
+
+.btn-autospeak-toggle.autospeak-on:hover {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+.btn-autospeak-toggle.autospeak-off {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-secondary);
+}
+
+.btn-autospeak-toggle.autospeak-off:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-primary);
+}
+
+/* Voice Settings Dropdown / Popover */
+.voice-settings-dropdown-wrapper {
+  position: relative;
+}
+
+.btn-voice-settings-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-voice-settings-toggle:hover,
+.btn-voice-settings-toggle.active {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: var(--text-primary);
+}
+
+.caret-icon {
+  font-size: 0.65rem;
+  opacity: 0.7;
+}
+
+.voice-settings-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 1200;
+  width: 280px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.popover-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.popover-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #c7d2fe;
+}
+
+.btn-close-popover {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0.2rem;
+  line-height: 1;
+}
+
+.btn-close-popover:hover {
+  color: white;
+}
+
+.popover-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.setting-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.setting-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.voice-select-input,
+.speed-select-input {
+  width: 100%;
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 0.45rem 0.65rem;
+  color: #ffffff;
+  font-size: 0.825rem;
+  outline: none;
+  transition: var(--transition-smooth);
+}
+
+.voice-select-input:focus,
+.speed-select-input:focus {
+  border-color: #818cf8;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+}
+
+.popover-footer-note {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 0.25rem;
+  text-align: center;
 }
 
 .tts-unsupported-badge {

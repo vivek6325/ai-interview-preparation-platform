@@ -1,11 +1,11 @@
-
 import { useEffect } from 'react';
 import useSpeechSynthesis from '../../../hooks/useSpeechSynthesis';
+import VoiceControls from './VoiceControls';
 import VoiceRecorderCard from './VoiceRecorderCard';
 
 /**
- * QuestionBoard Component (Day 19 Part 1 — TTS AI Question Read-Aloud & Replay Controls)
- * Renders the question card, TTS controls, audio recorder, text response fields, and navigation actions.
+ * QuestionBoard Component (Day 19 Part 2 — Voice Controls & Automatic Read-Aloud)
+ * Renders the question card, VoiceControls toolbar, audio recorder, response inputs, and navigation panel.
  */
 export function QuestionBoard({
   currentQuestionIdx,
@@ -27,6 +27,9 @@ export function QuestionBoard({
     speechState,
     isSpeaking,
     isSupported: isTtsSupported,
+    settings,
+    updateSettings,
+    voices,
     speakQuestion,
     stop: stopSpeech
   } = useSpeechSynthesis();
@@ -41,11 +44,16 @@ export function QuestionBoard({
     };
   }, [currentQuestionIdx, questionText, isTtsSupported, speakQuestion, stopSpeech]);
 
-  // Handle Play/Replay Button Click
+  // Handle Play / Replay Button Click
   const handlePlayReplayClick = () => {
     if (questionText && isTtsSupported) {
       speakQuestion(questionText, currentQuestionIdx, true); // force replay
     }
+  };
+
+  // Handle Stop Button Click
+  const handleStopClick = () => {
+    stopSpeech();
   };
 
   return (
@@ -56,25 +64,17 @@ export function QuestionBoard({
         </span>
 
         <div className="board-header-right d-flex align-items-center gap-2">
-          {/* Day 19 Part 1: TTS Play / Speaking / Replay Button */}
-          {isTtsSupported ? (
-            <button
-              type="button"
-              className={`btn-tts-action ${isSpeaking ? 'btn-tts-speaking' : speechState === 'completed' ? 'btn-tts-completed' : 'btn-tts-idle'}`}
-              onClick={handlePlayReplayClick}
-              aria-label={isSpeaking ? 'Speaking question aloud' : 'Play question aloud'}
-              title={isSpeaking ? 'Click to replay question' : 'Read question aloud'}
-            >
-              <span aria-hidden="true">{isSpeaking ? '🔊' : '🔉'}</span>
-              <span>
-                {isSpeaking ? 'Speaking...' : speechState === 'completed' ? 'Replay Question' : 'Play Question'}
-              </span>
-            </button>
-          ) : (
-            <span className="tts-unsupported-badge" title="Text-to-speech is not supported in this browser.">
-              🔇 Speech Unsupported
-            </span>
-          )}
+          {/* Day 19 Part 2: Integrated Voice Controls Toolbar */}
+          <VoiceControls
+            speechState={speechState}
+            isSpeaking={isSpeaking}
+            isTtsSupported={isTtsSupported}
+            settings={settings}
+            updateSettings={updateSettings}
+            voices={voices}
+            onPlayReplay={handlePlayReplayClick}
+            onStop={handleStopClick}
+          />
 
           <span 
             className="category-pill"
@@ -187,4 +187,3 @@ export function QuestionBoard({
 }
 
 export default QuestionBoard;
-

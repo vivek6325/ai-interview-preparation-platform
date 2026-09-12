@@ -7,21 +7,53 @@ const DEFAULT_SETTINGS = {
   rate: 1.0,
   pitch: 1.0,
   voice: '',
-  autoRead: true,
-  autoStartRecording: false,
-  maxDuration: 120
+  autoRead: true
 };
+
+const VALID_RATES = [0.75, 1.0, 1.25, 1.5];
+
+/**
+ * Safely parse and validate stored settings from localStorage.
+ */
+function loadPersistedSettings() {
+  if (typeof window === 'undefined') return DEFAULT_SETTINGS;
+  try {
+    const saved = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (!saved) return DEFAULT_SETTINGS;
+    const parsed = JSON.parse(saved);
+    
+    const validRate = (typeof parsed.rate === 'number' && (VALID_RATES.includes(parsed.rate) || (parsed.rate >= 0.5 && parsed.rate <= 2.0)))
+      ? parsed.rate 
+      : DEFAULT_SETTINGS.rate;
+
+    const validVoice = typeof parsed.voice === 'string' ? parsed.voice : DEFAULT_SETTINGS.voice;
+    const validAutoRead = typeof parsed.autoRead === 'boolean' ? parsed.autoRead : DEFAULT_SETTINGS.autoRead;
+
+    return {
+      ...DEFAULT_SETTINGS,
+      rate: validRate,
+      voice: validVoice,
+      autoRead: validAutoRead
+    };
+  } catch (err) {
+    console.warn('Failed to parse voice settings from localStorage, resetting to defaults:', err);
+    return DEFAULT_SETTINGS;
+  }
+}
 
 /**
  * Custom React Hook for Text-To-Speech (TTS) & AI Question Read-Aloud.
  * 
  * Provides:
- * - speechState: 'idle' | 'speaking' | 'completed' | 'unavailable' | 'error'
+ * - speechState: 'idle' | 'speaking' | 'stopped' | 'completed' | 'unavailable' | 'error'
  * - isSpeaking: boolean
  * - isPaused: boolean
  * - isSupported: boolean
+ * - voices: Array<SpeechSynthesisVoice>
+ * - settings: { rate, pitch, voice, autoRead }
+ * - updateSettings(newSettings): Function
  * - speak(text, options): Function
- * - speakQuestion(text, questionKey): Function (with re-render deduplication)
+ * - speakQuestion(text, questionKey, force): Function (with re-render deduplication & autoRead check)
  * - stop(): Function
  * - pause(): Function
  * - resume(): Function
@@ -29,20 +61,13 @@ const DEFAULT_SETTINGS = {
 export function useSpeechSynthesis() {
   const supported = isSynthesisSupported();
 
-  // speechState: 'idle' | 'speaking' | 'completed' | 'unavailable' | 'error'
+  // speechState: 'idle' | 'speaking' | 'stopped' | 'completed' | 'unavailable' | 'error'
   const [speechState, setSpeechState] = useState(() => (supported ? 'idle' : 'unavailable'));
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [error, setError] = useState(null);
   const [voices, setVoices] = useState([]);
-  const [settings, setSettings] = useState(() => {
-    try {
-      const saved = localStorage.getItem(SETTINGS_STORAGE_KEY);
-      return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : DEFAULT_SETTINGS;
-    } catch {
-      return DEFAULT_SETTINGS;
-    }
-  });
+  const [settings, setSettings] = useState(loadPersistedSettings);
 
   const settingsRef = useRef(settings);
   const lastSpokenKeyRef = useRef(null);
@@ -51,7 +76,7 @@ export function useSpeechSynthesis() {
     settingsRef.current = settings;
   }, [settings]);
 
-  // Load available voices once voices ready
+  // Load available voices asynchronously
   useEffect(() => {
     if (!supported) return;
 
@@ -74,6 +99,9 @@ export function useSpeechSynthesis() {
     };
   }, [supported]);
 
+  /**
+   * Persist setting updates cleanly
+   */
   const updateSettings = useCallback((newSettings) => {
     setSettings((prev) => {
       const updated = { ...prev, ...newSettings };
@@ -93,7 +121,7 @@ export function useSpeechSynthesis() {
     stopSpeaking();
     setIsSpeaking(false);
     setIsPaused(false);
-    setSpeechState((prev) => (prev === 'unavailable' ? 'unavailable' : 'idle'));
+    setSpeechState((prev) => (prev === 'unavailable' ? 'unavailable' : 'stopped'));
   }, []);
 
   /**
@@ -148,13 +176,21 @@ export function useSpeechSynthesis() {
   /**
    * Deduplicated Question Read-Aloud helper
    * Prevents React re-renders from re-reading the exact same question key automatically.
+   * Respects user's autoRead setting unless force === true (manual replay).
    * 
    * @param {string} text Question text to speak
    * @param {string|number} questionKey Unique question identifier (e.g. index or ID)
-   * @param {boolean} [force=false] Force replay even if questionKey matches last spoken key
+   * @param {boolean} [force=false] Force replay even if autoRead is false or key matches
    */
   const speakQuestion = useCallback((text, questionKey, force = false) => {
     if (!supported || !text) return;
+
+    const activeSettings = settingsRef.current;
+
+    // Check if autoRead is disabled and user did NOT manually press play/replay
+    if (!force && !activeSettings.autoRead) {
+      return;
+    }
 
     const keyStr = String(questionKey ?? text);
 
@@ -163,8 +199,8 @@ export function useSpeechSynthesis() {
       return;
     }
 
-    if (!force && lastSpokenKeyRef.current === keyStr && speechState === 'completed') {
-      // Already completed reading this question automatically
+    if (!force && lastSpokenKeyRef.current === keyStr && (speechState === 'completed' || speechState === 'stopped')) {
+      // Already completed or stopped reading this question
       return;
     }
 
@@ -207,4 +243,3 @@ export function useSpeechSynthesis() {
 }
 
 export default useSpeechSynthesis;
-
