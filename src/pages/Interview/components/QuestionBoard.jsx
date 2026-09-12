@@ -23,7 +23,11 @@ export function QuestionBoard({
   handleNextQuestion,
   isLastQuestion,
   handleExitClick,
-  saveStatus
+  saveStatus,
+  role = 'Software Engineer',
+  difficulty = 'medium',
+  questions = [],
+  answers = []
 }) {
   const [interviewMode, setInterviewMode] = useState(() => {
     try {
@@ -96,7 +100,7 @@ export function QuestionBoard({
     }
   }, [turnState, isTtsEngineSpeaking, speechState, transitionTo]);
 
-  // Evaluate candidate's main answer & generate adaptive follow-up (Max 1 per main question)
+  // Evaluate candidate's main answer & generate context-aware adaptive follow-up (Max 1 per main question)
   const handleEvaluateFollowUp = useCallback(async (currentAnswer, turnId) => {
     if (
       !questionText ||
@@ -121,11 +125,23 @@ export function QuestionBoard({
     analyzedAnswerKeyRef.current = answerKey;
     transitionTo(TURN_STATES.ANALYZING);
 
+    // Build context representation of previous turns (up to current question index)
+    const previousTurns = Array.isArray(questions)
+      ? questions.slice(0, currentQuestionIdx).map((qText, idx) => ({
+          questionText: qText,
+          userAnswer: Array.isArray(answers) ? (answers[idx] || '') : ''
+        })).filter(t => t.userAnswer && typeof t.userAnswer === 'string' && t.userAnswer.trim().length > 0)
+      : [];
+
     try {
       const res = await generateFollowUpQuestionApi({
         question: questionText,
         answer: currentAnswer,
-        role: questionCategory
+        role: role || questionCategory || 'Software Engineer',
+        difficulty: difficulty || 'medium',
+        previousTurns,
+        mainQuestionIndex: currentQuestionIdx,
+        totalMainQuestions: totalQuestions
       });
 
       // Guard against stale async resolution if question changed during API call
@@ -146,12 +162,12 @@ export function QuestionBoard({
         transitionTo(TURN_STATES.READY_FOR_ANSWER);
       }
     } catch (err) {
-      console.warn('⚠️ AI follow-up evaluation error handled gracefully:', err);
+      console.warn('⚠️ AI context-aware follow-up evaluation error handled gracefully:', err);
       if (isTurnCurrent(turnId)) {
         transitionTo(TURN_STATES.READY_FOR_ANSWER);
       }
     }
-  }, [currentQuestionIdx, questionText, questionCategory, followUpCount, isTurnCurrent, isTtsSupported, speakQuestion, transitionTo]);
+  }, [currentQuestionIdx, totalQuestions, questionText, questionCategory, role, difficulty, questions, answers, followUpCount, isTurnCurrent, isTtsSupported, speakQuestion, transitionTo]);
 
   // Handle Main Transcript Generation
   const handleMainTranscriptGenerated = useCallback((transcribedText) => {
@@ -200,6 +216,29 @@ export function QuestionBoard({
   const handleStopClick = () => {
     stopSpeech();
     transitionTo(TURN_STATES.READY_FOR_ANSWER);
+  };
+
+  // Handle Next Question Click with Text Mode Compatibility
+  const handleNextClick = async () => {
+    if (isFollowUpReady) {
+      handleNextQuestion();
+      return;
+    }
+
+    if (interviewMode === 'text' && followUpCount < 1 && answerText) {
+      const words = answerText.trim().split(/\s+/).filter(Boolean);
+      const answerKey = `${currentQuestionIdx}:${answerText.trim()}`;
+      if (words.length >= 5 && analyzedAnswerKeyRef.current !== answerKey) {
+        const activeTurnId = currentTurnIdRef.current;
+        await handleEvaluateFollowUp(answerText, activeTurnId);
+        // If follow-up was generated, turnState moves to FOLLOW_UP_READY and user can answer follow-up
+        if (analyzedAnswerKeyRef.current === answerKey && followUpQuestionText) {
+          return;
+        }
+      }
+    }
+
+    handleNextQuestion();
   };
 
   return (
@@ -258,7 +297,7 @@ export function QuestionBoard({
       {isTurnAnalyzing && (
         <div className="followup-analyzing-bar" role="status" aria-live="polite">
           <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
-          <span>🤖 AI Interviewer is analyzing your answer for follow-up opportunities...</span>
+          <span>🤖 AI Interviewer is analyzing your answer for context & follow-up opportunities...</span>
         </div>
       )}
 
@@ -267,7 +306,7 @@ export function QuestionBoard({
         <div className="followup-question-box">
           <div className="followup-badge">
             <span className="badge-sparkle">✨</span>
-            <span>ADAPTIVE FOLLOW-UP QUESTION (1 of 1 Limit)</span>
+            <span>CONTEXT-AWARE FOLLOW-UP QUESTION (1 of 1 Limit)</span>
           </div>
           <h3 className="followup-title">{followUpQuestionText}</h3>
         </div>
@@ -391,7 +430,7 @@ export function QuestionBoard({
             {isLastQuestion && !isFollowUpReady ? (
               <button 
                 className="btn-submit-interview"
-                onClick={handleNextQuestion}
+                onClick={handleNextClick}
                 disabled={isTurnRecording || isTurnTranscribing || isTurnAnalyzing}
               >
                 Submit & Finish
@@ -399,7 +438,7 @@ export function QuestionBoard({
             ) : (
               <button 
                 className="btn-nav-page" 
-                onClick={handleNextQuestion} 
+                onClick={handleNextClick} 
                 disabled={isTurnRecording || isTurnTranscribing || isTurnAnalyzing}
                 style={{ color: '#a5b4fc', borderColor: 'rgba(99, 102, 241, 0.4)' }}
               >

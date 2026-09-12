@@ -405,7 +405,7 @@ export const evaluateCommunicationController = async (req, res) => {
  */
 export const generateFollowUpController = async (req, res) => {
   try {
-    const { question, answer, role, difficulty } = req.body;
+    const { question, answer, role, difficulty, previousTurns, mainQuestionIndex, totalMainQuestions } = req.body;
 
     if (!question || !answer) {
       return res.status(200).json({
@@ -418,7 +418,15 @@ export const generateFollowUpController = async (req, res) => {
       });
     }
 
-    const result = await generateFollowUpQuestion({ question, answer, role, difficulty });
+    const result = await generateFollowUpQuestion({
+      question,
+      answer,
+      role,
+      difficulty,
+      previousTurns,
+      mainQuestionIndex,
+      totalMainQuestions
+    });
 
     res.status(200).json({
       status: 'success',

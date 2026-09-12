@@ -28,6 +28,8 @@ function Interview() {
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [answerText, setAnswerText] = useState('');
+  const [interviewRole, setInterviewRole] = useState('Software Engineer');
+  const [interviewDifficulty, setInterviewDifficulty] = useState('medium');
   
   const [timeLeft, setTimeLeft] = useState(60);
   const [isRecording, setIsRecording] = useState(false);
@@ -203,6 +205,9 @@ function Interview() {
         if (!interview) {
           throw new Error('Session details could not be retrieved.');
         }
+
+        if (interview.role) setInterviewRole(interview.role);
+        if (interview.difficulty) setInterviewDifficulty(interview.difficulty);
 
         const questionList = interview.questions || [];
         setQuestions(questionList.map(q => q.questionText));
@@ -383,6 +388,10 @@ function Interview() {
           isLastQuestion={currentQuestionIdx === questions.length - 1}
           handleExitClick={handleExitClick}
           saveStatus={saveStatus}
+          role={interviewRole}
+          difficulty={interviewDifficulty}
+          questions={questions}
+          answers={answers}
         />
       </div>
 
