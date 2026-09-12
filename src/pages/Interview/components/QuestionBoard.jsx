@@ -1,9 +1,11 @@
 
+import { useEffect } from 'react';
+import useSpeechSynthesis from '../../../hooks/useSpeechSynthesis';
 import VoiceRecorderCard from './VoiceRecorderCard';
 
 /**
- * QuestionBoard Component
- * Renders the question card, audio recorder, text response fields, and navigation actions.
+ * QuestionBoard Component (Day 19 Part 1 — TTS AI Question Read-Aloud & Replay Controls)
+ * Renders the question card, TTS controls, audio recorder, text response fields, and navigation actions.
  */
 export function QuestionBoard({
   currentQuestionIdx,
@@ -21,26 +23,74 @@ export function QuestionBoard({
   handleExitClick,
   saveStatus
 }) {
+  const {
+    speechState,
+    isSpeaking,
+    isSupported: isTtsSupported,
+    speakQuestion,
+    stop: stopSpeech
+  } = useSpeechSynthesis();
+
+  // Automatic Question Read-Aloud (deduplicated per question index/text change)
+  useEffect(() => {
+    if (questionText && isTtsSupported) {
+      speakQuestion(questionText, currentQuestionIdx);
+    }
+    return () => {
+      stopSpeech();
+    };
+  }, [currentQuestionIdx, questionText, isTtsSupported, speakQuestion, stopSpeech]);
+
+  // Handle Play/Replay Button Click
+  const handlePlayReplayClick = () => {
+    if (questionText && isTtsSupported) {
+      speakQuestion(questionText, currentQuestionIdx, true); // force replay
+    }
+  };
+
   return (
     <div className="question-response-board">
       <div className="board-header">
         <span className="progress-badge">
           Question {currentQuestionIdx + 1} of {totalQuestions}
         </span>
-        <span 
-          className="category-pill"
-          style={{
-            background: 'rgba(255, 255, 255, 0.04)',
-            border: '1px solid var(--card-border)',
-            borderRadius: '8px',
-            padding: '0.3rem 0.8rem',
-            fontSize: '0.8rem',
-            fontWeight: '600',
-            color: 'var(--text-secondary)'
-          }}
-        >
-          Tag: {questionCategory}
-        </span>
+
+        <div className="board-header-right d-flex align-items-center gap-2">
+          {/* Day 19 Part 1: TTS Play / Speaking / Replay Button */}
+          {isTtsSupported ? (
+            <button
+              type="button"
+              className={`btn-tts-action ${isSpeaking ? 'btn-tts-speaking' : speechState === 'completed' ? 'btn-tts-completed' : 'btn-tts-idle'}`}
+              onClick={handlePlayReplayClick}
+              aria-label={isSpeaking ? 'Speaking question aloud' : 'Play question aloud'}
+              title={isSpeaking ? 'Click to replay question' : 'Read question aloud'}
+            >
+              <span aria-hidden="true">{isSpeaking ? '🔊' : '🔉'}</span>
+              <span>
+                {isSpeaking ? 'Speaking...' : speechState === 'completed' ? 'Replay Question' : 'Play Question'}
+              </span>
+            </button>
+          ) : (
+            <span className="tts-unsupported-badge" title="Text-to-speech is not supported in this browser.">
+              🔇 Speech Unsupported
+            </span>
+          )}
+
+          <span 
+            className="category-pill"
+            style={{
+              background: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid var(--card-border)',
+              borderRadius: '8px',
+              padding: '0.3rem 0.8rem',
+              fontSize: '0.8rem',
+              fontWeight: '600',
+              color: 'var(--text-secondary)'
+            }}
+          >
+            Tag: {questionCategory}
+          </span>
+        </div>
       </div>
 
       <div className="question-container">

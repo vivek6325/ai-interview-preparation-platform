@@ -13,23 +13,27 @@ const DEFAULT_SETTINGS = {
 };
 
 /**
- * Custom React Hook for Text-To-Speech (TTS) & Settings Persistence.
+ * Custom React Hook for Text-To-Speech (TTS) & AI Question Read-Aloud.
  * 
- * Exposes:
+ * Provides:
+ * - speechState: 'idle' | 'speaking' | 'completed' | 'unavailable' | 'error'
  * - isSpeaking: boolean
  * - isPaused: boolean
- * - voices: Array<SpeechSynthesisVoice>
  * - isSupported: boolean
- * - settings: Object
  * - speak(text, options): Function
+ * - speakQuestion(text, questionKey): Function (with re-render deduplication)
  * - stop(): Function
  * - pause(): Function
  * - resume(): Function
- * - updateSettings(newSettings): Function
  */
 export function useSpeechSynthesis() {
+  const supported = isSynthesisSupported();
+
+  // speechState: 'idle' | 'speaking' | 'completed' | 'unavailable' | 'error'
+  const [speechState, setSpeechState] = useState(() => (supported ? 'idle' : 'unavailable'));
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [error, setError] = useState(null);
   const [voices, setVoices] = useState([]);
   const [settings, setSettings] = useState(() => {
     try {
@@ -40,8 +44,8 @@ export function useSpeechSynthesis() {
     }
   });
 
-  const supported = isSynthesisSupported();
   const settingsRef = useRef(settings);
+  const lastSpokenKeyRef = useRef(null);
 
   useEffect(() => {
     settingsRef.current = settings;
@@ -82,16 +86,40 @@ export function useSpeechSynthesis() {
     });
   }, []);
 
+  /**
+   * Stop active speech synthesis cleanly
+   */
+  const stop = useCallback(() => {
+    stopSpeaking();
+    setIsSpeaking(false);
+    setIsPaused(false);
+    setSpeechState((prev) => (prev === 'unavailable' ? 'unavailable' : 'idle'));
+  }, []);
+
+  /**
+   * Core Speak function wrapping voiceService
+   */
   const speak = useCallback((text, overrideOptions = {}) => {
-    if (!supported || !text) return;
+    if (!supported) {
+      setSpeechState('unavailable');
+      setError('Text-To-Speech is not supported in this browser.');
+      return;
+    }
+
+    if (!text || !text.trim()) {
+      stop();
+      return;
+    }
 
     const activeSettings = settingsRef.current;
     const finalRate = overrideOptions.rate ?? activeSettings.rate;
     const finalPitch = overrideOptions.pitch ?? activeSettings.pitch;
     const finalVoice = overrideOptions.voice ?? activeSettings.voice;
 
+    setError(null);
     setIsSpeaking(true);
     setIsPaused(false);
+    setSpeechState('speaking');
 
     serviceSpeak(text, {
       rate: finalRate,
@@ -100,23 +128,49 @@ export function useSpeechSynthesis() {
       onStart: () => {
         setIsSpeaking(true);
         setIsPaused(false);
+        setSpeechState('speaking');
       },
       onEnd: () => {
         setIsSpeaking(false);
         setIsPaused(false);
+        setSpeechState('completed');
       },
-      onError: () => {
+      onError: (err) => {
+        console.warn('SpeechSynthesis error handled gracefully:', err);
         setIsSpeaking(false);
         setIsPaused(false);
+        setError('Speech playback encountered an error.');
+        setSpeechState('error');
       }
     });
-  }, [supported]);
+  }, [supported, stop]);
 
-  const stop = useCallback(() => {
-    stopSpeaking();
-    setIsSpeaking(false);
-    setIsPaused(false);
-  }, []);
+  /**
+   * Deduplicated Question Read-Aloud helper
+   * Prevents React re-renders from re-reading the exact same question key automatically.
+   * 
+   * @param {string} text Question text to speak
+   * @param {string|number} questionKey Unique question identifier (e.g. index or ID)
+   * @param {boolean} [force=false] Force replay even if questionKey matches last spoken key
+   */
+  const speakQuestion = useCallback((text, questionKey, force = false) => {
+    if (!supported || !text) return;
+
+    const keyStr = String(questionKey ?? text);
+
+    if (!force && lastSpokenKeyRef.current === keyStr && isSpeaking) {
+      // Already speaking this exact question
+      return;
+    }
+
+    if (!force && lastSpokenKeyRef.current === keyStr && speechState === 'completed') {
+      // Already completed reading this question automatically
+      return;
+    }
+
+    lastSpokenKeyRef.current = keyStr;
+    speak(text);
+  }, [supported, isSpeaking, speechState, speak]);
 
   const pause = useCallback(() => {
     pauseSpeaking();
@@ -128,14 +182,24 @@ export function useSpeechSynthesis() {
     setIsPaused(false);
   }, []);
 
+  // Cancel speech on hook unmount
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+    };
+  }, []);
+
   return {
+    speechState,
     isSpeaking,
     isPaused,
     voices,
+    error,
     isSupported: supported,
     settings,
     updateSettings,
     speak,
+    speakQuestion,
     stop,
     pause,
     resume
@@ -143,3 +207,4 @@ export function useSpeechSynthesis() {
 }
 
 export default useSpeechSynthesis;
+
