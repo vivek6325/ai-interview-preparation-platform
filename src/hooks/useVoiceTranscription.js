@@ -1,16 +1,21 @@
 import { useState, useCallback } from 'react';
 import { transcribeAudio } from '../services/aiService';
+import { analyzeVoiceAnalytics } from '../utils/speechAnalytics';
 
 /**
  * Custom React Hook managing Speech-to-Text (STT) transcription workflow for interview answers.
  * 
  * Supports browser Web Speech API live capture and backend Gemini Audio Transcription fallback.
- * Structures transcript data into `voiceResponse` object schema for future Day 18 analytics:
+ * Structures transcript, pace & filler analysis into `voiceResponse` object schema:
  * {
  *   audio: { blob, url },
  *   transcript: string,
  *   duration: number,
- *   analysis: null
+ *   analysis: {
+ *     speakingPace: voiceAnalytics.pace,
+ *     fillerAnalysis: voiceAnalytics.fillerAnalysis
+ *   },
+ *   voiceAnalytics: voiceAnalytics
  * }
  */
 export function useVoiceTranscription() {
@@ -36,11 +41,16 @@ export function useVoiceTranscription() {
   const prepareReadyToTranscribe = useCallback(({ blob, url, duration }) => {
     setStatus('ready');
     setError(null);
+    const initialAnalytics = analyzeVoiceAnalytics('', duration || 0);
     setVoiceResponse({
       audio: { blob, url },
       transcript: '',
       duration: duration || 0,
-      analysis: null
+      analysis: {
+        speakingPace: initialAnalytics.pace,
+        fillerAnalysis: initialAnalytics.fillerAnalysis
+      },
+      voiceAnalytics: initialAnalytics
     });
   }, []);
 
@@ -73,13 +83,19 @@ export function useVoiceTranscription() {
         throw new Error('No speech detected in audio recording. Please speak clearly and try again.');
       }
 
+      const analytics = analyzeVoiceAnalytics(resultText, duration || 0);
+
       setTranscript(resultText);
       setStatus('success');
       setVoiceResponse({
         audio: { blob, url },
         transcript: resultText,
         duration: duration || 0,
-        analysis: null
+        analysis: {
+          speakingPace: analytics.pace,
+          fillerAnalysis: analytics.fillerAnalysis
+        },
+        voiceAnalytics: analytics
       });
 
       return resultText;

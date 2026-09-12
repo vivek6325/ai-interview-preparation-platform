@@ -1,19 +1,20 @@
 import { useEffect, useCallback } from 'react';
-import useAudioRecorder from '../../../hooks/useAudioRecorder';
+import useAudioRecorder, { formatAudioTimer } from '../../../hooks/useAudioRecorder';
 import useVoiceTranscription from '../../../hooks/useVoiceTranscription';
 import useSpeechRecognition from '../../../hooks/useSpeechRecognition';
+import useSpeechAnalytics from '../../../hooks/useSpeechAnalytics';
 import './VoiceRecorderCard.css';
 
 /**
- * VoiceRecorderCard Component (Part 1 + Part 2 Speech-to-Text)
+ * VoiceRecorderCard Component (Part 1 + Part 2 STT + Part 3 Speaking Pace Analysis)
  * 
- * Reusable Voice Recording & Speech-to-Text component for interview responses.
+ * Reusable Voice Recording & Speech Analytics component for interview responses.
  * Provides controls for Start Recording, Stop Recording, Re-recording, Audio Playback,
- * and Transcribe Answer with clear loading, transcript display, and retry error states.
+ * Transcribe Answer, and displays speaking duration, word count, WPM, pace rating, and feedback.
  * 
  * @param {Object} props
  * @param {Function} [props.onRecordingStateChange] Callback notifying parent of recording state
- * @param {Function} [props.onAudioReady] Callback receiving { blob, url, duration, transcript, voiceResponse }
+ * @param {Function} [props.onAudioReady] Callback receiving { blob, url, duration, transcript, voiceResponse, voiceAnalytics }
  * @param {Function} [props.onTranscriptGenerated] Callback passing transcript text directly to answer input
  * @param {boolean} [props.disabled] Optional flag to disable controls
  */
@@ -55,6 +56,9 @@ export function VoiceRecorderCard({
     transcribe,
     resetTranscription
   } = useVoiceTranscription();
+
+  // Calculate Voice Analytics (Speaking Pace + Filler Word Detection - Day 18 Parts 3 & 4)
+  const voiceAnalytics = useSpeechAnalytics(transcript, duration);
 
   // Notify parent of recording state changes
   useEffect(() => {
@@ -117,15 +121,16 @@ export function VoiceRecorderCard({
         url: audioUrl,
         duration,
         transcript,
-        voiceResponse
+        voiceResponse,
+        voiceAnalytics
       });
     }
-  }, [recordingStatus, audioUrl, audioBlob, duration, transcript, voiceResponse, onAudioReady]);
+  }, [recordingStatus, audioUrl, audioBlob, duration, transcript, voiceResponse, voiceAnalytics, onAudioReady]);
 
   // Status text for top badge
   const getStatusText = () => {
     if (isTranscribing) return 'Transcribing answer...';
-    if (isTranscribeSuccess) return 'Transcript ready';
+    if (isTranscribeSuccess) return 'Transcript ready & voice analyzed';
     if (isTranscribeError) return 'Transcription failed';
     if (recordingStatus === 'recording') return 'Recording...';
     if (recordingStatus === 'recorded') return 'Recording complete — Ready to transcribe';
@@ -157,7 +162,7 @@ export function VoiceRecorderCard({
   return (
     <div
       className={`voice-recorder-container ${isRecording ? 'is-recording' : ''} ${recordingStatus === 'recorded' ? 'is-recorded' : ''}`}
-      aria-label="Voice Answer Recorder with Speech-to-Text"
+      aria-label="Voice Answer Recorder with Speech-to-Text & Voice Analytics"
     >
       {/* Header bar: Status pill & Elapsed Timer */}
       <div className="voice-recorder-header">
@@ -297,8 +302,100 @@ export function VoiceRecorderCard({
           </blockquote>
         </div>
       )}
+
+      {/* Speaking Pace Analytics Card (Day 18 Part 3) */}
+      {transcript && isTranscribeSuccess && (
+        <div className="pace-analytics-section mt-3">
+          <div className="pace-analytics-header d-flex justify-content-between align-items-center mb-2">
+            <span className="pace-analytics-title">📊 Speaking Pace Analytics</span>
+            <span className={`pace-badge ${voiceAnalytics.pace.badgeClass}`}>
+              {voiceAnalytics.pace.label}
+            </span>
+          </div>
+
+          <div className="pace-metrics-grid">
+            <div className="pace-metric-card">
+              <span className="metric-label">⏱️ Duration</span>
+              <span className="metric-value">{formatAudioTimer(voiceAnalytics.durationSeconds)}</span>
+            </div>
+
+            <div className="pace-metric-card">
+              <span className="metric-label">📝 Word Count</span>
+              <span className="metric-value">{voiceAnalytics.wordCount} words</span>
+            </div>
+
+            <div className="pace-metric-card">
+              <span className="metric-label">⚡ Pace (WPM)</span>
+              <span className="metric-value">
+                {voiceAnalytics.wordsPerMinute > 0 ? `${voiceAnalytics.wordsPerMinute} WPM` : 'N/A'}
+              </span>
+            </div>
+          </div>
+
+          <div className="pace-feedback-box mt-2">
+            <span className="feedback-icon" aria-hidden="true">💡</span>
+            <p className="feedback-text">{voiceAnalytics.pace.feedback}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Filler Word Analytics Card (Day 18 Part 4) */}
+      {transcript && isTranscribeSuccess && (
+        <div className="filler-analytics-section mt-3">
+          <div className="filler-analytics-header d-flex justify-content-between align-items-center mb-2">
+            <span className="filler-analytics-title">🔎 Filler Word Analytics</span>
+            <span className={`filler-badge ${voiceAnalytics.fillerAnalysis.rating.badgeClass}`}>
+              {voiceAnalytics.fillerAnalysis.rating.label}
+            </span>
+          </div>
+
+          <div className="filler-metrics-grid">
+            <div className="filler-metric-card">
+              <span className="metric-label">🚫 Total Fillers</span>
+              <span className="metric-value">{voiceAnalytics.fillerAnalysis.totalFillers}</span>
+            </div>
+
+            <div className="filler-metric-card">
+              <span className="metric-label">📊 Filler Rate</span>
+              <span className="metric-value">{voiceAnalytics.fillerAnalysis.fillerPercentage}%</span>
+            </div>
+
+            <div className="filler-metric-card">
+              <span className="metric-label">💬 Words Analyzed</span>
+              <span className="metric-value">{voiceAnalytics.wordCount} words</span>
+            </div>
+          </div>
+
+          {/* Detected Fillers List / Positive Empty State */}
+          <div className="detected-fillers-wrapper mt-2">
+            <span className="detected-label">Detected Fillers:</span>
+            {voiceAnalytics.fillerAnalysis.detected.length > 0 ? (
+              <div className="filler-tags-list">
+                {voiceAnalytics.fillerAnalysis.detected.map((item, idx) => (
+                  <span key={idx} className="filler-tag">
+                    <strong className="filler-word">{item.word}</strong>
+                    <span className="filler-count">×{item.count}</span>
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <div className="no-fillers-badge">
+                <span aria-hidden="true">🎉</span>
+                <span>No common filler words detected.</span>
+              </div>
+            )}
+          </div>
+
+          <div className="filler-feedback-box mt-2">
+            <span className="feedback-icon" aria-hidden="true">💡</span>
+            <p className="feedback-text">{voiceAnalytics.fillerAnalysis.rating.feedback}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 export default VoiceRecorderCard;
+
+
