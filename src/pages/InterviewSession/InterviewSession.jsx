@@ -6,6 +6,7 @@ import Timer from '../../components/interview/Timer';
 import ProgressBar from '../../components/interview/ProgressBar';
 import QuestionCard from '../../components/interview/QuestionCard';
 import VoiceRecorder from '../../components/interview/VoiceRecorder';
+import AIAssistantPanel from '../../components/interview/AIAssistantPanel';
 import useSpeechRecognition from '../../hooks/useSpeechRecognition';
 import useSpeechSynthesis from '../../hooks/useSpeechSynthesis';
 import './InterviewSession.css';
@@ -174,7 +175,7 @@ function InterviewSession() {
         difficulty: difficulty.toLowerCase(),
         status: 'pending',
         questions: questionList.map(q => ({
-          questionText: q.question,
+          questionText: typeof q === 'string' ? q : q?.question || q?.questionText || 'Technical Question',
           userAnswer: '',
           score: null,
           feedback: '',
@@ -335,7 +336,7 @@ function InterviewSession() {
         const vm = voiceMetricsMap[q.id] || {};
         const words = ans.trim() ? ans.trim().split(/\s+/).length : 0;
         return {
-          questionText: q.question,
+          questionText: typeof q === 'string' ? q : q?.question || q?.questionText || 'Technical Question',
           userAnswer: ans,
           transcript: ans,
           speakingDuration: vm.speakingDuration || 0,

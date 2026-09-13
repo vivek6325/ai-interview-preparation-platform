@@ -27,7 +27,7 @@ function normalizeScore(score) {
  * Retrieves all user interview records from MongoDB or mockDatabase fallback.
  */
 export async function getUserInterviews(userId) {
-  if (isDbConnected() && userId) {
+  if (isDbConnected() && userId && mongoose.Types.ObjectId.isValid(userId)) {
     try {
       const dbInterviews = await Interview.find({
         userId: new mongoose.Types.ObjectId(userId)

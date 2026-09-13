@@ -234,7 +234,7 @@ function History() {
               <h3 className="item-card-title">{item.title}</h3>
 
               <div className="card-score-row">
-                <div className="score-badge-circle">
+                <div className={`score-badge-circle ${item.status === 'completed' ? 'completed' : 'pending'}`}>
                   <span className="score-val">
                     {item.status === 'completed' && item.overallScore !== null
                       ? item.overallScore <= 10

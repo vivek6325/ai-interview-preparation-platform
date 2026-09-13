@@ -1,4 +1,5 @@
 import React from 'react';
+import './AnalyticsComponents.css';
 
 /**
  * PracticePlanCard Component
@@ -9,10 +10,10 @@ import React from 'react';
  */
 export function PracticePlanCard({ data }) {
   const plan = data || {
-    week1: { title: 'Week 1: Core Fundamentals & DSA', focus: ['Arrays', 'HashMaps'], dailyGoal: '1 question daily', weeklyGoal: '2 DSA sessions' },
-    week2: { title: 'Week 2: Data Structures & Communication', focus: ['Trees', 'STAR Method'], dailyGoal: '15-min transcript daily', weeklyGoal: '2 Voice sessions' },
-    week3: { title: 'Week 3: System Design & Architecture', focus: ['Sharding', 'Load Balancing'], dailyGoal: '1 Architecture case daily', weeklyGoal: '1 System session' },
-    week4: { title: 'Week 4: Comprehensive Mock & Hard Level', focus: ['Hard Coding', 'Mock Panels'], dailyGoal: 'Timed mock sessions', weeklyGoal: 'Achieve 85+ score' },
+    week1: { title: 'Week 1: Core Fundamentals & DSA', focus: ['Arrays', 'HashMaps', 'Technical Definitions'], dailyGoal: 'Solve 1 technical question and review 3 concepts daily.', weeklyGoal: 'Complete 2 DSA Mock Interviews.' },
+    week2: { title: 'Week 2: Data Structures & Communication', focus: ['Trees & Graphs', 'STAR Method', 'Voice Articulation'], dailyGoal: 'Practice 15-minute voice transcript session daily.', weeklyGoal: 'Complete 2 Full Stack / DSA Voice Interviews.' },
+    week3: { title: 'Week 3: System Design & Architecture', focus: ['Database Sharding', 'Microservices', 'Load Balancing'], dailyGoal: 'Study 1 System Design architectural case study daily.', weeklyGoal: 'Complete 1 System Design Mock Panel.' },
+    week4: { title: 'Week 4: Comprehensive Mock & Hard Level', focus: ['Hard Difficulty Coding', 'Executive Behavioral', 'Final Readiness'], dailyGoal: 'Run timed mock sessions under strict timer constraints.', weeklyGoal: 'Achieve 85+ score on 3 consecutive mock sessions.' },
     recommendedFrequency: '3 sessions per week',
     recommendedDifficulty: 'Medium -> Hard',
     suggestedNextType: 'Full Stack / System Design Voice Interview',
@@ -27,59 +28,51 @@ export function PracticePlanCard({ data }) {
   ];
 
   return (
-    <div className="card bg-dark text-light border border-secondary border-opacity-25 rounded-4 p-4 shadow-sm h-100">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h4 className="h5 fw-bold mb-0 text-info d-flex align-items-center gap-2">
+    <div className="analytics-card">
+      <div className="analytics-card-header">
+        <h4 className="analytics-card-title">
           <span>📅</span> Personalized 4-Week AI Practice Roadmap
         </h4>
-        <span className="badge bg-primary-subtle text-primary border border-primary fs-8">
+        <span className="analytics-badge badge-indigo">
           ⏱️ {plan.estimatedImprovementTimeline || '2-3 Weeks Goal'}
         </span>
       </div>
 
       {/* Recommended Strategy Pills */}
-      <div className="row g-2 mb-4">
-        <div className="col-12 col-md-4">
-          <div className="p-2 rounded bg-black bg-opacity-30 border border-secondary border-opacity-25 fs-8 text-secondary">
-            <span>Recommended Frequency: </span>
-            <strong className="text-light">{plan.recommendedFrequency}</strong>
-          </div>
+      <div className="strategy-tiles-grid">
+        <div className="strategy-tile">
+          <span>Recommended Frequency:</span>
+          <strong>{plan.recommendedFrequency}</strong>
         </div>
-        <div className="col-12 col-md-4">
-          <div className="p-2 rounded bg-black bg-opacity-30 border border-secondary border-opacity-25 fs-8 text-secondary">
-            <span>Target Progression: </span>
-            <strong className="text-light">{plan.recommendedDifficulty}</strong>
-          </div>
+        <div className="strategy-tile">
+          <span>Target Progression:</span>
+          <strong>{plan.recommendedDifficulty}</strong>
         </div>
-        <div className="col-12 col-md-4">
-          <div className="p-2 rounded bg-black bg-opacity-30 border border-secondary border-opacity-25 fs-8 text-secondary">
-            <span>Suggested Next Panel: </span>
-            <strong className="text-light">{plan.suggestedNextType}</strong>
-          </div>
+        <div className="strategy-tile">
+          <span>Suggested Next Panel:</span>
+          <strong>{plan.suggestedNextType}</strong>
         </div>
       </div>
 
       {/* 4-Week Roadmap Timeline Cards */}
-      <div className="row g-3">
+      <div className="roadmap-grid">
         {weeks.map((w, idx) => (
-          <div key={idx} className="col-12 col-md-6 col-lg-3">
-            <div className="p-3 rounded-3 bg-black bg-opacity-40 border border-secondary border-opacity-25 h-100 position-relative">
-              <span className="badge bg-info-subtle text-info fs-8 position-absolute top-0 end-0 m-2">{w.badge}</span>
-              <h5 className="h6 fw-bold text-light mb-2 pe-4">{w.data?.title || `Week ${idx + 1}`}</h5>
+          <div key={idx} className="roadmap-week-card">
+            <span className="week-phase-badge">{w.badge}</span>
+            <h5 className="week-card-title">{w.data?.title || `Week ${idx + 1}`}</h5>
 
-              <div className="mb-2">
-                <span className="fs-8 text-muted d-block fw-semibold mb-1">Focus Topics:</span>
-                <div className="d-flex flex-wrap gap-1">
-                  {w.data?.focus?.map((f, fIdx) => (
-                    <span key={fIdx} className="badge bg-dark border border-secondary text-info fs-8">{f}</span>
-                  ))}
-                </div>
+            <div>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block' }}>Focus Topics:</span>
+              <div className="focus-pills-list">
+                {w.data?.focus?.map((f, fIdx) => (
+                  <span key={fIdx} className="topic-pill">{f}</span>
+                ))}
               </div>
+            </div>
 
-              <div className="fs-8 text-secondary mt-2">
-                <div><strong>Daily:</strong> {w.data?.dailyGoal}</div>
-                <div><strong>Weekly:</strong> {w.data?.weeklyGoal}</div>
-              </div>
+            <div style={{ marginTop: '0.5rem' }}>
+              <div className="goal-line"><strong>Daily:</strong> {w.data?.dailyGoal}</div>
+              <div className="goal-line"><strong>Weekly:</strong> {w.data?.weeklyGoal}</div>
             </div>
           </div>
         ))}

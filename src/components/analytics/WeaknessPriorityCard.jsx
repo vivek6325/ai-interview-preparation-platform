@@ -1,4 +1,5 @@
 import React from 'react';
+import './AnalyticsComponents.css';
 
 /**
  * WeaknessPriorityCard Component
@@ -28,61 +29,57 @@ export function WeaknessPriorityCard({ data }) {
   const urgency = data?.urgencyLevel || 'Medium';
 
   const getUrgencyBadge = () => {
-    if (urgency === 'High') return <span className="badge bg-danger-subtle text-danger border border-danger">🔥 High Urgency Action</span>;
-    if (urgency === 'Medium') return <span className="badge bg-warning-subtle text-warning border border-warning">⚡ Medium Priority</span>;
-    return <span className="badge bg-success-subtle text-success border border-success">✓ Low Risk</span>;
+    if (urgency === 'High') return <span className="analytics-badge badge-crimson">🔥 High Urgency Action</span>;
+    if (urgency === 'Medium') return <span className="analytics-badge badge-amber">⚡ Medium Priority</span>;
+    return <span className="analytics-badge badge-emerald">✓ Low Risk</span>;
   };
 
   return (
-    <div className="card bg-dark text-light border border-secondary border-opacity-25 rounded-4 p-4 shadow-sm h-100">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h4 className="h5 fw-bold mb-0 text-info d-flex align-items-center gap-2">
+    <div className="analytics-card">
+      <div className="analytics-card-header">
+        <h4 className="analytics-card-title">
           <span>🔍</span> AI Weakness & Risk Detection Engine
         </h4>
         {getUrgencyBadge()}
       </div>
 
-      <div className="row g-3">
+      <div className="analytics-grid-2col">
         {/* Strengths Column */}
-        <div className="col-12 col-md-6">
-          <div className="p-3 rounded-3 bg-black bg-opacity-30 border border-success border-opacity-25">
-            <h5 className="h6 fw-bold text-success mb-3">💪 Top 5 Identified Strengths</h5>
-            <ul className="list-unstyled mb-0 d-flex flex-column gap-2">
-              {strengths.map((item, idx) => (
-                <li key={idx} className="d-flex justify-content-between align-items-center fs-7 text-light">
-                  <span>✓ {item.skill}</span>
-                  <span className="badge bg-success-subtle text-success">{item.score}%</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+        <div className="strengths-box">
+          <h5 className="box-heading-emerald">💪 Top Identified Strengths</h5>
+          <ul className="skill-list-clean">
+            {strengths.map((item, idx) => (
+              <li key={idx} className="skill-item-row">
+                <span>✓ {item.skill}</span>
+                <span className="analytics-badge badge-emerald">{item.score}%</span>
+              </li>
+            ))}
+          </ul>
         </div>
 
         {/* Weaknesses Column */}
-        <div className="col-12 col-md-6">
-          <div className="p-3 rounded-3 bg-black bg-opacity-30 border border-danger border-opacity-25">
-            <h5 className="h6 fw-bold text-danger mb-3">⚠️ Top 5 Areas for Improvement</h5>
-            <ul className="list-unstyled mb-0 d-flex flex-column gap-2">
-              {weaknesses.map((item, idx) => (
-                <li key={idx} className="d-flex justify-content-between align-items-center fs-7 text-light">
-                  <span>✗ {item.skill}</span>
-                  <div className="d-flex gap-1 align-items-center">
-                    <span className="badge bg-danger-subtle text-danger">{item.score}%</span>
-                    <span className="badge bg-dark text-muted fs-8">{item.impact} Impact</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+        <div className="weaknesses-box">
+          <h5 className="box-heading-crimson">⚠️ Top Areas for Improvement</h5>
+          <ul className="skill-list-clean">
+            {weaknesses.map((item, idx) => (
+              <li key={idx} className="skill-item-row">
+                <span>✗ {item.skill}</span>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <span className="analytics-badge badge-crimson">{item.score}%</span>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{item.impact} Impact</span>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 
       {/* Priority Action Items */}
-      <div className="mt-4 p-3 rounded-3 bg-black bg-opacity-40 border border-secondary border-opacity-25">
-        <h5 className="h6 fw-bold text-warning mb-2">🎯 Recommended Priority Action Items</h5>
-        <ol className="mb-0 ps-3 fs-7 text-secondary">
+      <div className="priority-items-container">
+        <h5 className="priority-heading">🎯 Recommended Priority Action Items</h5>
+        <ol className="priority-ol">
           {priorityList.map((item, idx) => (
-            <li key={idx} className="mb-1">{item}</li>
+            <li key={idx}>{item}</li>
           ))}
         </ol>
       </div>

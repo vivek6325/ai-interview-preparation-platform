@@ -27,9 +27,22 @@ export async function connectDB() {
 
     return conn;
   } catch (error) {
-    console.error(`❌ Database Connection Error: ${error.message}`);
-    console.warn('⚠️ Server will operate with in-memory fallback until MongoDB comes online.');
-    return null;
+    console.error(`❌ Primary Database Connection Error: ${error.message}`);
+    
+    // Retry fallback to local MongoDB if primary Atlas connection fails
+    try {
+      console.log('🔄 Retrying database connection with local MongoDB fallback (mongodb://127.0.0.1:27017/ai_interview_platform)...');
+      const fallbackConn = await mongoose.connect('mongodb://127.0.0.1:27017/ai_interview_platform', {
+        maxPoolSize: 10,
+        serverSelectionTimeoutMS: 3000
+      });
+      console.log(`🔌 Local MongoDB Connected: ${fallbackConn.connection.host}`);
+      return fallbackConn;
+    } catch (fallbackErr) {
+      console.error(`❌ Local Database Fallback Error: ${fallbackErr.message}`);
+      console.warn('⚠️ Server operating with offline database mode until MongoDB comes online.');
+      return null;
+    }
   }
 }
 

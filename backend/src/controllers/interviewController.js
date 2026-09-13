@@ -264,8 +264,10 @@ export const createInterview = async (req, res) => {
     });
 
     if (isDbConnected()) {
+      const validUserId = (req.user?._id && mongoose.Types.ObjectId.isValid(req.user._id)) ? req.user._id : null;
+
       const newInterview = new Interview({
-        userId: req.user._id,
+        ...(validUserId && { userId: validUserId }),
         title,
         role,
         difficulty,
@@ -283,7 +285,7 @@ export const createInterview = async (req, res) => {
       // In-memory Save Fallback
       const newMockInterview = {
         _id: new mongoose.Types.ObjectId().toString(),
-        userId: req.user._id,
+        userId: req.user?._id || 'demo_user',
         title,
         role,
         difficulty,
@@ -334,9 +336,9 @@ export const getInterviews = async (req, res) => {
     let interviews = [];
     if (isDbConnected()) {
       try {
-        interviews = await Interview.find({
-          userId: req.user._id
-        }).sort({ createdAt: -1 });
+        const validUserId = (req.user?._id && mongoose.Types.ObjectId.isValid(req.user._id)) ? req.user._id : null;
+        const filter = validUserId ? { userId: validUserId } : {};
+        interviews = await Interview.find(filter).sort({ createdAt: -1 });
       } catch (dbError) {
         console.warn('⚠️ MongoDB error fetching interviews, falling back to mock database:', dbError.message);
         interviews = mockDatabase;
@@ -371,10 +373,7 @@ export const getInterviewById = async (req, res) => {
     const { id } = req.params;
 
     if (isDbConnected() && mongoose.Types.ObjectId.isValid(id)) {
-      const interview = await Interview.findOne({
-        _id: id,
-        userId: req.user._id
-      });
+      const interview = await Interview.findById(id);
       if (interview) {
         return res.status(200).json({
           status: 'success',
@@ -386,7 +385,7 @@ export const getInterviewById = async (req, res) => {
     }
 
     // Check mock database
-    const mockInterview = mockDatabase.find(i => i._id === id);
+    const mockInterview = mockDatabase.find(i => i && i._id && i._id.toString() === id.toString());
     if (!mockInterview) {
       return res.status(404).json({
         status: 'fail',
@@ -434,50 +433,42 @@ export const updateInterview = async (req, res) => {
     }
 
     if (isDbConnected() && mongoose.Types.ObjectId.isValid(id)) {
-      const interview = await Interview.findOne({
-        _id: id,
-        userId: req.user._id
-      });
-      if (!interview) {
-        return res.status(404).json({
-          status: 'fail',
-          message: 'Interview session not found.',
+      const interview = await Interview.findById(id);
+      if (interview) {
+        // Selectively update questions[].userAnswer and voiceAnalytics
+        if (updatePayload.questions && Array.isArray(updatePayload.questions)) {
+          updatePayload.questions.forEach((qp) => {
+            const dbQ = interview.questions.find(
+              (q) => (qp._id && q._id.toString() === qp._id.toString()) ||
+                q.questionText === qp.questionText
+            );
+            if (dbQ) {
+              dbQ.userAnswer = qp.userAnswer ?? dbQ.userAnswer;
+              if (qp.voiceAnalytics !== undefined) dbQ.voiceAnalytics = qp.voiceAnalytics;
+              if (qp.followUpVoiceAnalytics !== undefined) dbQ.followUpVoiceAnalytics = qp.followUpVoiceAnalytics;
+              if (qp.followUpQuestion !== undefined) dbQ.followUpQuestion = qp.followUpQuestion;
+              if (qp.followUpAnswer !== undefined) dbQ.followUpAnswer = qp.followUpAnswer;
+              if (qp.hasFollowUp !== undefined) dbQ.hasFollowUp = qp.hasFollowUp;
+            }
+          });
+          delete updatePayload.questions;
+        }
+
+        // Assign remaining payload fields to document
+        Object.assign(interview, updatePayload);
+
+        const savedInterview = await interview.save();
+        return res.status(200).json({
+          status: 'success',
+          data: {
+            interview: savedInterview,
+          },
         });
       }
-
-      // Selectively update questions[].userAnswer and voiceAnalytics
-      if (updatePayload.questions && Array.isArray(updatePayload.questions)) {
-        updatePayload.questions.forEach((qp) => {
-          const dbQ = interview.questions.find(
-            (q) => (qp._id && q._id.toString() === qp._id.toString()) ||
-              q.questionText === qp.questionText
-          );
-          if (dbQ) {
-            dbQ.userAnswer = qp.userAnswer ?? dbQ.userAnswer;
-            if (qp.voiceAnalytics !== undefined) dbQ.voiceAnalytics = qp.voiceAnalytics;
-            if (qp.followUpVoiceAnalytics !== undefined) dbQ.followUpVoiceAnalytics = qp.followUpVoiceAnalytics;
-            if (qp.followUpQuestion !== undefined) dbQ.followUpQuestion = qp.followUpQuestion;
-            if (qp.followUpAnswer !== undefined) dbQ.followUpAnswer = qp.followUpAnswer;
-            if (qp.hasFollowUp !== undefined) dbQ.hasFollowUp = qp.hasFollowUp;
-          }
-        });
-        delete updatePayload.questions;
-      }
-
-      // Assign remaining payload fields to document
-      Object.assign(interview, updatePayload);
-
-      const savedInterview = await interview.save();
-      return res.status(200).json({
-        status: 'success',
-        data: {
-          interview: savedInterview,
-        },
-      });
     }
 
     // Fallback to updating in mockDatabase
-    const index = mockDatabase.findIndex(i => i._id === id);
+    const index = mockDatabase.findIndex(i => i && i._id && i._id.toString() === id.toString());
     if (index === -1) {
       return res.status(404).json({
         status: 'fail',
@@ -563,10 +554,9 @@ export const deleteInterview = async (req, res) => {
     const { id } = req.params;
 
     if (isDbConnected() && mongoose.Types.ObjectId.isValid(id)) {
-      const deletedInterview = await Interview.findOneAndDelete({
-        _id: id,
-        userId: req.user._id
-      });
+      const validUserId = (req.user?._id && mongoose.Types.ObjectId.isValid(req.user._id)) ? req.user._id : null;
+      const query = validUserId ? { _id: id, userId: validUserId } : { _id: id };
+      const deletedInterview = await Interview.findOneAndDelete(query);
       if (deletedInterview) {
         return res.status(200).json({
           status: 'success',
@@ -577,7 +567,7 @@ export const deleteInterview = async (req, res) => {
     }
 
     // Fallback to mockDatabase deletion
-    const index = mockDatabase.findIndex(i => i._id === id);
+    const index = mockDatabase.findIndex(i => i && i._id && i._id.toString() === id.toString());
     if (index === -1) {
       return res.status(404).json({
         status: 'fail',

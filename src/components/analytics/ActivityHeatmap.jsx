@@ -1,4 +1,5 @@
 import React from 'react';
+import './AnalyticsComponents.css';
 
 /**
  * ActivityHeatmap Component
@@ -26,41 +27,40 @@ export function ActivityHeatmap({ activityMap = {} }) {
   }
 
   const getHeatColor = (count) => {
-    if (count === 0) return 'rgba(255, 255, 255, 0.05)';
+    if (count === 0) return 'rgba(255, 255, 255, 0.04)';
     if (count === 1) return 'rgba(99, 102, 241, 0.4)';
     if (count === 2) return 'rgba(99, 102, 241, 0.7)';
     return '#6366f1';
   };
 
   return (
-    <div className="card bg-dark text-light border border-secondary border-opacity-25 rounded-4 p-3 shadow-sm text-center h-100">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h4 className="h6 fw-bold mb-0 text-info text-uppercase tracking-wider">🗓️ Practice Activity Heatmap</h4>
-        <span className="text-muted fs-8">Past 28 Days</span>
+    <div className="analytics-card">
+      <div className="analytics-card-header">
+        <h4 className="analytics-card-title">🗓️ Practice Activity Heatmap</h4>
+        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Past 28 Days</span>
       </div>
 
-      <div className="d-grid gap-2" style={{ gridTemplateColumns: 'repeat(7, 1fr)' }}>
+      <div className="heatmap-grid-28">
         {days.map((item, idx) => (
           <div
             key={idx}
-            className="p-2 rounded border border-secondary border-opacity-25 d-flex flex-column align-items-center justify-content-center transition-hover"
+            className="heatmap-day-cell"
             style={{
-              backgroundColor: getHeatColor(item.count),
-              minHeight: '44px'
+              backgroundColor: getHeatColor(item.count)
             }}
             title={`${item.dateStr}: ${item.count} interview session(s)`}
           >
-            <span className="fs-8 fw-bold text-light">{item.dayNum}</span>
-            <span className="fs-8 text-secondary">{item.monthName}</span>
+            <span className="heatmap-num">{item.dayNum}</span>
+            <span className="heatmap-month">{item.monthName}</span>
           </div>
         ))}
       </div>
 
-      <div className="d-flex align-items-center justify-content-end gap-2 mt-3 fs-8 text-muted">
+      <div className="heatmap-legend">
         <span>Less</span>
-        <span className="d-inline-block rounded-1" style={{ width: 12, height: 12, background: 'rgba(255, 255, 255, 0.05)' }}></span>
-        <span className="d-inline-block rounded-1" style={{ width: 12, height: 12, background: 'rgba(99, 102, 241, 0.4)' }}></span>
-        <span className="d-inline-block rounded-1" style={{ width: 12, height: 12, background: '#6366f1' }}></span>
+        <span className="legend-square" style={{ background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border)' }}></span>
+        <span className="legend-square" style={{ background: 'rgba(99, 102, 241, 0.4)' }}></span>
+        <span className="legend-square" style={{ background: '#6366f1' }}></span>
         <span>More</span>
       </div>
     </div>

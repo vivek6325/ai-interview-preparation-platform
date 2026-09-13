@@ -95,7 +95,7 @@ export async function saveResume(req, res, next) {
     }
 
     const ext = fileType || (originalFileName?.endsWith('.docx') ? 'DOCX' : 'PDF');
-    const userId = req.user ? req.user._id : null;
+    const userId = (req.user?._id && mongoose.Types.ObjectId.isValid(req.user._id)) ? req.user._id : null;
     const isDbConnected = mongoose.connection.readyState === 1;
 
     let resumeDoc = null;
@@ -122,7 +122,7 @@ export async function saveResume(req, res, next) {
 
         if (!resumeDoc) {
           resumeDoc = new Resume({
-            userId,
+            ...(userId && { userId }),
             originalFileName: originalFileName || 'Resume.pdf',
             storedFileName: storedFileName || originalFileName || 'resume.pdf',
             fileType: ext.toUpperCase(),
@@ -188,7 +188,8 @@ export async function getResumes(req, res, next) {
 
     if (isDbConnected) {
       try {
-        const filter = req.user ? { userId: req.user._id } : {};
+        const validUserId = (req.user?._id && mongoose.Types.ObjectId.isValid(req.user._id)) ? req.user._id : null;
+        const filter = validUserId ? { userId: validUserId } : {};
         resumes = await Resume.find(filter).sort({ createdAt: -1 }).lean();
       } catch (dbErr) {
         console.warn('⚠️ [Resume Controller] MongoDB read failed, using fallback:', dbErr.message);

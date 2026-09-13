@@ -1,4 +1,5 @@
 import React from 'react';
+import './AnalyticsComponents.css';
 
 /**
  * DistributionCharts Component
@@ -30,95 +31,88 @@ export function DistributionCharts({ typeData, difficultyData }) {
   };
 
   return (
-    <div className="row g-3">
+    <div className="analytics-grid-2col">
       {/* 1. Interview Types Doughnut Breakdown */}
-      <div className="col-12 col-md-6">
-        <div className="card bg-dark text-light border border-secondary border-opacity-25 rounded-4 p-3 shadow-sm h-100">
-          <h4 className="h6 fw-bold mb-3 text-info text-uppercase tracking-wider">🍩 Interview Category Distribution</h4>
+      <div className="analytics-card">
+        <div className="analytics-card-header">
+          <h4 className="analytics-card-title">🍩 Interview Category Distribution</h4>
+        </div>
 
-          <div className="d-flex flex-column align-items-center">
-            {/* SVG Doughnut */}
-            <div className="position-relative" style={{ width: '160px', height: '160px' }}>
-              <svg width="160" height="160" viewBox="0 0 100 100" className="transform-rotate-neg90">
-                {(() => {
-                  let accumulatedPercent = 0;
-                  return Object.entries(types).map(([key, count], idx) => {
-                    const percent = count / totalTypes;
-                    const strokeDasharray = `${percent * 283} ${283 - percent * 283}`;
-                    const strokeDashoffset = -accumulatedPercent * 283;
-                    accumulatedPercent += percent;
-                    return (
-                      <circle
-                        key={idx}
-                        cx="50"
-                        cy="50"
-                        r="45"
-                        fill="transparent"
-                        stroke={typeColors[key] || '#94a3b8'}
-                        strokeWidth="12"
-                        strokeDasharray={strokeDasharray}
-                        strokeDashoffset={strokeDashoffset}
-                      />
-                    );
-                  });
-                })()}
-              </svg>
+        <div className="doughnut-wrapper">
+          <svg width="160" height="160" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
+            {(() => {
+              let accumulatedPercent = 0;
+              return Object.entries(types).map(([key, count], idx) => {
+                const percent = count / totalTypes;
+                const strokeDasharray = `${percent * 283} ${283 - percent * 283}`;
+                const strokeDashoffset = -accumulatedPercent * 283;
+                accumulatedPercent += percent;
+                return (
+                  <circle
+                    key={idx}
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    fill="transparent"
+                    stroke={typeColors[key] || '#94a3b8'}
+                    strokeWidth="12"
+                    strokeDasharray={strokeDasharray}
+                    strokeDashoffset={strokeDashoffset}
+                  />
+                );
+              });
+            })()}
+          </svg>
 
-              <div className="position-absolute top-50 start-50 translate-middle text-center">
-                <div className="fs-4 fw-bold text-light">{totalTypes}</div>
-                <div className="fs-8 text-muted">Sessions</div>
-              </div>
-            </div>
-
-            {/* Type Legend List */}
-            <div className="w-100 mt-3 d-flex flex-wrap justify-content-center gap-2">
-              {Object.entries(types).map(([key, count], idx) => (
-                <span key={idx} className="badge bg-dark border border-secondary text-light fs-8 px-2 py-1">
-                  <span style={{ color: typeColors[key] || '#94a3b8' }}>● </span>
-                  {key}: <strong>{count}</strong> ({Math.round((count / totalTypes) * 100)}%)
-                </span>
-              ))}
-            </div>
+          <div className="doughnut-center-label">
+            <div className="doughnut-center-value">{totalTypes}</div>
+            <div className="doughnut-center-sub">Sessions</div>
           </div>
+        </div>
+
+        {/* Type Legend List */}
+        <div className="legend-pills-wrap">
+          {Object.entries(types).map(([key, count], idx) => (
+            <span key={idx} className="legend-pill">
+              <span style={{ color: typeColors[key] || '#94a3b8' }}>● </span>
+              {key}: <strong>{count}</strong> ({Math.round((count / totalTypes) * 100)}%)
+            </span>
+          ))}
         </div>
       </div>
 
       {/* 2. Difficulty Bar Breakdown */}
-      <div className="col-12 col-md-6">
-        <div className="card bg-dark text-light border border-secondary border-opacity-25 rounded-4 p-3 shadow-sm h-100">
-          <h4 className="h6 fw-bold mb-3 text-info text-uppercase tracking-wider">📊 Difficulty Level Distribution</h4>
+      <div className="analytics-card">
+        <div className="analytics-card-header">
+          <h4 className="analytics-card-title">📊 Difficulty Level Distribution</h4>
+        </div>
 
-          <div className="d-flex flex-column gap-3 justify-content-center h-100">
-            {Object.entries(difficulties).map(([diffKey, count], idx) => {
-              const pct = Math.round((count / totalDiff) * 100);
-              return (
-                <div key={idx}>
-                  <div className="d-flex justify-content-between fs-7 mb-1">
-                    <span className="fw-semibold" style={{ color: diffColors[diffKey] }}>
-                      {diffKey} Track
-                    </span>
-                    <span className="text-muted fs-8">
-                      {count} Sessions ({pct}%)
-                    </span>
-                  </div>
-
-                  <div className="progress bg-black bg-opacity-40" style={{ height: '10px' }}>
-                    <div
-                      className="progress-bar rounded-pill"
-                      style={{
-                        width: `${pct}%`,
-                        backgroundColor: diffColors[diffKey] || '#6366f1'
-                      }}
-                      role="progressbar"
-                      aria-valuenow={pct}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                    ></div>
-                  </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', justifyContent: 'center', height: '100%' }}>
+          {Object.entries(difficulties).map(([diffKey, count], idx) => {
+            const pct = Math.round((count / totalDiff) * 100);
+            return (
+              <div key={idx} className="difficulty-bar-item">
+                <div className="difficulty-bar-header">
+                  <span style={{ fontWeight: 600, color: diffColors[diffKey] }}>
+                    {diffKey} Track
+                  </span>
+                  <span style={{ color: 'var(--text-muted)' }}>
+                    {count} Sessions ({pct}%)
+                  </span>
                 </div>
-              );
-            })}
-          </div>
+
+                <div className="difficulty-progress-track">
+                  <div
+                    className="difficulty-progress-fill"
+                    style={{
+                      width: `${pct}%`,
+                      backgroundColor: diffColors[diffKey] || '#6366f1'
+                    }}
+                  ></div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

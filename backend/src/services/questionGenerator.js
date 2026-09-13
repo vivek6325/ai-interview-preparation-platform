@@ -109,12 +109,50 @@ Strict Requirements:
       : sanitizeQuestionList(questionsObj.projects?.slice(3) || [], 'Project-based', 'p_extra');
     const problemSolving = sanitizeQuestionList(questionsObj.problemSolving, 'Problem-solving', 'ps');
 
-    const totalCount =
+    let totalCount =
       technical.length +
       behavioral.length +
       projects.length +
       experience.length +
       problemSolving.length;
+
+    if (totalCount === 0) {
+      console.warn('⚠️ [Question Generator] AI response returned 0 questions. Using candidate-tailored fallback questions.');
+      const skillsList = Array.isArray(resumeData?.skills) && resumeData.skills.length > 0
+        ? resumeData.skills.slice(0, 5)
+        : ['JavaScript', 'React', 'Node.js', 'REST APIs', 'SQL/NoSQL'];
+      const projectList = Array.isArray(resumeData?.projects) && resumeData.projects.length > 0
+        ? resumeData.projects
+        : [{ title: 'Full Stack Web Application' }];
+
+      return {
+        technical: [
+          { id: 't1', question: `Can you explain core architectural concepts of ${skillsList[0] || 'JavaScript'} and how you optimize performance in high-load scenarios?`, category: 'Technical', difficulty: 'Medium' },
+          { id: 't2', question: `How do you handle state management, asynchronous data flows, and error boundaries in ${skillsList[1] || 'React'} applications?`, category: 'Technical', difficulty: 'Medium' },
+          { id: 't3', question: `What strategies do you use for database index optimization, API rate limiting, and caching when building backend services with ${skillsList[2] || 'Node.js'}?`, category: 'Technical', difficulty: 'Hard' },
+          { id: 't4', question: `Explain how you design RESTful interfaces and handle authentication, CORS, and token refresh mechanisms safely.`, category: 'Technical', difficulty: 'Easy' }
+        ],
+        behavioral: [
+          { id: 'b1', question: `Tell me about a time when you faced an architectural disagreement with team members. How did you align on a solution?`, category: 'Behavioral', difficulty: 'Medium' },
+          { id: 'b2', question: `Describe a situation where a critical production bug occurred. How did you debug and mitigate the impact?`, category: 'Behavioral', difficulty: 'Hard' },
+          { id: 'b3', question: `How do you prioritize technical debt against tight feature deadlines?`, category: 'Behavioral', difficulty: 'Medium' }
+        ],
+        projects: [
+          { id: 'p1', question: `Walk me through the architecture of your project "${projectList[0]?.title || 'Web Application'}". What were the main technical challenges you solved?`, category: 'Project-based', difficulty: 'Hard' },
+          { id: 'p2', question: `How did you choose the tech stack and database schema for "${projectList[0]?.title || 'your project'}"? What tradeoffs did you consider?`, category: 'Project-based', difficulty: 'Medium' },
+          { id: 'p3', question: `What automated testing or CI/CD deployment pipelines did you set up for your project builds?`, category: 'Project-based', difficulty: 'Medium' }
+        ],
+        experience: [
+          { id: 'e1', question: `Can you outline your primary responsibilities in your recent engineering work and key highlights of your contributions?`, category: 'Experience-based', difficulty: 'Medium' },
+          { id: 'e2', question: `How do you approach cross-functional collaboration with product managers, QA, and DevOps engineers?`, category: 'Experience-based', difficulty: 'Easy' },
+          { id: 'e3', question: `What processes do you establish during peer code reviews to maintain high quality and consistency across teams?`, category: 'Experience-based', difficulty: 'Medium' }
+        ],
+        problemSolving: [
+          { id: 'ps1', question: `How would you design a scalable system for real-time notifications supporting 100,000 active concurrent users?`, category: 'Problem-solving', difficulty: 'Hard' },
+          { id: 'ps2', question: `If an API endpoint experiences a sudden spike in latency from 100ms to 5000ms, how would you systematically diagnose the bottleneck?`, category: 'Problem-solving', difficulty: 'Hard' }
+        ]
+      };
+    }
 
     console.log(
       `✅ [Question Generator] Successfully generated ${totalCount} personalized questions.`
@@ -129,7 +167,28 @@ Strict Requirements:
     };
   } catch (err) {
     console.error('❌ [Question Generator] Failure:', err.message);
-    throw new Error(`Failed to generate personalized interview questions: ${err.message}`);
+    const skillsList = Array.isArray(resumeData?.skills) && resumeData.skills.length > 0
+      ? resumeData.skills.slice(0, 5)
+      : ['JavaScript', 'React', 'Node.js', 'REST APIs'];
+
+    return {
+      technical: [
+        { id: 't1', question: `Can you explain core architectural concepts of ${skillsList[0] || 'JavaScript'} and performance tuning?`, category: 'Technical', difficulty: 'Medium' },
+        { id: 't2', question: `How do you handle state management and error boundaries in modern web applications?`, category: 'Technical', difficulty: 'Medium' }
+      ],
+      behavioral: [
+        { id: 'b1', question: `Describe a situation where a critical production bug occurred. How did you resolve it?`, category: 'Behavioral', difficulty: 'Hard' }
+      ],
+      projects: [
+        { id: 'p1', question: `Walk me through the architecture of your main software project and the technical tradeoffs you made.`, category: 'Project-based', difficulty: 'Hard' }
+      ],
+      experience: [
+        { id: 'e1', question: `What are the key technical contributions you have made in your recent software engineering role?`, category: 'Experience-based', difficulty: 'Medium' }
+      ],
+      problemSolving: [
+        { id: 'ps1', question: `How would you design a real-time notification system handling high traffic?`, category: 'Problem-solving', difficulty: 'Hard' }
+      ]
+    };
   }
 }
 

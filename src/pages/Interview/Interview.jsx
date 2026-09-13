@@ -254,7 +254,11 @@ function Interview() {
         if (interview.difficulty) setInterviewDifficulty(interview.difficulty);
 
         const questionList = interview.questions || [];
-        setQuestions(questionList.map(q => q.questionText));
+        setQuestions(
+          questionList.map(q =>
+            typeof q === 'string' ? q : q?.questionText || q?.question || 'Technical Question'
+          )
+        );
         
         const initialAnswers = questionList.map(q => q.userAnswer || '');
         setAnswers(initialAnswers);

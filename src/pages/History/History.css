@@ -1,8 +1,25 @@
-/* Flagship History Vault Styling */
+/* Glow background effect matching login page design */
+.history-glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.15;
+}
+
+.purple-orb {
+  width: 350px;
+  height: 350px;
+  background: var(--secondary, #a855f7);
+  top: -50px;
+  left: 10%;
+}
+
 .history-page-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 var(--space-24) var(--space-64);
+  padding: 2.5rem 1.5rem 4rem;
   position: relative;
 }
 
@@ -86,15 +103,25 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--ds-primary);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-weight: 800;
   font-size: 0.9rem;
-  box-shadow: 0 0 16px rgba(124, 92, 255, 0.4);
+  flex-shrink: 0;
+}
+
+.score-badge-circle.completed {
+  background: var(--primary);
+  box-shadow: 0 0 16px rgba(99, 102, 241, 0.4);
+}
+
+.score-badge-circle.pending {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
 }
 
 .item-meta {
@@ -110,6 +137,139 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-8);
+}
+
+/* Table Layout for Recent Sessions */
+.history-table-container {
+  width: 100%;
+  overflow-x: auto;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.history-table th {
+  padding: 1rem 1.25rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.history-table td {
+  padding: 1rem 1.25rem;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  vertical-align: middle;
+}
+
+.history-row {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.history-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.history-item-title {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.history-item-role {
+  color: var(--text-secondary);
+}
+
+.history-item-date {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.history-item-score {
+  font-weight: 800;
+  color: var(--success);
+}
+
+.status-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.status-tag.completed {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.status-tag.pending {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--warning);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.history-actions-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn-table-action {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  border: 1px solid transparent;
+}
+
+.btn-table-action.view {
+  background: rgba(99, 102, 241, 0.12);
+  color: #a5b4fc;
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.btn-table-action.view:hover {
+  background: rgba(99, 102, 241, 0.25);
+}
+
+.btn-table-action.start {
+  background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
+  color: #fff;
+}
+
+.btn-table-action.start:hover {
+  opacity: 0.9;
+}
+
+.btn-table-action.delete {
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.25);
+  padding: 6px 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-table-action.delete:hover {
+  background: rgba(239, 68, 68, 0.25);
 }
 
 .modal-backdrop-custom {

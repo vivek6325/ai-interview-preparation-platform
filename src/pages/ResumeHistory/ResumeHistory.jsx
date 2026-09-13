@@ -90,7 +90,7 @@ function ResumeHistory() {
       let questionsPayload = [];
       if (Array.isArray(questionsList) && questionsList.length > 0) {
         questionsPayload = questionsList.map((q) => ({
-          questionText: typeof q === 'string' ? q : q.question || 'Describe your technical experience.',
+          questionText: typeof q === 'string' ? q : q?.question || q?.questionText || 'Describe your technical experience.',
           userAnswer: '',
           score: null,
           feedback: '',
@@ -154,15 +154,15 @@ function ResumeHistory() {
   };
 
   return (
-    <div className="resume-history-page max-w-7xl mx-auto px-4 py-8">
+    <div className="resume-history-page">
       {/* Header Banner */}
-      <div className="page-header flex justify-between items-end mb-8 border-b border-border pb-6">
+      <div className="resume-header-row">
         <div>
-          <Badge variant="glow" size="md" icon={Sparkles} className="mb-2">
+          <Badge variant="glow" size="md" icon={Sparkles}>
             CANDIDATE RESUME VAULT
           </Badge>
-          <h1 className="text-3xl font-extrabold text-white">Resume History</h1>
-          <p className="text-secondary text-sm mt-1 max-w-xl">
+          <h1 className="resume-header-title">Resume History</h1>
+          <p className="resume-header-desc">
             Access your uploaded resumes, inspect extracted candidate profiles, and relaunch mock interview rooms with stored AI questions.
           </p>
         </div>
@@ -179,7 +179,7 @@ function ResumeHistory() {
 
       {/* Loading Skeleton View */}
       {isLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="resumes-skeleton-grid">
           <SkeletonCard height="220px" />
           <SkeletonCard height="220px" />
           <SkeletonCard height="220px" />
@@ -188,33 +188,33 @@ function ResumeHistory() {
 
       {/* Error State */}
       {error && !isLoading && (
-        <Card className="text-center p-8 max-w-md mx-auto">
-          <p className="text-danger mb-4">{error}</p>
+        <div className="resume-empty-card">
+          <p style={{ color: '#ef4444', marginBottom: '1rem' }}>{error}</p>
           <Button variant="outline" size="sm" onClick={fetchResumeHistory}>
             Retry Loading
           </Button>
-        </Card>
+        </div>
       )}
 
       {/* Empty State */}
       {!isLoading && !error && resumes.length === 0 && (
-        <Card className="text-center p-12 max-w-lg mx-auto glass-card">
-          <div className="w-16 h-16 rounded-full bg-purple-500/10 border border-purple-500/30 flex items-center justify-center mx-auto mb-4 text-purple">
+        <div className="resume-empty-card">
+          <div className="resume-empty-icon">
             <FileText size={32} />
           </div>
-          <h3 className="text-xl font-bold text-white mb-2">No Resumes Uploaded Yet</h3>
-          <p className="text-secondary text-sm mb-6">
+          <h3 className="resume-empty-title">No Resumes Uploaded Yet</h3>
+          <p className="resume-empty-desc">
             Upload your candidate CV or Resume to start personalized AI interviews tailored to your experience and skills.
           </p>
           <Button variant="glow" size="md" onClick={() => navigate('/interview-setup')}>
             Upload Resume Now
           </Button>
-        </Card>
+        </div>
       )}
 
       {/* Resumes Grid List */}
       {!isLoading && !error && resumes.length > 0 && (
-        <div className="resumes-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="resumes-grid">
           {resumes.map((resume) => {
             const isDocx = resume.fileType === 'DOCX' || resume.originalFileName?.endsWith('.docx');
             const formattedSize = formatFileSize(resume.fileSize || 0);
@@ -225,18 +225,18 @@ function ResumeHistory() {
                 key={resume._id}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="history-card glass-card flex flex-col justify-between"
+                className="history-card"
               >
                 <div>
                   {/* Card Header: Format Badge & Status */}
-                  <div className="card-top flex items-center justify-between mb-4">
+                  <div className="card-top">
                     <div className={`format-icon-badge ${isDocx ? 'docx-style' : 'pdf-style'}`}>
-                      <FileText size={20} />
+                      <FileText size={16} />
                       <span className="badge-text">{isDocx ? 'DOCX' : 'PDF'}</span>
                     </div>
 
                     <span className="status-badge">
-                      <CheckCircle2 size={12} className="text-emerald mr-1" />
+                      <CheckCircle2 size={12} />
                       {resume.status === 'completed'
                         ? 'Completed'
                         : resume.status === 'questions_generated'
@@ -246,31 +246,31 @@ function ResumeHistory() {
                   </div>
 
                   {/* Resume Title */}
-                  <h3 className="file-name-title font-bold text-white text-base mb-2 truncate" title={resume.originalFileName}>
+                  <h3 className="file-name-title" title={resume.originalFileName}>
                     {resume.originalFileName || 'Resume.pdf'}
                   </h3>
 
                   {/* Extracted Name if available */}
                   {resume.extractedData?.name && (
-                    <p className="candidate-name text-purple text-xs font-semibold mb-3">
+                    <p className="candidate-name">
                       Candidate: {resume.extractedData.name}
                     </p>
                   )}
 
                   {/* File Metadata */}
-                  <div className="meta-details text-secondary text-xs flex flex-col gap-1 mb-4">
-                    <span className="flex items-center">
-                      <Calendar size={13} className="mr-1 text-muted" /> {dateStr}
+                  <div className="meta-details">
+                    <span className="meta-item">
+                      <Calendar size={13} /> {dateStr}
                     </span>
-                    <span className="flex items-center">
-                      <HardDrive size={13} className="mr-1 text-muted" /> {formattedSize}
+                    <span className="meta-item">
+                      <HardDrive size={13} /> {formattedSize}
                     </span>
                   </div>
                 </div>
 
                 {/* Card Actions */}
-                <div className="card-actions-bar border-t border-border pt-4 mt-2 flex items-center justify-between">
-                  <div className="left-actions flex gap-2">
+                <div className="card-actions-bar">
+                  <div className="left-actions">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -308,21 +308,21 @@ function ResumeHistory() {
 
       {/* Modal View Extracted Resume Details */}
       {viewModalOpen && selectedResume && (
-        <div className="modal-overlay fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="modal-content glass-card max-w-4xl w-full p-6 relative max-h-[90vh] overflow-y-auto">
+        <div className="resume-modal-overlay">
+          <div className="resume-modal-content">
             <button
               onClick={() => setViewModalOpen(false)}
-              className="absolute top-4 right-4 text-secondary hover:text-white transition-colors"
+              className="modal-close-btn"
             >
-              <X size={24} />
+              <X size={20} />
             </button>
 
-            <div className="mb-4">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <FileText className="text-purple" size={24} />
+            <div style={{ marginBottom: '1.25rem' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <FileText style={{ color: '#a78bfa' }} size={24} />
                 {selectedResume.originalFileName}
               </h2>
-              <span className="text-xs text-secondary">
+              <span style={{ fontSize: '0.75rem', color: 'var(--ds-text-300)' }}>
                 Uploaded on {formatDate(selectedResume.uploadDate || selectedResume.createdAt)}
               </span>
             </div>
@@ -354,3 +354,4 @@ function ResumeHistory() {
 }
 
 export default ResumeHistory;
+

@@ -6,6 +6,20 @@
   position: relative;
 }
 
+.setup-glow-orb {
+  position: absolute;
+  top: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(124, 92, 255, 0.25) 0%, rgba(0, 0, 0, 0) 70%);
+  filter: blur(90px);
+  pointer-events: none;
+  z-index: 0;
+}
+
 .setup-title {
   font-family: var(--font-heading);
   font-size: var(--font-page-title);

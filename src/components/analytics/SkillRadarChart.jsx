@@ -1,4 +1,5 @@
 import React from 'react';
+import './AnalyticsComponents.css';
 
 /**
  * SkillRadarChart Component
@@ -45,11 +46,13 @@ export function SkillRadarChart({ data = [], size = 300 }) {
     .join(' ');
 
   return (
-    <div className="card bg-dark text-light border border-secondary border-opacity-25 rounded-4 p-3 shadow-sm text-center h-100">
-      <h4 className="h6 fw-bold mb-3 text-info text-uppercase tracking-wider">🎯 Multi-Dimensional Skill Radar</h4>
+    <div className="analytics-card">
+      <div className="analytics-card-header">
+        <h4 className="analytics-card-title">🎯 Multi-Dimensional Skill Radar</h4>
+      </div>
 
-      <div className="svg-container d-flex justify-content-center align-items-center">
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="overflow-visible">
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ overflow: 'visible' }}>
           {/* Concentric Grid Web Polygons */}
           {levels.map((levelRatio, lIdx) => {
             const gridPoints = skills
@@ -104,7 +107,7 @@ export function SkillRadarChart({ data = [], size = 300 }) {
         </svg>
       </div>
 
-      <div className="mt-2 text-muted fs-8">
+      <div style={{ marginTop: '0.75rem', fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center' }}>
         💡 <em>Visualizes performance distribution across core technical & communication axes.</em>
       </div>
     </div>

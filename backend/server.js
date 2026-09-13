@@ -13,8 +13,12 @@ import authRoutes from './src/routes/authRoutes.js';
 import analyticsRoutes from './src/routes/analyticsRoutes.js';
 import resumeRoutes from './src/routes/resumeRoutes.js';
 
-// Configure DNS servers
-dns.setServers(['8.8.8.8', '1.1.1.1']);
+// Configure DNS servers safely if allowed by OS network
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch {
+  // Use default system DNS resolver if custom DNS set fails
+}
 
 // Validate environment setup
 validateEnv();
@@ -44,6 +48,19 @@ app.use('/api/interviews', interviewRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/resume', resumeRoutes);
+
+/**
+ * API Root Welcome Endpoint
+ */
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    name: 'PrepAI Career Intelligence Platform API',
+    version: '1.0.0',
+    healthCheck: '/api/health',
+    timestamp: new Date().toISOString()
+  });
+});
 
 /**
  * Enhanced Health Check Endpoint

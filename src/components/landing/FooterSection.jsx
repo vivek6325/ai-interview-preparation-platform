@@ -37,7 +37,6 @@ export function FooterSection() {
               <li><a href="#features">Voice Interviewer</a></li>
               <li><a href="#dashboard-preview">SaaS Analytics</a></li>
               <li><a href="#how-it-works">Practice Roadmap</a></li>
-              <li><a href="#pricing">Pricing</a></li>
             </ul>
           </div>
 

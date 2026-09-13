@@ -69,20 +69,34 @@ export function ResumePreview({
 
   if (!resumeData) return null;
 
-  const {
-    name,
-    email,
-    phone,
-    location,
-    summary,
-    skills = [],
-    technologies = [],
-    projects = [],
-    experience = [],
-    education = [],
-    certifications = [],
-    languages = []
-  } = resumeData;
+  const toSafeStr = (val, fallback = '') => {
+    if (typeof val === 'string') return val;
+    if (typeof val === 'number') return String(val);
+    if (val && typeof val === 'object') {
+      return val.name || val.title || val.role || val.label || val.value || val.company || val.degree || val.institution || fallback;
+    }
+    return fallback;
+  };
+
+  const toSafeArr = (val) => {
+    if (!val) return [];
+    if (Array.isArray(val)) return val;
+    if (typeof val === 'string') return val.split(',').map(s => s.trim()).filter(Boolean);
+    return [];
+  };
+
+  const name = toSafeStr(resumeData.name);
+  const email = toSafeStr(resumeData.email);
+  const phone = toSafeStr(resumeData.phone);
+  const location = toSafeStr(resumeData.location);
+  const summary = toSafeStr(resumeData.summary);
+  const skills = toSafeArr(resumeData.skills);
+  const technologies = toSafeArr(resumeData.technologies);
+  const projects = toSafeArr(resumeData.projects);
+  const experience = toSafeArr(resumeData.experience);
+  const education = toSafeArr(resumeData.education);
+  const certifications = toSafeArr(resumeData.certifications);
+  const languages = toSafeArr(resumeData.languages);
 
   return (
     <motion.div
@@ -191,18 +205,25 @@ export function ResumePreview({
             </div>
             {experience && experience.length > 0 ? (
               <div className="experience-list">
-                {experience.map((exp, idx) => (
-                  <div key={idx} className="experience-item-card">
-                    <div className="exp-item-top">
-                      <div>
-                        <h4 className="exp-role">{exp.role || 'Position Title'}</h4>
-                        <span className="exp-company text-purple">{exp.company || 'Company'}</span>
+                {experience.map((exp, idx) => {
+                  const roleStr = toSafeStr(exp?.role || exp, 'Position Title');
+                  const companyStr = toSafeStr(exp?.company, 'Company');
+                  const durationStr = toSafeStr(exp?.duration);
+                  const descStr = toSafeStr(exp?.description);
+
+                  return (
+                    <div key={idx} className="experience-item-card">
+                      <div className="exp-item-top">
+                        <div>
+                          <h4 className="exp-role">{roleStr}</h4>
+                          <span className="exp-company text-purple">{companyStr}</span>
+                        </div>
+                        {durationStr && <span className="exp-duration">{durationStr}</span>}
                       </div>
-                      {exp.duration && <span className="exp-duration">{exp.duration}</span>}
+                      {descStr && <p className="exp-desc">{descStr}</p>}
                     </div>
-                    {exp.description && <p className="exp-desc">{exp.description}</p>}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="empty-section-placeholder">
@@ -220,21 +241,27 @@ export function ResumePreview({
             </div>
             {projects && projects.length > 0 ? (
               <div className="projects-list">
-                {projects.map((proj, idx) => (
-                  <div key={idx} className="project-item-card">
-                    <h4 className="proj-title">{proj.title || `Project #${idx + 1}`}</h4>
-                    {proj.description && <p className="proj-desc">{proj.description}</p>}
-                    {proj.technologies && proj.technologies.length > 0 && (
-                      <div className="proj-tech-tags mt-2">
-                        {proj.technologies.map((t, i) => (
-                          <span key={i} className="tech-badge">
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                {projects.map((proj, idx) => {
+                  const projTitleStr = toSafeStr(proj?.title || proj, `Project #${idx + 1}`);
+                  const projDescStr = toSafeStr(proj?.description);
+                  const projTechs = toSafeArr(proj?.technologies);
+
+                  return (
+                    <div key={idx} className="project-item-card">
+                      <h4 className="proj-title">{projTitleStr}</h4>
+                      {projDescStr && <p className="proj-desc">{projDescStr}</p>}
+                      {projTechs.length > 0 && (
+                        <div className="proj-tech-tags mt-2">
+                          {projTechs.map((t, i) => (
+                            <span key={i} className="tech-badge">
+                              {toSafeStr(t)}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div className="empty-section-placeholder">
@@ -257,7 +284,7 @@ export function ResumePreview({
               <div className="pills-flex">
                 {skills.map((skill, idx) => (
                   <span key={idx} className="skill-pill-item">
-                    {skill}
+                    {toSafeStr(skill)}
                   </span>
                 ))}
               </div>
@@ -278,7 +305,7 @@ export function ResumePreview({
               <div className="pills-flex">
                 {technologies.map((tech, idx) => (
                   <span key={idx} className="tech-pill-item">
-                    {tech}
+                    {toSafeStr(tech)}
                   </span>
                 ))}
               </div>
@@ -299,9 +326,9 @@ export function ResumePreview({
               <div className="education-list">
                 {education.map((edu, idx) => (
                   <div key={idx} className="edu-item">
-                    <h4 className="edu-degree">{edu.degree || 'Degree'}</h4>
-                    <span className="edu-inst">{edu.institution || 'University'}</span>
-                    {edu.year && <span className="edu-year">{edu.year}</span>}
+                    <h4 className="edu-degree">{toSafeStr(edu.degree || edu, 'Degree')}</h4>
+                    <span className="edu-inst">{toSafeStr(edu.institution, 'University')}</span>
+                    {edu.year && <span className="edu-year">{toSafeStr(edu.year)}</span>}
                   </div>
                 ))}
               </div>
@@ -323,7 +350,7 @@ export function ResumePreview({
                 {certifications.map((cert, idx) => (
                   <li key={idx}>
                     <Sparkles size={12} className="mr-1 text-warning" />
-                    {cert}
+                    {toSafeStr(cert)}
                   </li>
                 ))}
               </ul>
@@ -344,7 +371,7 @@ export function ResumePreview({
               <div className="pills-flex">
                 {languages.map((lang, idx) => (
                   <span key={idx} className="lang-pill-item">
-                    {lang}
+                    {toSafeStr(lang)}
                   </span>
                 ))}
               </div>

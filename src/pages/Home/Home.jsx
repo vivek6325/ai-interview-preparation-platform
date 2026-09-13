@@ -6,13 +6,12 @@ import HowItWorksSection from '../../components/landing/HowItWorksSection';
 import DashboardPreviewSection from '../../components/landing/DashboardPreviewSection';
 import InterviewPreviewSection from '../../components/landing/InterviewPreviewSection';
 import TestimonialsSection from '../../components/landing/TestimonialsSection';
-import PricingSection from '../../components/landing/PricingSection';
 import FaqSection from '../../components/landing/FaqSection';
 import FooterSection from '../../components/landing/FooterSection';
 
 /**
  * Home Component (Landing Page Redesign)
- * Orchestrates 10 modular Vercel/Linear inspired landing page sections:
+ * Orchestrates modular Vercel/Linear inspired landing page sections:
  * 1. HeroSection
  * 2. StatsSection
  * 3. FeaturesSection
@@ -20,9 +19,8 @@ import FooterSection from '../../components/landing/FooterSection';
  * 5. DashboardPreviewSection
  * 6. InterviewPreviewSection
  * 7. TestimonialsSection
- * 8. PricingSection
- * 9. FaqSection
- * 10. FooterSection
+ * 8. FaqSection
+ * 9. FooterSection
  */
 function Home() {
   const navigate = useNavigate();
@@ -58,16 +56,14 @@ function Home() {
       {/* 7. Testimonials */}
       <TestimonialsSection />
 
-      {/* 8. Pricing (Coming Soon) */}
-      <PricingSection onStartPractice={handleStartPractice} />
-
-      {/* 9. FAQ */}
+      {/* 8. FAQ */}
       <FaqSection />
 
-      {/* 10. Footer */}
+      {/* 9. Footer */}
       <FooterSection />
     </div>
   );
 }
 
 export default Home;
+

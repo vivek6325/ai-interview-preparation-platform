@@ -512,7 +512,111 @@
 }
 
 /* ========================================================
-   5. RESPONSIVE BREAKPOINTS
+   5. PRACTICE DOMAIN TRACK CARDS
+   ======================================================== */
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.role-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: left;
+  transition: var(--transition-smooth);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.role-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-hover);
+  box-shadow: 0 16px 40px rgba(99, 102, 241, 0.15);
+}
+
+.role-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.role-card h3 {
+  font-family: var(--heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.role-card p {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 1.5rem;
+  flex-grow: 1;
+}
+
+.difficulty-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.difficulty-pill.easy { background: rgba(16, 185, 129, 0.12); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.25); }
+.difficulty-pill.medium { background: rgba(245, 158, 11, 0.12); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.25); }
+.difficulty-pill.hard { background: rgba(239, 68, 68, 0.12); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.25); }
+
+.question-count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-start-role-mock {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.25);
+}
+
+.btn-start-role-mock:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.btn-start-role-mock .arrow {
+  transition: transform 0.2s ease;
+}
+
+.btn-start-role-mock:hover .arrow {
+  transform: translateX(4px);
+}
+
+/* ========================================================
+   6. RESPONSIVE BREAKPOINTS
    ======================================================== */
 @media (max-width: 1200px) {
   .metrics-6-grid {

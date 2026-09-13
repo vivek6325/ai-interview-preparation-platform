@@ -45,9 +45,14 @@ export async function apiRequest(endpoint, options = {}) {
     ...options.headers,
   };
 
+  const controller = new AbortController();
+  const timeoutMs = options.timeout || 10000;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
   const config = {
     ...options,
     headers: defaultHeaders,
+    signal: options.signal || controller.signal,
   };
 
   if (config.body && typeof config.body === 'object') {
@@ -56,6 +61,7 @@ export async function apiRequest(endpoint, options = {}) {
 
   try {
     const response = await fetch(url, config);
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -71,7 +77,11 @@ export async function apiRequest(endpoint, options = {}) {
         }
       }
       const errorData = await response.json().catch(() => ({}));
-      const error = new Error(errorData.message || `HTTP error! Status: ${response.status}`);
+      let rawMsg = errorData.message || `HTTP error! Status: ${response.status}`;
+      if (typeof rawMsg === 'string' && (rawMsg.includes('GoogleGenerativeAI') || rawMsg.includes('429') || rawMsg.includes('Quota') || rawMsg.includes('Too Many Requests') || rawMsg.includes('generativelanguage'))) {
+        rawMsg = 'AI service rate limit reached. Proceeding with curated domain question engine.';
+      }
+      const error = new Error(rawMsg);
       error.status = response.status;
       error.data = errorData;
       throw error;
@@ -79,10 +89,20 @@ export async function apiRequest(endpoint, options = {}) {
 
     return await response.json();
   } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      const timeoutError = new Error('Request timed out. Server did not respond in time.');
+      timeoutError.status = 504;
+      throw timeoutError;
+    }
     if (error.status) {
       throw error;
     }
-    const networkError = new Error(error.message || 'Network connection failed.');
+    let rawMsg = error.message || 'Network connection failed.';
+    if (typeof rawMsg === 'string' && (rawMsg.includes('GoogleGenerativeAI') || rawMsg.includes('429') || rawMsg.includes('Quota') || rawMsg.includes('Too Many Requests') || rawMsg.includes('generativelanguage'))) {
+      rawMsg = 'AI service rate limit reached. Proceeding with curated domain question engine.';
+    }
+    const networkError = new Error(rawMsg);
     networkError.status = 503;
     throw networkError;
   }
@@ -255,6 +275,27 @@ export async function extractResumeApi(textOrPayload) {
       method: 'POST',
       body: { text: textOrPayload }
     });
+  }
+
+  if (typeof File !== 'undefined' && textOrPayload instanceof File) {
+    const formData = new FormData();
+    formData.append('resume', textOrPayload);
+
+    const url = `${BASE_URL}/resume/extract`;
+    const token = localStorage.getItem('token');
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.message || 'Unable to extract structured resume information.');
+    }
+
+    return await res.json();
   }
 
   return await apiRequest('/resume/extract', {

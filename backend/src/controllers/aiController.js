@@ -1,5 +1,7 @@
 import fs from 'fs';
+import mongoose from 'mongoose';
 import Interview from '../models/Interview.js';
+import { mockDatabase } from './interviewController.js';
 import { generateInterviewQuestions, evaluateInterviewAnswers } from '../services/aiService.js';
 import { generateQuestions, generateQuestionsFromResume } from '../services/ai/questionGenerator.js';
 import { generateFeedback, generateInterviewReport, generateCommunicationFeedback } from '../services/ai/feedbackGenerator.js';
@@ -34,27 +36,54 @@ export const generateSession = async (req, res) => {
       throw new Error('Gemini API returned an empty or malformed questions list.');
     }
 
-    console.log("Authenticated User:", req.user);
-    console.log("Saving userId:", req.user._id);
+    const validUserId = (req.user?._id && mongoose.Types.ObjectId.isValid(req.user._id)) ? req.user._id : null;
+    let savedInterview = null;
 
-    // Create and save a new pending Interview document in MongoDB
-    const newInterview = new Interview({
-      userId: req.user._id,
-      title: `${role} AI Interview`,
-      role,
-      difficulty: difficulty.toLowerCase(),
-      status: 'pending',
-      questions: questionsList.map((q) => ({
-        questionText: q.question,
-        userAnswer: '',
-        score: null,
-        feedback: '',
-        strength: '',
-        improvement: '',
-      })),
-    });
+    if (mongoose.connection && mongoose.connection.readyState === 1) {
+      try {
+        const newInterview = new Interview({
+          ...(validUserId && { userId: validUserId }),
+          title: `${role} AI Interview`,
+          role,
+          difficulty: difficulty.toLowerCase(),
+          status: 'pending',
+          questions: questionsList.map((q) => ({
+            questionText: q.question,
+            userAnswer: '',
+            score: null,
+            feedback: '',
+            strength: '',
+            improvement: '',
+          })),
+        });
+        savedInterview = await newInterview.save();
+      } catch (dbErr) {
+        console.warn('⚠️ [aiController] MongoDB write failed, using fallback:', dbErr.message);
+      }
+    }
 
-    const savedInterview = await newInterview.save();
+    if (!savedInterview) {
+      savedInterview = {
+        _id: new mongoose.Types.ObjectId().toString(),
+        userId: req.user?._id || 'demo_user',
+        title: `${role} AI Interview`,
+        role,
+        difficulty: difficulty.toLowerCase(),
+        status: 'pending',
+        questions: questionsList.map((q, idx) => ({
+          _id: new mongoose.Types.ObjectId().toString(),
+          questionText: q.question,
+          userAnswer: '',
+          score: null,
+          feedback: '',
+          strength: '',
+          improvement: '',
+        })),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      mockDatabase.unshift(savedInterview);
+    }
 
     res.status(201).json({
       status: 'success',

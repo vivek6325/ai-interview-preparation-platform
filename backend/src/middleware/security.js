@@ -36,10 +36,11 @@ export const corsSecurity = cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 });
 
-// 3. General API Rate Limiter (100 requests per 15 minutes)
+// 3. General API Rate Limiter (Skipped in development mode)
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 200,
+  max: 5000,
+  skip: () => process.env.NODE_ENV !== 'production',
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -49,10 +50,11 @@ export const generalLimiter = rateLimit({
   }
 });
 
-// 4. Strict Rate Limiter for Auth & AI Generation (20 requests per 15 minutes)
+// 4. Strict Rate Limiter for Auth & AI Generation (Skipped in development mode)
 export const strictLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 30,
+  max: 1000,
+  skip: () => process.env.NODE_ENV !== 'production',
   standardHeaders: true,
   legacyHeaders: false,
   message: {

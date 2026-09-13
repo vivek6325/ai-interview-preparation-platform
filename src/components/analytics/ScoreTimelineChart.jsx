@@ -1,4 +1,5 @@
 import React from 'react';
+import './AnalyticsComponents.css';
 
 /**
  * ScoreTimelineChart Component
@@ -44,17 +45,17 @@ export function ScoreTimelineChart({ data, height = 240 }) {
   const rollingPath = rollingAverage.map((val, idx) => `${getX(idx)},${getY(val)}`).join(' ');
 
   return (
-    <div className="card bg-dark text-light border border-secondary border-opacity-25 rounded-4 p-3 shadow-sm text-center h-100">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h4 className="h6 fw-bold mb-0 text-info text-uppercase tracking-wider">📈 Score History & Rolling Progress</h4>
-        <div className="d-flex gap-3 fs-8">
-          <span className="text-primary font-bold">● Score</span>
-          <span className="text-warning font-bold">-- 3-Session Rolling Avg</span>
+    <div className="analytics-card">
+      <div className="analytics-card-header">
+        <h4 className="analytics-card-title">📈 Score History & Rolling Progress</h4>
+        <div style={{ display: 'flex', gap: '12px', fontSize: '0.78rem' }}>
+          <span style={{ color: 'var(--primary)', fontWeight: 700 }}>● Score</span>
+          <span style={{ color: 'var(--warning)', fontWeight: 700 }}>-- 3-Session Rolling Avg</span>
         </div>
       </div>
 
-      <div className="svg-responsive-wrapper" style={{ width: '100%', overflowX: 'auto' }}>
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-100 h-auto">
+      <div style={{ width: '100%', overflowX: 'auto' }}>
+        <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: 'auto' }}>
           {/* Y-Axis Horizontal Grid Lines */}
           {[0, 25, 50, 75, 100].map((val, idx) => {
             const y = getY(val);

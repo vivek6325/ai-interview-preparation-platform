@@ -1,8 +1,22 @@
 /* AIAssistantPanel Styling */
 .ai-assistant-panel {
+  --ds-bg-300: var(--card-bg, #18181b);
+  --ds-border-100: var(--border, rgba(255, 255, 255, 0.08));
+  --ds-border-200: var(--border-hover, rgba(99, 102, 241, 0.3));
+  --ds-text-100: var(--text-primary, #f8fafc);
+  --ds-text-200: var(--text-secondary, #94a3b8);
+  --ds-emerald-500: #34d399;
+  --font-sm: 0.85rem;
+  --font-xs: 0.78rem;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius-lg: 16px;
+  --space-1: 4px;
+  --space-3: 12px;
+  --space-4: 16px;
+
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: 1rem;
   width: 100%;
 }
 

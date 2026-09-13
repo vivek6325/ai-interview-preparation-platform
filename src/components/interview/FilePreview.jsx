@@ -39,7 +39,43 @@ export function FilePreview({
   const formattedSize = fileDetails?.formattedSize || formatFileSize(rawSize);
   const extension = (fileDetails?.extension || getFileExtension(fileName).replace('.', '')).toUpperCase() || 'PDF';
 
-  const isDocx = extension === 'DOCX';
+  const getSafeString = (val, fallback = '') => {
+    if (typeof val === 'string') return val;
+    if (typeof val === 'number') return String(val);
+    if (val && typeof val === 'object') {
+      return val.name || val.title || val.role || val.label || fallback;
+    }
+    return fallback;
+  };
+
+  const getSafeSkillList = (data) => {
+    if (!data || typeof data !== 'object') return ['JavaScript', 'React', 'Node.js'];
+    const candidates = [data.topSkills, data.skills, data.technologies];
+    for (const cand of candidates) {
+      if (Array.isArray(cand) && cand.length > 0) {
+        return cand.map(item => getSafeString(item, '')).filter(Boolean);
+      }
+      if (typeof cand === 'string' && cand.trim()) {
+        return cand.split(',').map(s => s.trim()).filter(Boolean);
+      }
+    }
+    return ['JavaScript', 'React', 'Node.js'];
+  };
+
+  const candidateDisplayName = extractedData
+    ? getSafeString(
+        extractedData.name || extractedData.detectedRole,
+        (Array.isArray(extractedData.experience) && getSafeString(extractedData.experience[0]?.role)) || 'Candidate'
+      )
+    : 'Candidate';
+
+  const candidateExpText = extractedData
+    ? typeof extractedData.experience === 'string'
+      ? extractedData.experience
+      : getSafeString(extractedData.experienceYears, '3+ years')
+    : '3+ years';
+
+  const displaySkills = getSafeSkillList(extractedData);
 
   return (
     <motion.div
@@ -135,19 +171,23 @@ export function FilePreview({
 
             <div className="extracted-chips-grid">
               <div className="chip-item">
-                <span className="chip-label">Detected Role:</span>
-                <span className="chip-val text-purple">{extractedData.detectedRole}</span>
+                <span className="chip-label">Candidate Name / Role:</span>
+                <span className="chip-val text-purple">
+                  {candidateDisplayName}
+                </span>
               </div>
               <div className="chip-item">
                 <span className="chip-label">Est. Experience:</span>
-                <span className="chip-val text-blue">{extractedData.experienceYears}</span>
+                <span className="chip-val text-blue">
+                  {candidateExpText}
+                </span>
               </div>
             </div>
 
             <div className="extracted-skills-row mt-2">
               <span className="chip-label block mb-1">Extracted Key Skills:</span>
               <div className="skill-tags">
-                {extractedData.topSkills.map((skill, i) => (
+                {displaySkills.map((skill, i) => (
                   <span key={i} className="skill-pill">
                     {skill}
                   </span>

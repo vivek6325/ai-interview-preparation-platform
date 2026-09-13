@@ -1,4 +1,5 @@
 import React from 'react';
+import './AnalyticsComponents.css';
 
 /**
  * BadgesMilestonesCard Component
@@ -24,33 +25,29 @@ export function BadgesMilestonesCard({ data, readinessScore = 82 }) {
   };
 
   return (
-    <div className="card bg-dark text-light border border-secondary border-opacity-25 rounded-4 p-4 shadow-sm h-100">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h4 className="h5 fw-bold mb-0 text-info d-flex align-items-center gap-2">
+    <div className="analytics-card">
+      <div className="analytics-card-header">
+        <h4 className="analytics-card-title">
           <span>🏆</span> Milestones, Streaks & Readiness Meter
         </h4>
-        <span className="badge bg-warning-subtle text-warning border border-warning fs-7">
+        <span className="analytics-badge badge-amber">
           🔥 {milestones.currentStreak} Day Streak (Best: {milestones.bestStreak})
         </span>
       </div>
 
       {/* Career Readiness Meter Bar */}
-      <div className="mb-4 p-3 rounded-3 bg-black bg-opacity-40 border border-secondary border-opacity-25">
-        <div className="d-flex justify-content-between align-items-center mb-2">
-          <span className="fs-7 font-semibold text-secondary">AI Career Readiness Index</span>
-          <span className="fs-5 fw-bold text-success">{readinessScore} / 100</span>
+      <div className="readiness-container">
+        <div className="readiness-header">
+          <span>AI Career Readiness Index</span>
+          <span className="readiness-score-text">{readinessScore} / 100</span>
         </div>
-        <div className="progress bg-dark border border-secondary" style={{ height: '14px' }}>
+        <div className="progress-track-custom">
           <div
-            className="progress-bar progress-bar-striped progress-bar-animated bg-success"
+            className="progress-fill-custom"
             style={{ width: `${readinessScore}%` }}
-            role="progressbar"
-            aria-valuenow={readinessScore}
-            aria-valuemin={0}
-            aria-valuemax={100}
           ></div>
         </div>
-        <div className="fs-8 text-muted mt-2 d-flex justify-content-between">
+        <div className="readiness-labels">
           <span>Needs Practice (0-60)</span>
           <span>Interview Ready (75-90)</span>
           <span>Expert Candidate (90+)</span>
@@ -58,23 +55,19 @@ export function BadgesMilestonesCard({ data, readinessScore = 82 }) {
       </div>
 
       {/* Achievement Badges Grid */}
-      <div className="mb-3">
-        <h5 className="h6 fw-bold text-light mb-2">🏅 Achievement Badges</h5>
-        <div className="d-flex flex-wrap gap-2">
+      <div style={{ marginBottom: '1.25rem' }}>
+        <h5 style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.75rem' }}>🏅 Achievement Badges</h5>
+        <div className="badges-flex-grid">
           {milestones.badges?.map((b, idx) => (
             <div
               key={idx}
-              className={`p-2 rounded-3 border d-flex align-items-center gap-2 fs-7 ${
-                b.unlocked
-                  ? 'bg-primary-subtle text-primary border-primary'
-                  : 'bg-black bg-opacity-30 text-muted border-secondary opacity-50'
-              }`}
+              className={`badge-item-card ${b.unlocked ? 'unlocked' : ''}`}
               title={b.description}
             >
-              <span className="fs-5">{b.icon}</span>
+              <span className="badge-item-icon">{b.icon}</span>
               <div>
-                <strong className="d-block fs-8">{b.title}</strong>
-                <span className="fs-8">{b.unlocked ? 'Unlocked' : 'Locked'}</span>
+                <strong className="badge-item-title">{b.title}</strong>
+                <span className="badge-item-status">{b.unlocked ? 'Unlocked' : 'Locked'}</span>
               </div>
             </div>
           ))}
@@ -82,11 +75,11 @@ export function BadgesMilestonesCard({ data, readinessScore = 82 }) {
       </div>
 
       {/* Weekly Challenge & Quote */}
-      <div className="p-3 rounded-3 bg-black bg-opacity-30 border border-info border-opacity-25 mt-3">
-        <div className="fs-7 text-info mb-1">
+      <div className="challenge-banner">
+        <div>
           🎯 <strong>Weekly Challenge:</strong> {milestones.weeklyChallenge}
         </div>
-        <div className="fs-8 text-muted italic">
+        <div className="challenge-quote">
           💡 {milestones.motivationalQuote}
         </div>
       </div>

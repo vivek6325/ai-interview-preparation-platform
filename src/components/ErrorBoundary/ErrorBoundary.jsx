@@ -18,6 +18,11 @@ export class ErrorBoundary extends React.Component {
     console.error('⚠️ [ErrorBoundary] Caught unhandled rendering exception:', error, errorInfo);
   }
 
+  handleTryAgain = () => {
+    this.setState({ hasError: false, error: null });
+    window.location.reload();
+  };
+
   handleReset = () => {
     this.setState({ hasError: false, error: null });
     window.location.href = '/dashboard';
@@ -38,7 +43,7 @@ export class ErrorBoundary extends React.Component {
               <button
                 type="button"
                 className="btn btn-outline-secondary px-4"
-                onClick={() => window.location.reload()}
+                onClick={this.handleTryAgain}
               >
                 Reload Page
               </button>
