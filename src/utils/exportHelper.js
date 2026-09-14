@@ -36,12 +36,34 @@ export function downloadInterviewReport(session) {
         <h4>Question ${q.number}: ${q.question}</h4>
         <span class="q-badge">Score: ${q.score}%</span>
       </div>
+      <div class="q-point user-ans">
+        <strong>📝 Your Submitted Answer</strong>
+        <p style="font-style: italic;">"${q.userAnswer}"</p>
+      </div>
+      <div class="q-point model-ans">
+        <strong>💡 Ideal Model Answer & Best Practice Reference</strong>
+        <p>${q.modelAnswer}</p>
+      </div>
+      ${Array.isArray(q.deductions) && q.deductions.length > 0 ? `
+        <div class="q-point deduction">
+          <strong>⚠️ Mark Loss Factors & Score Deductions</strong>
+          <ul>
+            ${q.deductions.map(d => `<li>${d}</li>`).join('')}
+          </ul>
+        </div>
+      ` : ''}
+      ${q.mistakes ? `
+        <div class="q-point mistake">
+          <strong>🔍 Specific Mistakes & Misconceptions</strong>
+          <p>${q.mistakes}</p>
+        </div>
+      ` : ''}
       <div class="q-point strength">
         <strong>🔥 Key Strength</strong>
         <p>${q.strength}</p>
       </div>
       <div class="q-point improvement">
-        <strong>💡 Area for Growth</strong>
+        <strong>🚀 Area for Growth</strong>
         <p>${q.improvement}</p>
       </div>
     </div>
@@ -215,6 +237,31 @@ export function downloadInterviewReport(session) {
       border-radius: 8px;
       font-size: 13.5px;
       margin-top: 10px;
+    }
+    .q-point.user-ans {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: #f1f5f9;
+    }
+    .q-point.model-ans {
+      background: rgba(16, 185, 129, 0.04);
+      border: 1px solid rgba(16, 185, 129, 0.15);
+      border-left: 4px solid #10b981;
+      color: #e2e8f0;
+    }
+    .q-point.deduction {
+      background: rgba(239, 68, 68, 0.04);
+      border: 1px solid rgba(239, 68, 68, 0.12);
+      color: #f87171;
+    }
+    .q-point.deduction ul {
+      margin: 4px 0 0;
+      padding-left: 20px;
+    }
+    .q-point.mistake {
+      background: rgba(245, 158, 11, 0.04);
+      border: 1px solid rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
     }
     .q-point.strength {
       background: rgba(16, 185, 129, 0.04);
