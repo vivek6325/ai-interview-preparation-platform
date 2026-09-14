@@ -28,7 +28,7 @@ export function cleanExtractedText(rawText) {
   return rawText
     // Standardize line endings
     .replace(/\r\n|\r/g, '\n')
-    // Remove non-printable control characters except line feeds and tabs
+    // eslint-disable-next-line no-control-regex
     .replace(/[\x00-\x09\x0B-\x1F\x7F-\x9F]/g, '')
     // Replace horizontal whitespace (spaces/tabs) with a single space
     .replace(/[ \t]+/g, ' ')
@@ -80,7 +80,7 @@ export async function parsePDFBuffer(dataBuffer) {
     return parsed.text || '';
   } catch (err) {
     console.error('❌ [Resume Parser Service] PDF Parsing Error:', err.message);
-    throw new Error(`Failed to parse PDF document: ${err.message}`);
+    throw new Error(`Failed to parse PDF document: ${err.message}`, { cause: err });
   }
 }
 
@@ -100,7 +100,7 @@ export async function parseDOCXBuffer(dataBuffer) {
     return result.value || '';
   } catch (err) {
     console.error('❌ [Resume Parser Service] DOCX Parsing Error:', err.message);
-    throw new Error(`Failed to parse DOCX document: ${err.message}`);
+    throw new Error(`Failed to parse DOCX document: ${err.message}`, { cause: err });
   }
 }
 
@@ -127,7 +127,7 @@ export async function parseResumeFile(filePath, originalName) {
   let fileBuffer;
   try {
     fileBuffer = fs.readFileSync(filePath);
-  } catch (err) {
+  } catch {
     fileBuffer = Buffer.from('');
   }
 
@@ -138,14 +138,14 @@ export async function parseResumeFile(filePath, originalName) {
     if (ext === '.pdf') {
       try {
         rawText = await parsePDFBuffer(fileBuffer);
-      } catch (pdfErr) {
+      } catch {
         // Fallback: attempt mammoth parsing in case file is docx renamed to pdf
         rawText = await parseDOCXBuffer(fileBuffer).catch(() => '');
       }
     } else if (ext === '.docx' || ext === '.doc') {
       try {
         rawText = await parseDOCXBuffer(fileBuffer);
-      } catch (docxErr) {
+      } catch {
         // Fallback: attempt pdf parsing in case file is pdf renamed to docx
         rawText = await parsePDFBuffer(fileBuffer).catch(() => '');
       }

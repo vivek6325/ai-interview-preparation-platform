@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Search, Filter, Trash2, Eye, Calendar, Award, Sparkles, Download, Printer } from 'lucide-react';
+import { Search, Trash2, Eye, Calendar, Sparkles, Download, Printer } from 'lucide-react';
 import { getHistoryAnalytics, exportAnalyticsReport } from '../../services/analyticsService';
 import { deleteInterview } from '../../services/api';
 import { useToast } from '../../components/Toast/ToastContext';
@@ -22,9 +22,7 @@ function History() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [interviews, setInterviews] = useState([]);
-  const [paginationMeta, setPaginationMeta] = useState({ page: 1, totalPages: 1, total: 0 });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [exporting, setExporting] = useState(false);
 
   // Quick report modal state
@@ -42,35 +40,40 @@ function History() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedDeleteId, setSelectedDeleteId] = useState(null);
 
-  const fetchHistoryData = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const params = {
-        search: searchTerm,
-        role: categoryFilter !== 'All' ? categoryFilter : undefined,
-        difficulty: difficultyFilter !== 'All' ? difficultyFilter : undefined,
-        status: statusFilter !== 'All' ? (statusFilter === 'Completed' ? 'completed' : 'pending') : undefined,
-        sortBy: sortOption === 'highest' || sortOption === 'lowest' ? 'overallScore' : 'createdAt',
-        order: sortOption === 'oldest' || sortOption === 'lowest' ? 'asc' : 'desc',
-        page: currentPage,
-        limit: 9
-      };
-
-      const response = await getHistoryAnalytics(params);
-      const data = response?.data || response;
-      setInterviews(data?.interviews || []);
-      setPaginationMeta(data?.pagination || { page: 1, totalPages: 1, total: (data?.interviews || []).length });
-    } catch (err) {
-      console.error('Error fetching history analytics:', err);
-      setError(err.message || 'Failed to retrieve your practice history.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    let isSubscribed = true;
+    const fetchHistoryData = async () => {
+      setLoading(true);
+      try {
+        const params = {
+          search: searchTerm,
+          role: categoryFilter !== 'All' ? categoryFilter : undefined,
+          difficulty: difficultyFilter !== 'All' ? difficultyFilter : undefined,
+          status: statusFilter !== 'All' ? (statusFilter === 'Completed' ? 'completed' : 'pending') : undefined,
+          sortBy: sortOption === 'highest' || sortOption === 'lowest' ? 'overallScore' : 'createdAt',
+          order: sortOption === 'oldest' || sortOption === 'lowest' ? 'asc' : 'desc',
+          page: currentPage,
+          limit: 9
+        };
+
+        const response = await getHistoryAnalytics(params);
+        const data = response?.data || response;
+        if (isSubscribed) {
+          setInterviews(data?.interviews || []);
+        }
+      } catch (err) {
+        console.error('Error fetching history analytics:', err);
+      } finally {
+        if (isSubscribed) {
+          setLoading(false);
+        }
+      }
+    };
+
     fetchHistoryData();
+    return () => {
+      isSubscribed = false;
+    };
   }, [searchTerm, categoryFilter, difficultyFilter, statusFilter, sortOption, currentPage]);
 
   const updateSearchParam = (key, value) => {
@@ -99,7 +102,7 @@ function History() {
     try {
       await deleteInterview(selectedDeleteId);
       addToast('Mock interview record deleted successfully.', 'success');
-      fetchHistoryData();
+      setInterviews(prev => prev.filter(item => item._id !== selectedDeleteId));
     } catch (err) {
       console.error(err);
       addToast('Failed to delete interview record.', 'error');
@@ -275,7 +278,7 @@ function History() {
                   <Button
                     variant="glow"
                     size="sm"
-                    onClick={() => navigate('/interview', { state: { id: item._id } })}
+                    onClick={() => navigate(`/interview/${item._id}`)}
                   >
                     Continue →
                   </Button>

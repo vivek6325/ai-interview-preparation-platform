@@ -1,8 +1,5 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, Radar, Target, Trophy, Flame } from 'lucide-react';
 import { SectionHeader } from '../ui/SectionHeader';
-import { Card } from '../ui/Card';
 import './Landing.css';
 
 /**

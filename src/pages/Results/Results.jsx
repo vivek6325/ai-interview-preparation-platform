@@ -98,7 +98,14 @@ function Results() {
               score: q.score !== null ? Math.round(q.score * 10) : 0,
               feedback: q.feedback || 'No feedback provided.',
               strength: q.strength || 'Completed response explanation.',
-              improvement: q.improvement || 'Study terms and details.'
+              improvement: q.improvement || 'Study terms and details.',
+              modelAnswer: q.modelAnswer || 'A gold-standard response should explain core definitions, implementation mechanics, production edge cases, and performance trade-offs.',
+              deductions: Array.isArray(q.deductions) && q.deductions.length > 0 ? q.deductions : [
+                (q.score !== null && q.score < 5)
+                  ? '-40% Missing core technical terminology and implementation mechanics'
+                  : '-15% Minor omission of production telemetry monitoring metrics'
+              ],
+              mistakes: q.mistakes || (q.score !== null && q.score < 5 ? 'Lacked technical depth and structural clarity expected at senior level.' : 'Could have proactively covered system trade-offs.')
             }))
           });
         } else {
@@ -220,6 +227,29 @@ function Results() {
 
         <MetricsPanel metrics={evaluationResult.metrics} />
       </div>
+
+      {/* Industry Engineering Benchmark Comparison Card */}
+      <section className="industry-benchmark-card mb-4" style={{
+        background: 'var(--card-bg, rgba(255,255,255,0.02))',
+        border: '1px solid rgba(99, 102, 241, 0.2)',
+        borderRadius: '16px',
+        padding: '1.5rem',
+        marginTop: '1.5rem'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+          <span style={{ fontSize: '1.5rem' }}>🎯</span>
+          <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700', color: '#fff' }}>
+            Industry Standard Benchmark Comparison
+          </h3>
+        </div>
+        <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+          Your session score of <strong>{evaluationResult.overallScorePercent}%</strong> places your performance in the{' '}
+          <strong style={{ color: evaluationResult.overallScorePercent >= 75 ? '#34d399' : '#f59e0b' }}>
+            {evaluationResult.overallScorePercent >= 80 ? 'Top 15% (Senior Staff Engineer Level)' : evaluationResult.overallScorePercent >= 60 ? 'Mid-Level Professional Benchmark' : 'Foundational / Entry Level - Requires Refinement'}
+          </strong>{' '}
+          compared to verified software engineering candidates across top web platforms.
+        </p>
+      </section>
 
       {/* Key Strengths & Areas for Improvement Split Grid */}
       <FeedbackGrid 

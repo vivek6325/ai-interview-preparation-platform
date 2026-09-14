@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { Sliders, Mic, Sparkles, TrendingUp } from 'lucide-react';
 import { SectionHeader } from '../ui/SectionHeader';

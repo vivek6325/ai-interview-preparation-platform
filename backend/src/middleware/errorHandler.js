@@ -14,6 +14,7 @@ export function notFoundHandler(req, res, next) {
  * Global Error Handler Middleware
  * Catches all unhandled exceptions in the Express pipeline and returns formatted responses.
  */
+// eslint-disable-next-line no-unused-vars
 export function globalErrorHandler(err, req, res, next) {
   const statusCode = res.statusCode && res.statusCode !== 200 ? res.statusCode : (err.status || 500);
 

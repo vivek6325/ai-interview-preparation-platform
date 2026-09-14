@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { FileText, Trash2, CheckCircle2, Loader2, Sparkles, Cpu, Layers } from 'lucide-react';
 import { formatFileSize, getFileExtension } from '../../utils/fileValidation';
@@ -38,6 +37,7 @@ export function FilePreview({
   const rawSize = fileDetails?.size || file?.size || 0;
   const formattedSize = fileDetails?.formattedSize || formatFileSize(rawSize);
   const extension = (fileDetails?.extension || getFileExtension(fileName).replace('.', '')).toUpperCase() || 'PDF';
+  const isDocx = extension.toUpperCase() === 'DOCX';
 
   const getSafeString = (val, fallback = '') => {
     if (typeof val === 'string') return val;

@@ -30,36 +30,6 @@ export function useSpeechRecognition({ maxDuration = 180, onAutoSave } = {}) {
   const durationTimerRef = useRef(null);
   const supported = isSupported();
 
-  // Clean up timers on unmount
-  useEffect(() => {
-    return () => {
-      stopListening();
-      if (durationTimerRef.current) clearInterval(durationTimerRef.current);
-    };
-  }, []);
-
-  // Duration timer when listening
-  useEffect(() => {
-    if (isListening) {
-      setSpeakingDuration(0);
-      durationTimerRef.current = setInterval(() => {
-        setSpeakingDuration((prev) => {
-          const next = prev + 1;
-          if (maxDuration && next >= maxDuration) {
-            console.log('🎙️ [useSpeechRecognition] Max recording duration reached. Auto-stopping.');
-            stop();
-          }
-          return next;
-        });
-      }, 1000);
-    } else {
-      if (durationTimerRef.current) {
-        clearInterval(durationTimerRef.current);
-        durationTimerRef.current = null;
-      }
-    }
-  }, [isListening, maxDuration]);
-
   // Handle human-readable mic permission errors
   const parsePermissionError = (errEvent) => {
     const errType = errEvent?.error || errEvent;
@@ -79,6 +49,15 @@ export function useSpeechRecognition({ maxDuration = 180, onAutoSave } = {}) {
         return typeof errEvent?.message === 'string' ? errEvent.message : 'An error occurred with Speech Recognition.';
     }
   };
+
+  const stop = useCallback(() => {
+    stopListening();
+    setIsListening(false);
+    setInterimTranscript('');
+    if (onAutoSave && transcript) {
+      onAutoSave(transcript);
+    }
+  }, [onAutoSave, transcript]);
 
   const start = useCallback(() => {
     if (!supported) {
@@ -110,15 +89,6 @@ export function useSpeechRecognition({ maxDuration = 180, onAutoSave } = {}) {
     }
   }, [supported]);
 
-  const stop = useCallback(() => {
-    stopListening();
-    setIsListening(false);
-    setInterimTranscript('');
-    if (onAutoSave && transcript) {
-      onAutoSave(transcript);
-    }
-  }, [onAutoSave, transcript]);
-
   const reset = useCallback(() => {
     cancelListening();
     setIsListening(false);
@@ -127,6 +97,39 @@ export function useSpeechRecognition({ maxDuration = 180, onAutoSave } = {}) {
     setError(null);
     setSpeakingDuration(0);
   }, []);
+
+  // Clean up timers on unmount
+  useEffect(() => {
+    return () => {
+      stopListening();
+      if (durationTimerRef.current) clearInterval(durationTimerRef.current);
+    };
+  }, []);
+
+  // Duration timer when listening
+  useEffect(() => {
+    if (isListening) {
+      durationTimerRef.current = setInterval(() => {
+        setSpeakingDuration((prev) => {
+          const next = prev + 1;
+          if (maxDuration && next >= maxDuration) {
+            console.log('🎙️ [useSpeechRecognition] Max recording duration reached. Auto-stopping.');
+            stop();
+          }
+          return next;
+        });
+      }, 1000);
+    } else {
+      if (durationTimerRef.current) {
+        clearInterval(durationTimerRef.current);
+        durationTimerRef.current = null;
+      }
+    }
+
+    return () => {
+      if (durationTimerRef.current) clearInterval(durationTimerRef.current);
+    };
+  }, [isListening, maxDuration, stop]);
 
   return {
     transcript,

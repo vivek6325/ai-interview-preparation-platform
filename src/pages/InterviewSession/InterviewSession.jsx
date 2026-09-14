@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { generateQuestions, uploadResume, evaluateAnswer, generateInterviewReport } from '../../services/aiService';
 import { createInterview, updateInterview } from '../../services/api';
 import { useToast } from '../../components/Toast/ToastContext';
@@ -53,12 +53,18 @@ function InterviewSession() {
   const {
     isSpeaking,
     voices,
-    isSupported: isTtsSupported,
     settings: voiceSettings,
     updateSettings: updateVoiceSettings,
     speak,
     stop: stopSpeaking
   } = useSpeechSynthesis();
+
+  const handleAnswerChange = (questionId, newAnswer) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [questionId]: newAnswer
+    }));
+  };
 
   const {
     transcript,
@@ -80,13 +86,41 @@ function InterviewSession() {
     }
   });
 
+  const handleStopRecordingVoice = useCallback(() => {
+    stopRecording();
+    if (questions[currentIndex]) {
+      const qId = questions[currentIndex].id;
+      const currentAns = answers[qId] || transcript || '';
+      const words = currentAns.trim() ? currentAns.trim().split(/\s+/).length : 0;
+
+      setVoiceMetricsMap((prev) => ({
+        ...prev,
+        [qId]: {
+          speakingDuration: (prev[qId]?.speakingDuration || 0) + (speakingDuration || 1),
+          wordsSpoken: words
+        }
+      }));
+    }
+  }, [stopRecording, questions, currentIndex, answers, transcript, speakingDuration]);
+
+  const handleNext = useCallback(() => {
+    if (isListening) {
+      handleStopRecordingVoice();
+    }
+    stopSpeaking();
+
+    if (currentIndex < questions.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+    }
+  }, [isListening, handleStopRecordingVoice, stopSpeaking, currentIndex, questions.length]);
+
   // Sync current question's answer to transcript hook when question changes
   useEffect(() => {
     if (sessionStatus === 'active' && questions[currentIndex]) {
       const qId = questions[currentIndex].id;
       setTranscript(answers[qId] || '');
     }
-  }, [currentIndex, sessionStatus, questions]);
+  }, [currentIndex, sessionStatus, questions, answers, setTranscript]);
 
   // Read Question Aloud on Question change (if autoRead is enabled)
   useEffect(() => {
@@ -99,7 +133,7 @@ function InterviewSession() {
     return () => {
       stopSpeaking();
     };
-  }, [currentIndex, sessionStatus, voiceSettings.autoRead, isMuted, interviewMode]);
+  }, [currentIndex, sessionStatus, voiceSettings.autoRead, isMuted, interviewMode, questions, speak, stopSpeaking]);
 
   // Keyboard Shortcuts (Part 21)
   useEffect(() => {
@@ -126,7 +160,7 @@ function InterviewSession() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [sessionStatus, isListening, interviewMode, currentIndex, questions]);
+  }, [sessionStatus, isListening, interviewMode, currentIndex, questions, startRecording, handleNext, handleStopRecordingVoice]);
 
   // Resume Auto-fill trigger
   const handleResumeChange = async (e) => {
@@ -200,12 +234,6 @@ function InterviewSession() {
   };
 
   // Answer Change Handlers
-  const handleAnswerChange = (qId, val) => {
-    setAnswers(prev => ({
-      ...prev,
-      [qId]: val
-    }));
-  };
 
   const handleVoiceTranscriptChange = (val) => {
     if (questions[currentIndex]) {
@@ -218,23 +246,6 @@ function InterviewSession() {
   const handleStartRecordingVoice = () => {
     stopSpeaking();
     startRecording();
-  };
-
-  const handleStopRecordingVoice = () => {
-    stopRecording();
-    if (questions[currentIndex]) {
-      const qId = questions[currentIndex].id;
-      const currentAns = answers[qId] || transcript || '';
-      const words = currentAns.trim() ? currentAns.trim().split(/\s+/).length : 0;
-
-      setVoiceMetricsMap((prev) => ({
-        ...prev,
-        [qId]: {
-          speakingDuration: (prev[qId]?.speakingDuration || 0) + (speakingDuration || 1),
-          wordsSpoken: words
-        }
-      }));
-    }
   };
 
   const handleRetryVoice = () => {
@@ -255,19 +266,6 @@ function InterviewSession() {
       if (!prev) stopSpeaking();
       return !prev;
     });
-  };
-
-  const handleNext = () => {
-    if (isListening) {
-      handleStopRecordingVoice();
-    }
-    stopSpeaking();
-
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    } else {
-      handleFinishInterview();
-    }
   };
 
   const handlePrevious = () => {
@@ -297,7 +295,6 @@ function InterviewSession() {
 
     try {
       const feedbackMap = {};
-      let scoreSum = 0;
       let totalSpeakingDuration = 0;
       let totalWordsSpoken = 0;
 
@@ -307,7 +304,6 @@ function InterviewSession() {
         const expectedPoints = q.expectedAnswerPoints || [];
         const feedbackRes = await evaluateAnswer(q.question, answerText, expectedPoints);
         feedbackMap[q.id] = feedbackRes;
-        scoreSum += feedbackRes.overallScore || feedbackRes.score || 0;
 
         // Calculate Voice Analytics per question
         const metrics = voiceMetricsMap[q.id] || {};

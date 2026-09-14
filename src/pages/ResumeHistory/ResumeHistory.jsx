@@ -10,7 +10,6 @@ import {
   Play,
   Sparkles,
   CheckCircle2,
-  Clock,
   PlusCircle,
   X
 } from 'lucide-react';
@@ -18,7 +17,6 @@ import { getResumesApi, deleteResumeApi, createInterview } from '../../services/
 import { formatDate } from '../../utils/helpers';
 import { formatFileSize } from '../../utils/fileValidation';
 import { useToast } from '../../components/Toast/ToastContext';
-import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { SkeletonCard } from '../../components/ui/Skeleton';
@@ -50,23 +48,47 @@ function ResumeHistory() {
   // Launching state
   const [launchingId, setLaunchingId] = useState(null);
 
-  const fetchResumeHistory = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const res = await getResumesApi();
-      const list = res?.resumes || res?.data?.resumes || [];
-      setResumes(list);
-    } catch (err) {
-      console.error('Error fetching resume history:', err);
-      setError(err.message || 'Failed to load resume history.');
-    } finally {
-      setIsLoading(false);
-    }
+  const handleRetry = () => {
+    setIsLoading(true);
+    setError(null);
+    getResumesApi()
+      .then((res) => {
+        const list = res?.resumes || res?.data?.resumes || [];
+        setResumes(list);
+      })
+      .catch((err) => {
+        console.error('Error fetching resume history:', err);
+        setError(err.message || 'Failed to load resume history.');
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   useEffect(() => {
-    fetchResumeHistory();
+    let isSubscribed = true;
+    getResumesApi()
+      .then((res) => {
+        if (isSubscribed) {
+          const list = res?.resumes || res?.data?.resumes || [];
+          setResumes(list);
+        }
+      })
+      .catch((err) => {
+        if (isSubscribed) {
+          console.error('Error fetching resume history:', err);
+          setError(err.message || 'Failed to load resume history.');
+        }
+      })
+      .finally(() => {
+        if (isSubscribed) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isSubscribed = false;
+    };
   }, []);
 
   const handleViewResume = (resume) => {
@@ -190,7 +212,7 @@ function ResumeHistory() {
       {error && !isLoading && (
         <div className="resume-empty-card">
           <p style={{ color: '#ef4444', marginBottom: '1rem' }}>{error}</p>
-          <Button variant="outline" size="sm" onClick={fetchResumeHistory}>
+          <Button variant="outline" size="sm" onClick={handleRetry}>
             Retry Loading
           </Button>
         </div>

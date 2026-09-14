@@ -1,6 +1,5 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Zap, PlayCircle, ShieldCheck, Star } from 'lucide-react';
+import { Sparkles, ArrowRight, PlayCircle, Star } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import './Landing.css';

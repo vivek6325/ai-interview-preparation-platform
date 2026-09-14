@@ -1,5 +1,4 @@
-import React from 'react';
-import { Globe, Share2, Code2, Terminal, Sparkles, Heart } from 'lucide-react';
+import { Globe, Share2, Code2, Heart } from 'lucide-react';
 import './Landing.css';
 
 /**

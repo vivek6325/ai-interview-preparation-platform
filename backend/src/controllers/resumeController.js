@@ -73,7 +73,7 @@ export async function uploadResumeFile(req, res, next) {
  * Saves or updates structured candidate resume and generated questions in MongoDB
  * (with in-memory fallback if database connection is offline).
  */
-export async function saveResume(req, res, next) {
+export async function saveResume(req, res) {
   try {
     const {
       resumeId,
@@ -181,7 +181,7 @@ export async function saveResume(req, res, next) {
  * Handles GET /api/resume
  * Returns all uploaded resumes for the user from MongoDB (or in-memory cache).
  */
-export async function getResumes(req, res, next) {
+export async function getResumes(req, res) {
   try {
     const isDbConnected = mongoose.connection.readyState === 1;
     let resumes = [];
@@ -223,7 +223,7 @@ export async function getResumes(req, res, next) {
  * Handles GET /api/resume/:id
  * Returns single resume metadata, extracted information, generated questions, and status.
  */
-export async function getResumeById(req, res, next) {
+export async function getResumeById(req, res) {
   try {
     const { id } = req.params;
     const isDbConnected = mongoose.connection.readyState === 1;
@@ -265,7 +265,7 @@ export async function getResumeById(req, res, next) {
  * Handles DELETE /api/resume/:id
  * Deletes MongoDB resume record AND removes stored binary file from disk.
  */
-export async function deleteResume(req, res, next) {
+export async function deleteResume(req, res) {
   try {
     const { id } = req.params;
     const isDbConnected = mongoose.connection.readyState === 1;

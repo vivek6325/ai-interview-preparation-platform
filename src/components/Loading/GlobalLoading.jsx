@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * GlobalLoading Component
  * Displayed during Suspense code-splitting route transitions.

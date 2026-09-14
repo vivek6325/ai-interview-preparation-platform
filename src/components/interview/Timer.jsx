@@ -10,9 +10,14 @@ function Timer({ initialSeconds = 60, onTimeUp, autoStart = true }) {
   const [isActive, setIsActive] = useState(autoStart);
   const intervalRef = useRef(null);
 
+  const prevPropsRef = useRef({ initialSeconds, autoStart });
+
   useEffect(() => {
-    setSeconds(initialSeconds);
-    setIsActive(autoStart);
+    if (prevPropsRef.current.initialSeconds !== initialSeconds || prevPropsRef.current.autoStart !== autoStart) {
+      prevPropsRef.current = { initialSeconds, autoStart };
+      setSeconds(initialSeconds);
+      setIsActive(autoStart);
+    }
   }, [initialSeconds, autoStart]);
 
   useEffect(() => {
@@ -39,7 +44,6 @@ function Timer({ initialSeconds = 60, onTimeUp, autoStart = true }) {
     };
   }, [isActive, onTimeUp]);
 
-  const handleStart = () => setIsActive(true);
   const handlePause = () => setIsActive(false);
   const handleResume = () => setIsActive(true);
   const handleReset = () => {

@@ -29,7 +29,7 @@ export function getFallbackQuestions(role = 'Software Engineer', difficulty = 'm
   const roleLower = (role || '').toLowerCase();
   const techLower = (technologies || '').toLowerCase();
 
-  let questions = [];
+  let questions;
 
   if (roleLower.includes('front') || techLower.includes('react') || techLower.includes('css')) {
     questions = [
@@ -91,35 +91,120 @@ export function getFallbackQuestions(role = 'Software Engineer', difficulty = 'm
 /**
  * Helper providing fallback session evaluation when Gemini API is rate-limited.
  */
+/**
+ * Helper providing fallback session evaluation when Gemini API is rate-limited.
+ */
 export function evaluateFallbackSession(questionsWithAnswers = []) {
   let totalScore = 0;
   const evaluatedQuestions = questionsWithAnswers.map((q) => {
     const text = q.questionText || '';
-    const answer = q.userAnswer || '';
-    let score = 7.5;
-    if (answer.length > 200) score = 9.0;
-    else if (answer.length > 80) score = 8.0;
-    else if (answer.length < 20) score = 5.0;
+    const rawAns = (q.userAnswer || '').trim();
+    const ansLower = rawAns.toLowerCase();
+
+    const isSkippedOrEmpty =
+      !rawAns ||
+      ansLower.includes('no response provided') ||
+      ansLower.includes('skipped by candidate') ||
+      ansLower.includes('timer limit');
+
+    let score;
+    let feedback;
+    let strength;
+    let improvement;
+    let modelAnswer = 'A comprehensive answer should cover fundamental principles, real-world examples, and performance trade-offs relevant to the prompt.';
+    let deductions;
+    let mistakes;
+
+    if (text.toLowerCase().includes('react') || text.toLowerCase().includes('dom')) {
+      modelAnswer = 'React relies on a lightweight in-memory Virtual DOM representation. When state changes occur, React creates a new VDOM tree and executes its heuristic O(N) Reconciliation diffing algorithm against the previous VDOM snapshot to calculate minimal DOM patches via Fiber nodes, maximizing render performance.';
+    } else if (text.toLowerCase().includes('sql') || text.toLowerCase().includes('query') || text.toLowerCase().includes('database')) {
+      modelAnswer = 'To optimize database performance, use B-Tree indexes on heavily queried column clauses (WHERE, JOIN, ORDER BY), examine execution plans using EXPLAIN ANALYZE, eliminate N+1 query patterns with eager joins, and maintain connection pools to prevent I/O bottlenecks.';
+    } else if (text.toLowerCase().includes('rest') || text.toLowerCase().includes('graphql') || text.toLowerCase().includes('node')) {
+      modelAnswer = 'Stateless REST architectures communicate using standard HTTP verbs and status codes, whereas GraphQL exposes a single flexible endpoint allowing clients to request exact fields via queries and mutations, eliminating over-fetching and under-fetching issues.';
+    }
+
+    if (isSkippedOrEmpty) {
+      score = 0.0;
+      feedback = 'No response provided for this question.';
+      strength = 'N/A - Question skipped.';
+      improvement = 'Review technical definitions and practice answering within time constraints.';
+      deductions = [
+        '-100% Complete penalty: No response submitted or question skipped'
+      ];
+      mistakes = 'Candidate did not attempt to answer this question.';
+    } else if (rawAns.length < 25) {
+      score = 2.5;
+      feedback = 'Response was extremely brief and lacked technical detail or structure.';
+      strength = 'Attempted to address the prompt.';
+      improvement = 'Provide a structured explanation with key domain terms and real-world examples.';
+      deductions = [
+        '-40% Insufficient detail and length',
+        '-35% Missing technical terminology and mechanisms'
+      ];
+      mistakes = 'The response was too short to demonstrate technical proficiency.';
+    } else if (rawAns.length < 75) {
+      score = 5.0;
+      feedback = 'Baseline answer provided, but needs deeper explanation of underlying mechanisms.';
+      strength = 'Covered basic concept definitions.';
+      improvement = 'Elaborate on edge-cases, performance trade-offs, and implementation details.';
+      deductions = [
+        '-30% Omitted edge-case handling and production metrics',
+        '-20% Lacks explicit STAR framework structuring'
+      ];
+      mistakes = 'Answer gave a superficial high-level overview without architectural depth.';
+    } else if (rawAns.length >= 200) {
+      score = 8.5;
+      feedback = 'Strong, detailed response with solid articulation and structured flow.';
+      strength = 'Comprehensive technical coverage matching interview benchmarks.';
+      improvement = 'Proactively highlight real-world production metrics and monitoring.';
+      deductions = [
+        '-15% Minor omission of real-world production telemetry metrics'
+      ];
+      mistakes = 'Could have proactively mentioned edge cases before being prompted.';
+    } else {
+      score = 7.0;
+      feedback = 'Good technical response addressing the primary aspects of the question.';
+      strength = 'Clear logical explanation of core principles.';
+      improvement = 'Structure response using explicit STAR (Situation, Task, Action, Result) points.';
+      deductions = [
+        '-20% Missing explicit STAR structure transitions',
+        '-10% Omitted detailed trade-off analysis'
+      ];
+      mistakes = 'Response was good but could be structured more cleanly using STAR points.';
+    }
 
     totalScore += score;
     return {
       questionText: text,
-      userAnswer: answer,
-      score,
-      feedback: score >= 8 ? 'Strong articulation with good technical depth.' : 'Good attempt, but expanding structure and vocabulary will improve score.',
-      strength: 'Identified key concepts matching the prompt requirements.',
-      improvement: 'Provide concrete metrics or architectural examples.'
+      userAnswer: rawAns || 'No response provided.',
+      score: parseFloat(score.toFixed(1)),
+      feedback,
+      strength,
+      improvement,
+      modelAnswer,
+      deductions,
+      mistakes
     };
   });
 
-  const avg = parseFloat((totalScore / (questionsWithAnswers.length || 1)).toFixed(1));
+  const count = questionsWithAnswers.length || 1;
+  const avg = parseFloat((totalScore / count).toFixed(1));
+  const grade = avg >= 8.0 ? 'Expert Candidate' : avg >= 5.5 ? 'Capable Professional' : 'Needs Development';
+
   return {
     questions: evaluatedQuestions,
     overallScore: avg,
-    grade: avg >= 8 ? 'Expert Candidate' : avg >= 6 ? 'Capable Professional' : 'Needs Development',
-    overallFeedback: 'Demonstrated solid understanding across interview questions with clear logical flow.',
-    strengths: ['Clear articulate answers', 'Good fundamental vocabulary', 'Structured delivery'],
-    improvements: ['Proactively mention performance edge-cases', 'Elaborate on real-world metrics']
+    grade,
+    overallFeedback: avg >= 5.5
+      ? 'Demonstrated clear technical engagement across answered interview prompts.'
+      : 'Session completed with several skipped or incomplete answers requiring further practice.',
+    strengths: avg >= 5.5
+      ? ['Completed key interview prompts', 'Good baseline technical vocabulary']
+      : ['Attempted mock interview session'],
+    improvements: [
+      'Attempt all questions without skipping',
+      'Use STAR framework (Situation, Task, Action, Result) for structured responses'
+    ]
   };
 }
 
@@ -164,7 +249,7 @@ export async function callGemini(prompt, isJsonResponse = true) {
         const cleanMsg = (error.message || '').includes('429') || (error.message || '').includes('Quota') || (error.message || '').includes('Too Many Requests')
           ? 'Gemini API quota rate limited.'
           : (error.message || 'Gemini API call failed.');
-        throw new Error(cleanMsg);
+        throw new Error(cleanMsg, { cause: error });
       }
 
       const delay = attempt * 1500;
@@ -222,11 +307,18 @@ export async function evaluateInterviewAnswers(questionsWithAnswers) {
       )
       .join('\n\n---\n\n');
 
-    const prompt = `You are an AI Interview Evaluator. Critically evaluate the candidate's answers below:
+    const prompt = `You are a strict, highly accurate AI Technical Interview Evaluator. Evaluate the candidate's answers below with precision:
 
 ${formattedQuestions}
 
-Analyze each response based on accuracy, depth, and structural organization.
+CRITICAL SCORING RUBRIC (Score out of 10 for each question):
+- 0.0: The answer is missing, skipped, contains "No response provided", "Question was skipped", or timer expired without response.
+- 1.0 - 3.0: The answer is incorrect, off-topic, gibberish, or fundamentally inaccurate.
+- 4.0 - 6.0: The answer is partial, overly brief, or lacks technical depth/correct terminology.
+- 7.0 - 8.5: The answer is technically accurate, well-structured, and directly answers the question.
+- 9.0 - 10.0: Comprehensive, exceptional answer with deep architectural insight, edge cases, and clear STAR format.
+
+Be honest and objective. Do NOT award high scores for wrong, vague, or empty answers.
 
 Return a JSON object matching this schema:
 {
@@ -234,17 +326,23 @@ Return a JSON object matching this schema:
     {
       "questionText": "The original question text...",
       "userAnswer": "The candidate's answer...",
-      "score": 8.0,
-      "feedback": "Constructive feedback details...",
-      "strength": "One specific strength...",
-      "improvement": "One concrete area for improvement..."
+      "score": 0.0,
+      "feedback": "Specific, honest feedback detailing what was correct or missing...",
+      "strength": "Specific strength or 'N/A - Question skipped'...",
+      "improvement": "Concrete action step to improve this response...",
+      "modelAnswer": "The gold-standard, ideal technical answer to this question...",
+      "deductions": [
+        "-30% Missing key technical terms...",
+        "-20% Omitted STAR framework structuring..."
+      ],
+      "mistakes": "Detailed explanation of where and why the candidate went wrong..."
     }
   ],
-  "overallScore": 8.0,
+  "overallScore": 0.0,
   "grade": "Expert Candidate | Capable Professional | Needs Development",
-  "overallFeedback": "Overall evaluation summary...",
-  "strengths": ["Overall strength 1"],
-  "improvements": ["Overall improvement 1"]
+  "overallFeedback": "Honest overall evaluation summary...",
+  "strengths": ["Key overall strength 1"],
+  "improvements": ["Key overall area for improvement 1"]
 }`;
 
     return await callGemini(prompt, true);

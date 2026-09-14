@@ -30,6 +30,20 @@ const QuestionSchema = new mongoose.Schema({
     default: '',
     trim: true,
   },
+  modelAnswer: {
+    type: String,
+    default: '',
+    trim: true,
+  },
+  deductions: {
+    type: [String],
+    default: [],
+  },
+  mistakes: {
+    type: String,
+    default: '',
+    trim: true,
+  },
   score: {
     type: Number,
     min: [0, 'Score cannot be less than 0'],

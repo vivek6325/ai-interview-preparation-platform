@@ -1,6 +1,5 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { Mic, Volume2, Sparkles, CheckCircle } from 'lucide-react';
+import { Mic, Volume2 } from 'lucide-react';
 import { SectionHeader } from '../ui/SectionHeader';
 import './Landing.css';
 

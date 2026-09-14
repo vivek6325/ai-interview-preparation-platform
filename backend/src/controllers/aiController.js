@@ -70,7 +70,7 @@ export const generateSession = async (req, res) => {
         role,
         difficulty: difficulty.toLowerCase(),
         status: 'pending',
-        questions: questionsList.map((q, idx) => ({
+        questions: questionsList.map((q) => ({
           _id: new mongoose.Types.ObjectId().toString(),
           questionText: q.question,
           userAnswer: '',

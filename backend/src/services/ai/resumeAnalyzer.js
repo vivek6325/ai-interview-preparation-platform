@@ -21,7 +21,7 @@ function validateResumeSchema(data) {
  * Analyzes candidate resume file by reading PDF buffers and generating ATS summary metrics.
  */
 export const analyzeResume = async (filePath) => {
-  let resumeText = '';
+  let resumeText;
 
   try {
     if (filePath.toLowerCase().endsWith(".pdf")) {

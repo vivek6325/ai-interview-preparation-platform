@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { Users, Award, ShieldCheck, Star } from 'lucide-react';
 import './Landing.css';

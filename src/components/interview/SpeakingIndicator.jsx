@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * Speaking Indicator Component
  * Displays real-time voice activity animations and status indicators.

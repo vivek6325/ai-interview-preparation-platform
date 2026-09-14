@@ -101,7 +101,7 @@ export function QuestionBreakdown({ questionsBreakdown }) {
                   }}
                 >
                   {/* Candidate Answer */}
-                  <div style={{ marginBottom: '1.5rem' }}>
+                  <div style={{ marginBottom: '1.25rem' }}>
                     <h5 style={{ margin: '0 0 0.5rem 0', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>
                       Your Submitted Answer
                     </h5>
@@ -123,10 +123,70 @@ export function QuestionBreakdown({ questionsBreakdown }) {
                     </blockquote>
                   </div>
 
-                  {/* AI Feedback */}
+                  {/* Ideal / Model Answer */}
+                  <div style={{ marginBottom: '1.25rem' }}>
+                    <h5 style={{ margin: '0 0 0.5rem 0', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em', color: '#10b981' }}>
+                      💡 Ideal Model Answer & Best Practice Reference
+                    </h5>
+                    <div 
+                      style={{
+                        padding: '1rem 1.25rem',
+                        background: 'rgba(16, 185, 129, 0.03)',
+                        border: '1px solid rgba(16, 185, 129, 0.15)',
+                        borderLeft: '4px solid #10b981',
+                        borderRadius: '0 8px 8px 0',
+                        color: 'var(--text-primary)',
+                        fontSize: '0.92rem',
+                        lineHeight: '1.6'
+                      }}
+                    >
+                      {item.modelAnswer}
+                    </div>
+                  </div>
+
+                  {/* Mark Loss Factors & Deductions */}
+                  {Array.isArray(item.deductions) && item.deductions.length > 0 && (
+                    <div style={{ marginBottom: '1.25rem' }}>
+                      <h5 style={{ margin: '0 0 0.5rem 0', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em', color: '#f87171' }}>
+                        ⚠️ Mark Loss Factors & Score Deductions
+                      </h5>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {item.deductions.map((ded, dIdx) => (
+                          <div 
+                            key={dIdx}
+                            style={{
+                              padding: '0.6rem 0.9rem',
+                              background: 'rgba(239, 68, 68, 0.04)',
+                              border: '1px solid rgba(239, 68, 68, 0.12)',
+                              borderRadius: '8px',
+                              color: '#f87171',
+                              fontSize: '0.85rem',
+                              fontWeight: '500'
+                            }}
+                          >
+                            {ded}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Mistakes Analysis */}
+                  {item.mistakes && (
+                    <div style={{ marginBottom: '1.25rem' }}>
+                      <h5 style={{ margin: '0 0 0.5rem 0', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em', color: '#fbbf24' }}>
+                        🔍 Specific Mistakes & Misconceptions
+                      </h5>
+                      <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                        {item.mistakes}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* AI Performance Feedback */}
                   <div style={{ marginBottom: '1.5rem' }}>
                     <h5 style={{ margin: '0 0 0.5rem 0', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>
-                      AI Performance Feedback
+                      AI Evaluation Critique
                     </h5>
                     <p style={{ margin: 0, fontSize: '0.92rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
                       {item.feedback}
@@ -161,7 +221,7 @@ export function QuestionBreakdown({ questionsBreakdown }) {
                       }}
                     >
                       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.4rem' }}>
-                        <span style={{ fontSize: '1.1rem' }}>💡</span>
+                        <span style={{ fontSize: '1.1rem' }}>🚀</span>
                         <strong style={{ fontSize: '0.85rem', color: '#f87171' }}>Area for Growth</strong>
                       </div>
                       <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>

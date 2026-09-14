@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { Mic, FileText, Award, Radar, AlertTriangle, Calendar } from 'lucide-react';
 import { SectionHeader } from '../ui/SectionHeader';

@@ -1,6 +1,5 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { Star, Quote } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { SectionHeader } from '../ui/SectionHeader';
 import { Card } from '../ui/Card';
 import './Landing.css';

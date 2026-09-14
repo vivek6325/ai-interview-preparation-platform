@@ -52,7 +52,7 @@ export const generateFollowUpQuestion = async ({
     : [];
 
   // Format previous turns cleanly for the AI prompt
-  let historyText = '';
+  let historyText;
   if (boundedPreviousTurns.length > 0) {
     historyText = boundedPreviousTurns
       .map((turn, idx) => {

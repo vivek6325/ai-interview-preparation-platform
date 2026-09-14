@@ -46,7 +46,7 @@ export async function apiRequest(endpoint, options = {}) {
   };
 
   const controller = new AbortController();
-  const timeoutMs = options.timeout || 10000;
+  const timeoutMs = options.timeout || 45000;
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   const config = {
@@ -155,7 +155,8 @@ export async function getInterviewById(id) {
 export async function createInterview(data) {
   return await apiRequest('/interviews', {
     method: 'POST',
-    body: data
+    body: data,
+    timeout: 45000
   });
 }
 
@@ -197,7 +198,8 @@ export async function getQuestions(category) {
 export async function generateAIInterview(payload) {
   return await apiRequest('/ai/generate', {
     method: 'POST',
-    body: payload
+    body: payload,
+    timeout: 60000
   });
 }
 
@@ -207,7 +209,8 @@ export async function generateAIInterview(payload) {
 export async function evaluateAIInterview(interviewId, questions) {
   return await apiRequest('/ai/evaluate', {
     method: 'POST',
-    body: { interviewId, questions }
+    body: { interviewId, questions },
+    timeout: 60000
   });
 }
 
@@ -284,18 +287,31 @@ export async function extractResumeApi(textOrPayload) {
     const url = `${BASE_URL}/resume/extract`;
     const token = localStorage.getItem('token');
 
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      body: formData
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.message || 'Unable to extract structured resume information.');
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || 'Unable to extract structured resume information.');
+      }
+
+      return await res.json();
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        throw new Error('Resume parsing timed out. Using initialized candidate profile.', { cause: err });
+      }
+      throw err;
     }
-
-    return await res.json();
   }
 
   return await apiRequest('/resume/extract', {
@@ -310,7 +326,8 @@ export async function extractResumeApi(textOrPayload) {
 export async function generateResumeQuestionsApi(resumeData) {
   return await apiRequest('/resume/questions', {
     method: 'POST',
-    body: { resumeData }
+    body: { resumeData },
+    timeout: 60000
   });
 }
 
@@ -320,7 +337,8 @@ export async function generateResumeQuestionsApi(resumeData) {
 export async function saveResumeApi(data) {
   return await apiRequest('/resume/save', {
     method: 'POST',
-    body: data
+    body: data,
+    timeout: 30000
   });
 }
 

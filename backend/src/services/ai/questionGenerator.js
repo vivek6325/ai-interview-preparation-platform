@@ -55,7 +55,6 @@ export const generateQuestionsFromResume = async (parsedResume, totalQuestions =
     console.warn(`⚠️ [questionGenerator] Gemini API error (${err.message}). Using fallback resume question set.`);
   }
 
-  const name = parsedResume?.name || 'Candidate';
   const skills = Array.isArray(parsedResume?.skills) ? parsedResume.skills.join(', ') : 'software development';
 
   return [

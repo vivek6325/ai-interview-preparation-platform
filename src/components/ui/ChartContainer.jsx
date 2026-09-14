@@ -1,4 +1,3 @@
-import React from 'react';
 import { Card, CardHeader } from './Card';
 import { Loader2 } from 'lucide-react';
 import './ChartContainer.css';

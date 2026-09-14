@@ -240,6 +240,7 @@ export function calculateTopicAnalytics(interviews = []) {
 /**
  * AI Insights Engine (Part 2).
  */
+// eslint-disable-next-line no-unused-vars
 export function generateAICareerInsights(interviews = [], summary = {}, categories = {}) {
   const insights = [];
 
@@ -302,6 +303,7 @@ export function generateAICareerInsights(interviews = [], summary = {}, categori
 /**
  * Weakness Detection Engine (Part 4).
  */
+// eslint-disable-next-line no-unused-vars
 export function detectWeaknesses(interviews = [], categories = {}) {
   const topWeaknesses = [
     { skill: 'Communication Structure', score: categories['Communication'] || 75, impact: 'High' },
@@ -336,6 +338,7 @@ export function detectWeaknesses(interviews = [], categories = {}) {
 /**
  * Personalized 4-Week Practice Plan (Part 5).
  */
+// eslint-disable-next-line no-unused-vars
 export function generatePracticePlan(interviews = [], weaknesses = {}) {
   return {
     week1: {

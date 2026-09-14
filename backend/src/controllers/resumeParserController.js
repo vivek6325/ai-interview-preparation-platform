@@ -14,7 +14,7 @@ import { parseResumeFile } from '../services/resumeParser.js';
  * @param {import('express').Response} res
  * @param {import('express').NextFunction} next
  */
-export async function parseResume(req, res, next) {
+export async function parseResume(req, res) {
   try {
     const file = req.file;
 

@@ -224,7 +224,7 @@ export function useAudioRecorder() {
             }
             const avgVol = Math.round(sum / dataArray.length);
             volumeSamplesRef.current.push(avgVol);
-          } catch (e) {
+          } catch {
             // ignore frame sampling errors
           }
         }

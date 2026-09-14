@@ -13,7 +13,7 @@ import { generatePersonalizedQuestions } from '../services/questionGenerator.js'
  * @param {import('express').Response} res
  * @param {import('express').NextFunction} next
  */
-export async function generateResumeQuestionsController(req, res, next) {
+export async function generateResumeQuestionsController(req, res) {
   try {
     const resumeData = req.body?.resumeData || req.body;
 

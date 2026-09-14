@@ -50,7 +50,7 @@ export const callGeminiModel = async (prompt, isJson = true) => {
         const cleanMessage = (error.message || '').includes('429') || (error.message || '').includes('Quota') || (error.message || '').includes('Too Many Requests')
           ? 'Gemini API quota rate limited.'
           : (error.message || 'Gemini API request failed.');
-        throw new Error(cleanMessage);
+        throw new Error(cleanMessage, { cause: error });
       }
       console.warn(`⚠️ Gemini API call failed (attempt ${attempt}/${MAX_RETRIES}). Retrying in 1.5s...`, error.message);
       await new Promise(resolve => setTimeout(resolve, 1500));

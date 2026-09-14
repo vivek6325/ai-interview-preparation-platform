@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 /**
  * Transcript Box Component
@@ -22,11 +22,13 @@ export function TranscriptBox({
   onClear
 }) {
   const [lastSavedTime, setLastSavedTime] = useState(null);
+  const prevAutoSavedRef = useRef(isAutoSaved);
 
   useEffect(() => {
-    if (isAutoSaved) {
+    if (isAutoSaved && !prevAutoSavedRef.current) {
       setLastSavedTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     }
+    prevAutoSavedRef.current = isAutoSaved;
   }, [isAutoSaved]);
 
   // Word count & Character count calculation

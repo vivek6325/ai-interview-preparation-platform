@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Sparkles, Target, Briefcase, Cpu, ArrowRight, CheckCircle2, FileText } from 'lucide-react';
+import { Sparkles, Target, Briefcase, Cpu, ArrowRight, CheckCircle2 } from 'lucide-react';
 import {
   generateAIInterview,
   extractResumeApi,
@@ -169,32 +169,43 @@ function InterviewSetup() {
       setIsGenerating(true);
       setLoadingTextIndex(0);
 
-      const qRes = await generateResumeQuestionsApi(
-        extractedResumeData || { name: 'Candidate', skills: [role] }
-      );
-
-      const rawQuestions = qRes?.questions || qRes?.data?.questions || qRes;
       let combinedQuestions = [];
+      try {
+        const qRes = await generateResumeQuestionsApi(
+          extractedResumeData || { name: 'Candidate', skills: [role] }
+        );
 
-      if (Array.isArray(rawQuestions)) {
-        combinedQuestions = rawQuestions;
-      } else if (rawQuestions && typeof rawQuestions === 'object') {
-        combinedQuestions = [
-          ...(rawQuestions.technical || []),
-          ...(rawQuestions.behavioral || []),
-          ...(rawQuestions.projects || []),
-          ...(rawQuestions.experience || []),
-          ...(rawQuestions.problemSolving || [])
-        ];
+        const rawQuestions = qRes?.questions || qRes?.data?.questions || qRes;
+
+        if (Array.isArray(rawQuestions)) {
+          combinedQuestions = rawQuestions;
+        } else if (rawQuestions && typeof rawQuestions === 'object') {
+          combinedQuestions = [
+            ...(rawQuestions.technical || []),
+            ...(rawQuestions.behavioral || []),
+            ...(rawQuestions.projects || []),
+            ...(rawQuestions.experience || []),
+            ...(rawQuestions.problemSolving || [])
+          ];
+        }
+      } catch (genErr) {
+        console.warn('⚠️ [InterviewSetup] Remote question generation API call failed/timed out. Utilizing tailored candidate fallback set:', genErr.message);
       }
 
       if (combinedQuestions.length === 0) {
+        const candidateSkills = Array.isArray(extractedResumeData?.skills) && extractedResumeData.skills.length > 0
+          ? extractedResumeData.skills
+          : ['JavaScript', 'React', 'Node.js', 'System Design'];
+        const candidateProjects = Array.isArray(extractedResumeData?.projects) && extractedResumeData.projects.length > 0
+          ? extractedResumeData.projects
+          : [{ title: 'Full Stack Software Application' }];
+
         combinedQuestions = [
-          { question: `Describe your technical experience with ${role} and key architectures you have built.` },
-          { question: 'Walk me through a challenging production bug you encountered and how you resolved it.' },
-          { question: 'How do you structure component state and handle asynchronous API requests in web apps?' },
-          { question: 'Tell me about a project listed on your resume and your primary technical contributions.' },
-          { question: 'How do you handle performance optimization, caching, and code reviews in team environments?' }
+          { question: `Walk me through your key technical contributions on "${candidateProjects[0]?.title || 'your software project'}" and the core stack utilized.` },
+          { question: `Can you explain core architectural patterns of ${candidateSkills[0] || 'your primary tech stack'} and how you optimize performance in high-load scenarios?` },
+          { question: `Describe a challenging production bug you encountered when working with ${candidateSkills[1] || 'web application APIs'} and how you systematically resolved it.` },
+          { question: `How do you structure component state management, asynchronous data flow, and error boundaries in enterprise applications?` },
+          { question: `Describe a scenario where you had to balance shipping feature code quickly against managing technical debt.` }
         ];
       }
 

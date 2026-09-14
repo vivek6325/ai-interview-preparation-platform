@@ -1,4 +1,3 @@
-import React from 'react';
 import { Flame, Target, Download, Printer, Zap, Sparkles } from 'lucide-react';
 
 /**

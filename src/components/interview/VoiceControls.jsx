@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * Voice Controls Component
  * Toolbar providing voice actions: Start, Stop, Retry, Replay Question, Mute, Settings, Next, Submit.

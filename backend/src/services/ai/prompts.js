@@ -75,22 +75,28 @@ Return a JSON array of objects, and nothing else. Do not wrap in markdown tags. 
  * Prompt for evaluating individual question responses
  */
 export const buildFeedbackPrompt = (question, answer, expectedAnswerPoints) => {
-  return `You are an AI Interview Evaluator. Evaluate this response:
+  return `You are a strict, highly accurate AI Technical Interview Evaluator. Evaluate this response:
 - Question: "${question}"
 - Expected Answer Points: ${JSON.stringify(expectedAnswerPoints || [])}
 - Candidate Answer: "${answer || 'No response provided.'}"
 
-Assess accuracy, depth, and communication. Return a JSON object, and nothing else. Do not wrap in markdown tags. Match this schema:
+SCORING RUBRIC (0.0 to 10.0 scale):
+- 0.0: Candidate skipped, provided no answer, or timer expired without response.
+- 1.0 - 3.0: Answer is incorrect, off-topic, or fundamentally inaccurate.
+- 4.0 - 6.0: Answer is partial, brief, or lacks technical depth.
+- 7.0 - 10.0: Answer is accurate, structured, and comprehensive.
+
+Assess accuracy, depth, and communication strictly based on the rubric. Return a JSON object, and nothing else. Do not wrap in markdown tags. Match this schema:
 {
-  "overallScore": 8.0,
-  "technicalAccuracy": 8.0,
-  "communication": 8.0,
+  "overallScore": 0.0,
+  "technicalAccuracy": 0.0,
+  "communication": 0.0,
   "missingConcepts": [
     "Concept 1 the candidate missed or explained poorly",
     "Concept 2 the candidate missed or explained poorly"
   ],
   "strengths": [
-    "Specific strength 1 demonstrated in the answer",
+    "Specific strength 1 demonstrated in the answer (or N/A if skipped)",
     "Specific strength 2 demonstrated in the answer"
   ],
   "weaknesses": [
@@ -114,13 +120,18 @@ export const buildInterviewReportPrompt = (interviewData) => {
 - Difficulty: ${interviewData.difficulty}
 - Session Questions and Evaluations: ${JSON.stringify(interviewData.questions)}
 
+SCORING GUIDELINES:
+- Calculate real scores based on actual question accuracy.
+- If multiple questions were skipped or answered poorly, assign an appropriate low rating and "No Hire" or "Needs Development" recommendation.
+- Do NOT issue generic praise for incomplete or skipped interviews.
+
 Generate a comprehensive overall interview report card.
 Return a JSON object, and nothing else. Do not wrap in markdown tags. Match this schema:
 {
-  "overallScore": 8.0,
-  "technicalRating": 8.0,
-  "communicationRating": 8.0,
-  "confidenceRating": 8.0,
+  "overallScore": 0.0,
+  "technicalRating": 0.0,
+  "communicationRating": 0.0,
+  "confidenceRating": 0.0,
   "topStrengths": [
     "Strength 1 across the session",
     "Strength 2 across the session"

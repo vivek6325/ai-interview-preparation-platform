@@ -31,7 +31,7 @@ export async function extractTextFromPDF(input) {
     return extractedText;
   } catch (error) {
     console.error('❌ [PDF Parser] Error extracting text from PDF file:', error);
-    throw new Error(`Failed to extract text from PDF file: ${error.message}`);
+    throw new Error(`Failed to extract text from PDF file: ${error.message}`, { cause: error });
   }
 }
 

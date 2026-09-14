@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, Gauge, Target, FileCheck, CheckCircle2, Circle, Lightbulb } from 'lucide-react';
 import './AIAssistantPanel.css';

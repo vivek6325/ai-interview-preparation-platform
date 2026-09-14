@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import MicrophoneButton from './MicrophoneButton';
 import SpeakingIndicator from './SpeakingIndicator';
 import TranscriptBox from './TranscriptBox';

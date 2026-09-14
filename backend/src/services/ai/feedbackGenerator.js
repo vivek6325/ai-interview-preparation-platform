@@ -65,16 +65,19 @@ export const generateFeedback = async (question, answer, expectedAnswerPoints) =
     console.warn(`⚠️ [feedbackGenerator] Gemini API error (${err.message}). Using fallback feedback.`);
   }
 
-  const ansLen = (answer || '').length;
-  const score = ansLen > 150 ? 8.5 : ansLen > 60 ? 7.5 : 5.0;
+  const rawAns = (answer || '').trim();
+  const ansLower = rawAns.toLowerCase();
+  const isSkippedOrEmpty = !rawAns || ansLower.includes('no response provided') || ansLower.includes('skipped by candidate') || ansLower.includes('timer limit');
+
+  const score = isSkippedOrEmpty ? 0.0 : rawAns.length > 150 ? 8.5 : rawAns.length > 60 ? 6.5 : 3.0;
 
   return {
     overallScore: score,
     technicalAccuracy: score,
-    communication: Math.min(10, score + 0.5),
-    missingConcepts: ['Specific trade-off metrics'],
-    strengths: ['Identified core concept definitions correctly.'],
-    weaknesses: ansLen < 60 ? ['Response was relatively short. Add more technical depth.'] : ['Could include more architectural examples.'],
+    communication: isSkippedOrEmpty ? 0.0 : Math.min(10, score + 0.5),
+    missingConcepts: isSkippedOrEmpty ? ['All question concepts'] : ['Specific trade-off metrics'],
+    strengths: isSkippedOrEmpty ? ['N/A - Question skipped'] : ['Identified core concept definitions correctly.'],
+    weaknesses: isSkippedOrEmpty ? ['Question was skipped without response.'] : rawAns.length < 60 ? ['Response was relatively short. Add more technical depth.'] : ['Could include more architectural examples.'],
     suggestions: ['Structure your response using the STAR method (Situation, Task, Action, Result).'],
     difficultyAssessment: 'Appropriate challenge level for standard technical benchmarks.'
   };

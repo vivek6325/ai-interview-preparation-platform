@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * AnalyticsCard Component
  * SaaS style metric card displaying statistic values, trend indicators, and progress bars.

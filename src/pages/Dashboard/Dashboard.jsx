@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Trophy,
@@ -7,24 +7,10 @@ import {
   BarChart3,
   Target,
   Brain,
-  Sparkles,
-  Flame,
-  Calendar,
-  ArrowUpRight,
-  CheckCircle2,
-  AlertTriangle,
-  BookOpen,
-  Clock,
   Activity,
-  Award,
-  Download,
-  Printer,
   TrendingUp,
   Compass,
-  PlayCircle,
   Trash2,
-  Eye,
-  Layers,
   ChevronRight
 } from 'lucide-react';
 import { interviewCategories } from '../../constants';
@@ -101,7 +87,6 @@ function Dashboard() {
   }, [refreshTrigger]);
 
   const summary = analyticsData?.summary || {};
-  const categories = analyticsData?.categories || {};
   const charts = analyticsData?.charts || {};
   const insights = analyticsData?.insights || {};
   const weaknesses = analyticsData?.weaknesses || {};

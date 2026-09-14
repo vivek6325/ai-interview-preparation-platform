@@ -1,5 +1,4 @@
-import React from 'react';
-import { Lightbulb, Sparkles, Target, AlertCircle } from 'lucide-react';
+import { Lightbulb, Sparkles, Target } from 'lucide-react';
 
 /**
  * InsightCard Component
@@ -8,8 +7,7 @@ import { Lightbulb, Sparkles, Target, AlertCircle } from 'lucide-react';
 export function InsightCard({
   observation,
   index = 0,
-  priority = 'Medium',
-  category = 'General'
+  priority = 'Medium'
 }) {
   const isHigh = priority === 'High' || index === 0;
   const isGrowth = priority === 'Growth' || index === 2;

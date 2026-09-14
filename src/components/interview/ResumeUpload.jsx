@@ -1,7 +1,7 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, FileUp, AlertCircle, FileCheck, Info } from 'lucide-react';
-import { ALLOWED_EXTENSIONS, MAX_FILE_SIZE_BYTES, formatFileSize } from '../../utils/fileValidation';
+import { Upload, FileUp, AlertCircle, FileCheck } from 'lucide-react';
+import { MAX_FILE_SIZE_BYTES, formatFileSize } from '../../utils/fileValidation';
 import { Button } from '../ui/Button';
 import './ResumeUpload.css';
 

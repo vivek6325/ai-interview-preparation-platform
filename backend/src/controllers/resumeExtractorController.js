@@ -14,7 +14,7 @@ import { parseResumeFile } from '../services/resumeParser.js';
  * @param {import('express').Response} res
  * @param {import('express').NextFunction} next
  */
-export async function extractResumeInfo(req, res, next) {
+export async function extractResumeInfo(req, res) {
   try {
     let resumeText = req.body?.text;
     const originalName = req.file?.originalname || '';

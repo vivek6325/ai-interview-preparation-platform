@@ -66,10 +66,41 @@ function evaluateSession(questions) {
   let totalScore = 0;
   const evaluatedQuestions = questions.map((q) => {
     const text = q.questionText || '';
-    const answer = q.userAnswer || '';
+    const answer = (q.userAnswer || '').trim();
+    const ansLower = answer.toLowerCase();
+
+    const isSkippedOrEmpty =
+      !answer ||
+      ansLower.includes('no response provided') ||
+      ansLower.includes('skipped by candidate') ||
+      ansLower.includes('timer limit');
+
+    let modelAnswer = 'A gold-standard response should explain core definitions, implementation mechanics, production edge cases, and performance trade-offs.';
+    if (text.toLowerCase().includes('react') || text.toLowerCase().includes('dom')) {
+      modelAnswer = 'React relies on a Virtual DOM (in-memory JSON tree representation of real DOM nodes). On state changes, React constructs a new VDOM tree and executes its Reconciliation diffing algorithm via Fiber nodes to batch minimal real DOM updates.';
+    } else if (text.toLowerCase().includes('sql') || text.toLowerCase().includes('database') || text.toLowerCase().includes('query')) {
+      modelAnswer = 'Database optimization requires B-Tree indexing on filtering/join columns, analyzing query execution plans via EXPLAIN, avoiding N+1 queries with eager loading, and configuring connection pooling.';
+    } else if (text.toLowerCase().includes('rest') || text.toLowerCase().includes('graphql') || text.toLowerCase().includes('node')) {
+      modelAnswer = 'Node.js utilizes a single-threaded Event Loop backed by libuv for non-blocking I/O. REST APIs provide stateless HTTP endpoints, while GraphQL allows single-endpoint field selection to solve over/under-fetching.';
+    }
+
+    if (isSkippedOrEmpty) {
+      return {
+        _id: q._id || new mongoose.Types.ObjectId().toString(),
+        questionText: text,
+        userAnswer: answer || 'No response provided.',
+        score: 0.0,
+        feedback: 'No response provided for this question.',
+        strength: 'N/A - Question skipped.',
+        improvement: 'Review technical definitions and practice answering within time limits.',
+        modelAnswer,
+        deductions: ['-100% Complete penalty: No answer submitted or question skipped'],
+        mistakes: 'Did not submit an answer to this question.'
+      };
+    }
 
     // 1. Length scoring (up to 3 points)
-    let lengthScore = 1;
+    let lengthScore = 0.5;
     if (answer.length >= 300) {
       lengthScore = 3;
     } else if (answer.length >= 150) {
@@ -77,7 +108,7 @@ function evaluateSession(questions) {
     } else if (answer.length >= 50) {
       lengthScore = 2;
     } else if (answer.length > 10) {
-      lengthScore = 1.5;
+      lengthScore = 1.0;
     }
 
     // 2. Structure scoring (up to 3 points)
@@ -88,17 +119,17 @@ function evaluateSession(questions) {
     ];
     let matchedStructure = 0;
     structureKeywords.forEach(kw => {
-      if (answer.toLowerCase().includes(kw)) {
+      if (ansLower.includes(kw)) {
         matchedStructure++;
       }
     });
-    let structureScore = 1;
+    let structureScore = 0.5;
     if (matchedStructure >= 4) {
       structureScore = 3;
     } else if (matchedStructure >= 2) {
       structureScore = 2.3;
     } else if (matchedStructure >= 1) {
-      structureScore = 1.8;
+      structureScore = 1.5;
     }
 
     // 3. Keyword matching (up to 4 points)
@@ -120,18 +151,18 @@ function evaluateSession(questions) {
 
     let matchedTech = 0;
     techKeywords.forEach(kw => {
-      if (answer.toLowerCase().includes(kw)) {
+      if (ansLower.includes(kw)) {
         matchedTech++;
       }
     });
 
-    let keywordScore = 1;
+    let keywordScore = 0.5;
     if (matchedTech >= 5) {
       keywordScore = 4;
     } else if (matchedTech >= 3) {
       keywordScore = 3;
     } else if (matchedTech >= 1) {
-      keywordScore = 2;
+      keywordScore = 1.5;
     }
 
     let score = parseFloat((lengthScore + structureScore + keywordScore).toFixed(1));
@@ -141,23 +172,42 @@ function evaluateSession(questions) {
     let qFeedback;
     let qStrength;
     let qImprovement;
+    let deductions;
+    let mistakes;
 
-    if (score >= 9) {
-      qFeedback = 'Excellent answer. You covered technical details comprehensively with solid structure.';
-      qStrength = `Great usage of terms like ${techKeywords.slice(0, 3).join(', ')} and clear logical flow.`;
-      qImprovement = 'Proactively mention performance trade-offs or alternative approaches to show even deeper mastery.';
-    } else if (score >= 7) {
+    if (score >= 8.5) {
+      qFeedback = 'Excellent answer. Covered technical details comprehensively with solid structure.';
+      qStrength = `Great usage of key concepts and clear logical flow.`;
+      qImprovement = 'Proactively mention performance trade-offs or alternative approaches.';
+      deductions = ['-15% Minor omission of production telemetry monitoring metrics'];
+      mistakes = 'Could have proactively covered system trade-offs without prompting.';
+    } else if (score >= 6.5) {
       qFeedback = 'Good explanation, but could incorporate more specific terminology or deeper structure.';
       qStrength = 'Good articulation of the key concepts and reasonable detail length.';
-      qImprovement = `Incorporate more target keywords such as: ${techKeywords.filter(k => !answer.toLowerCase().includes(k)).slice(0, 3).join(', ')}.`;
-    } else if (score >= 5) {
+      qImprovement = `Incorporate more target keywords such as: ${techKeywords.filter(k => !ansLower.includes(k)).slice(0, 3).join(', ')}.`;
+      deductions = [
+        '-20% Missing explicit STAR structure transitions',
+        '-15% Omitted key technical terms: ' + techKeywords.filter(k => !ansLower.includes(k)).slice(0, 2).join(', ')
+      ];
+      mistakes = 'The response covered high-level concepts but lacked explicit step-by-step technical details.';
+    } else if (score >= 4.0) {
       qFeedback = 'Average answer. Focus on expanding technical explanations and structuring the response.';
       qStrength = 'Demonstrates basic familiarity with the concepts.';
       qImprovement = 'Expand your answer to cover specific scenarios, improve grammatical flow, and add real-world examples.';
+      deductions = [
+        '-35% Response was brief and missed core engineering jargon',
+        '-25% Did not provide concrete architectural examples'
+      ];
+      mistakes = 'Lacked technical depth and structural clarity expected at senior developer level.';
     } else {
-      qFeedback = 'Poor explanation. The response is too short or lacks technical substance.';
+      qFeedback = 'Weak explanation. The response is too short or lacks technical substance.';
       qStrength = 'Attempted to address the question prompt.';
       qImprovement = 'Significantly increase detail length, use structured explanation patterns, and explain how the underlying technology operates.';
+      deductions = [
+        '-50% Answer too brief to assess technical capability',
+        '-30% Missing technical terms and implementation mechanics'
+      ];
+      mistakes = 'Provided an incomplete or vague response.';
     }
 
     return {
@@ -167,11 +217,15 @@ function evaluateSession(questions) {
       score: score,
       feedback: qFeedback,
       strength: qStrength,
-      improvement: qImprovement
+      improvement: qImprovement,
+      modelAnswer,
+      deductions,
+      mistakes
     };
   });
 
-  const averageScore = parseFloat((totalScore / questions.length).toFixed(1));
+  const count = questions.length || 1;
+  const averageScore = parseFloat((totalScore / count).toFixed(1));
 
   let overallFeedback;
   let badge;

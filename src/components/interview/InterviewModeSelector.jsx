@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { Bot, FileText, CheckCircle2, Sparkles, UserCheck } from 'lucide-react';
 import './InterviewModeSelector.css';
