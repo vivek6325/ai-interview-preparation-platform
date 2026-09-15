@@ -13,20 +13,32 @@
 
 ## ✨ Key Features
 
-- **🎙️ Real-Time Voice Interviewer**:
+- **🎨 Flagship SaaS UI & Design System**:
+  - Linear & Vercel inspired ultra-sleek dark design (`#09090b` deep space base).
+  - Translucent glassmorphism (`backdrop-filter: blur(24px)`), top metallic border highlights, HSL gradient accents.
+  - Floating glass navigation bar with active route glowing indicators and brand sparkle logo.
+  - Interactive micro-animations, custom scrollbars, and accessible focus visible states.
+
+- **🎙️ Real-Time Voice Interviewer & AI Copilot**:
   - Native Web Speech API integration (`SpeechRecognition` & `SpeechSynthesis`).
   - Auto-reads interview questions aloud with voice, pitch, and speed rate controls.
-  - Generates live transcript with real-time editing before submission.
-  - Tracks speaking duration, words spoken, and average words per answer.
+  - Real-time speaking pace analytics (Words Per Minute / WPM tracking & speed rating badges).
+  - Live AI Assistant Co-Pilot side panel (`AIAssistantPanel`) displaying live pace meters, candidate resume skill alignment, matched STAR key points checklist, and STAR method reminders.
+
+- **🚪 Room Exit & Pending Session Resumption**:
+  - Prominent `← Exit Room` header button and `🚪 Exit Room` voice controls button in mock rooms.
+  - Dark glass `ConfirmationModal` dialog safeguarding candidate progress.
+  - Exiting early saves interview sessions as `pending` in MongoDB Atlas, allowing candidate resumption anytime from History (resumes from the first unanswered question).
+
+- **📄 ESM PDF Resume Parser & Resume History Vault**:
+  - Modern ESM PDF parser running natively on Node.js 22.
+  - Extracts skills, experience level, and technologies to customize mock questions dynamically.
+  - Dedicated **Resume History Vault** (`/resume-history`) tracking uploaded resume files, extracted tech stacks, candidate summaries, and quick mock triggers.
 
 - **🤖 AI Question & Evaluation Pipeline**:
   - Uses Google Gemini 3.6 Flash / 1.5 Pro to formulate customized, role-tailored interview questions.
   - Grades answers out of 10 with itemized STAR strengths, improvement areas, and suggestions.
   - Generates comprehensive overall scorecard reports and hiring recommendations.
-
-- **📄 ESM PDF Resume Parser**:
-  - Modern ESM PDF parser running natively on Node.js 22.
-  - Extracts skills, experience level, and technologies to customize mock questions dynamically.
 
 - **📊 SaaS AI Career Coach & Visual Analytics**:
   - **Multi-Dimensional Skill Radar**: Evaluates Communication, Technical Knowledge, Problem Solving, Confidence, Behavioral, and Coding.
@@ -53,7 +65,7 @@
 ```
  ┌───────────────────────────────────────────────────────────┐
  │                   React 19 Frontend (Vite)                │
- │  (Voice Engine, SVG Radar/Timeline Charts, SaaS Dashboard)│
+ │ (Voice Engine, AI Copilot, Glass UI, SVG Career Analytics)│
  └─────────────────────────────┬─────────────────────────────┘
                                │ HTTPS / JSON API
  ┌─────────────────────────────▼─────────────────────────────┐
@@ -62,7 +74,7 @@
  └──────┬──────────────────────┬──────────────────────┬──────┘
         │                      │                      │
  ┌──────▼──────┐        ┌──────▼──────┐        ┌──────▼──────┐
- │   MongoDB   │        ┌  Gemini AI  │        │  PDF Parser │
+ │   MongoDB   │        │  Gemini AI  │        │  PDF Parser │
  │ (Atlas/Pool)│        │   Engine    │        │ (Node 22 ESM│
  └─────────────┘        └─────────────┘        └─────────────┘
 ```
@@ -90,6 +102,7 @@
 │       │   └── security.js              # Helmet, CORS, Rate Limiters, Timers
 │       ├── models/
 │       │   ├── Interview.js             # Mongoose schema with compound indexes
+│       │   ├── Resume.js                # Mongoose schema for candidate resumes
 │       │   └── User.js                  # Mongoose user auth schema
 │       ├── routes/                      # Express domain route modules
 │       └── services/
@@ -99,14 +112,15 @@
 ├── src/
 │   ├── components/
 │   │   ├── analytics/                   # SVG Skill Radar, Timeline, Heatmap, Weakness components
-│   │   ├── interview/                   # VoiceRecorder, MicrophoneButton, VoiceControls, TranscriptBox
+│   │   ├── interview/                   # VoiceRecorder, VoiceControls, AIAssistantPanel, ResumeUpload
+│   │   ├── Modal/                       # ConfirmationModal overlay component
 │   │   ├── ErrorBoundary/               # React Error Boundary fallback
 │   │   ├── Loading/                     # Global loading spinner
-│   │   └── Navbar/                      # Navigation bar
+│   │   └── Navbar/                      # Flagship floating glass navigation bar
 │   ├── hooks/                           # Custom React hooks (useSpeechRecognition, useSpeechSynthesis)
-│   ├── pages/                           # Dashboard, History, InterviewSession, Results, Login
+│   ├── pages/                           # Dashboard, History, ResumeHistory, InterviewSession, Results, Login
 │   ├── services/                        # Client API & analytics services
-│   └── styles/                          # Global CSS tokens
+│   └── styles/                          # Global CSS design tokens
 ├── DEPLOYMENT.md                        # Production deployment guide
 ├── INTERVIEW_GUIDE.md                   # Software Engineering demo script
 ├── render.yaml                          # Render backend deployment manifest
