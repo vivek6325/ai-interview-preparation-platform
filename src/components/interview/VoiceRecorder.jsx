@@ -50,6 +50,7 @@ export function VoiceRecorder({
   onToggleMute,
   onNext,
   onSubmit,
+  onExit,
   settings,
   onSaveSettings,
   voices,
@@ -134,6 +135,7 @@ export function VoiceRecorder({
         onOpenSettings={() => setIsSettingsOpen(true)}
         onNext={onNext}
         onSubmit={onSubmit}
+        onExit={onExit}
         isLastQuestion={isLastQuestion}
         isSubmitting={isSubmitting}
         hasAnswer={!!(transcript && transcript.trim())}

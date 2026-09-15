@@ -30,6 +30,7 @@ export function VoiceControls({
   onOpenSettings,
   onNext,
   onSubmit,
+  onExit,
   isLastQuestion = false,
   isSubmitting = false,
   hasAnswer = false
@@ -94,6 +95,20 @@ export function VoiceControls({
         >
           {isMuted ? '🔇 Muted' : '🔊 Auto-Read'}
         </button>
+
+        {/* Exit Room Button */}
+        {onExit && (
+          <button
+            type="button"
+            className="btn btn-outline-danger btn-voice-action d-flex align-items-center gap-1"
+            onClick={onExit}
+            disabled={isSubmitting}
+            title="Exit interview room and save progress as pending"
+            aria-label="Exit room"
+          >
+            <span>🚪 Exit Room</span>
+          </button>
+        )}
 
         {/* Settings button */}
         {onOpenSettings && (

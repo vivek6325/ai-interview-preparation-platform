@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { generateQuestions, uploadResume, evaluateAnswer, generateInterviewReport } from '../../services/aiService';
 import { createInterview, updateInterview } from '../../services/api';
 import { useToast } from '../../components/Toast/ToastContext';
+import ConfirmationModal from '../../components/Modal/ConfirmationModal';
 import Timer from '../../components/interview/Timer';
 import ProgressBar from '../../components/interview/ProgressBar';
 import QuestionCard from '../../components/interview/QuestionCard';
@@ -12,10 +14,12 @@ import useSpeechSynthesis from '../../hooks/useSpeechSynthesis';
 import './InterviewSession.css';
 
 function InterviewSession() {
+  const navigate = useNavigate();
   const { addToast } = useToast();
 
   // Session state steps: 'setup' | 'loading_questions' | 'active' | 'loading_feedback' | 'finished'
   const [sessionStatus, setSessionStatus] = useState('setup');
+  const [exitModalOpen, setExitModalOpen] = useState(false);
   
   // Setup Parameters
   const [role, setRole] = useState('Frontend');
@@ -385,6 +389,44 @@ function InterviewSession() {
     setOverallVoiceAnalytics(null);
   };
 
+  const handleConfirmExit = async () => {
+    try {
+      if (isListening) stopRecording();
+      stopSpeaking();
+
+      if (interviewId) {
+        const formattedQuestions = questions.map((q) => {
+          const ans = answers[q.id] || '';
+          const vm = voiceMetricsMap[q.id] || {};
+          const words = ans.trim() ? ans.trim().split(/\s+/).length : 0;
+          return {
+            questionText: typeof q === 'string' ? q : q?.question || q?.questionText || 'Technical Question',
+            userAnswer: ans,
+            transcript: ans,
+            speakingDuration: vm.speakingDuration || 0,
+            wordsSpoken: words,
+            topic: q.topic || 'General',
+            expectedAnswerPoints: q.expectedAnswerPoints || []
+          };
+        });
+
+        await updateInterview(interviewId, {
+          status: 'pending',
+          questions: formattedQuestions
+        });
+        addToast('Interview session saved as pending. Resume anytime from History.', 'info');
+      } else {
+        addToast('Exited interview room.', 'info');
+      }
+      navigate('/history');
+    } catch (err) {
+      console.error('Error exiting interview session:', err);
+      navigate('/history');
+    } finally {
+      setExitModalOpen(false);
+    }
+  };
+
   return (
     <div className="interview-session-container">
       <div className="interview-glow-orb orb-1"></div>
@@ -520,6 +562,14 @@ function InterviewSession() {
           <div className="session-progress-timeline-bar mb-4">
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div className="d-flex align-items-center gap-2">
+                <button
+                  type="button"
+                  className="btn-header-exit"
+                  onClick={() => setExitModalOpen(true)}
+                  title="Exit interview room and save progress as pending"
+                >
+                  ← Exit Room
+                </button>
                 <span className="badge bg-primary-subtle text-primary border border-primary px-3 py-1 rounded-pill fw-bold">
                   Question {currentIndex + 1} of {questions.length}
                 </span>
@@ -598,6 +648,7 @@ function InterviewSession() {
                   onToggleMute={handleToggleMute}
                   onNext={handleNext}
                   onSubmit={handleNext}
+                  onExit={() => setExitModalOpen(true)}
                   settings={voiceSettings}
                   onSaveSettings={updateVoiceSettings}
                   voices={voices}
@@ -800,13 +851,29 @@ function InterviewSession() {
             </>
           )}
 
-          <div className="report-actions text-center">
+          <div className="report-actions text-center d-flex gap-3 justify-content-center flex-wrap mt-4">
+            <button className="btn btn-primary px-4 py-2 rounded-pill fw-bold" onClick={() => navigate('/dashboard')}>
+              🏠 Return to Dashboard
+            </button>
+            <button className="btn btn-outline-light px-4 py-2 rounded-pill fw-bold" onClick={() => navigate('/history')}>
+              📁 View History Vault
+            </button>
             <button className="btn-reset" onClick={handleResetSession}>
-              Configure New Interview Session
+              🔄 Configure New Session
             </button>
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={exitModalOpen}
+        title="Exit Interview Room?"
+        message="Are you sure you want to exit this mock interview room? Your progress will be saved in your Practice History Vault as a pending session so you can resume anytime."
+        confirmText="Yes, Exit Room"
+        cancelText="Resume Practice"
+        onConfirm={handleConfirmExit}
+        onCancel={() => setExitModalOpen(false)}
+      />
     </div>
   );
 }

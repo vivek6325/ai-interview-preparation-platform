@@ -332,6 +332,16 @@ function InterviewSetup() {
     <div className="setup-page-container">
       <div className="setup-glow-orb purple-orb"></div>
 
+      <div className="mb-3 text-start">
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => navigate('/dashboard')}
+        >
+          ← Back to Dashboard
+        </Button>
+      </div>
+
       <header className="setup-header text-center mb-5">
         <Badge variant="glow" size="md" icon={Sparkles} className="mb-3">
           STEP-BY-STEP SESSION CONFIGURATOR
