@@ -1,5 +1,67 @@
 [
   {
+    "_id": "6aa9949b2152324e56234190",
+    "userId": "6aa9921534daab9891fb1495",
+    "title": "Frontend AI Interview",
+    "role": "Frontend",
+    "difficulty": "medium",
+    "questions": [
+      {
+        "questionText": "Explain the concept of React Hooks. Specifically, how would you use `useEffect` to replicate the behaviors of `componentDidMount`, `componentDidUpdate`, and `componentWillUnmount` in a class component?",
+        "userAnswer": "",
+        "feedback": "",
+        "score": null,
+        "strength": "",
+        "improvement": "",
+        "_id": "6aa9949b2152324e56234191"
+      },
+      {
+        "questionText": "Describe the difference between using `Promise` objects directly and `async/await` syntax for handling asynchronous operations in JavaScript. Provide a simple code example for fetching data from an API using both approaches, including error handling for each.",
+        "userAnswer": "",
+        "feedback": "",
+        "score": null,
+        "strength": "",
+        "improvement": "",
+        "_id": "6aa9949b2152324e56234192"
+      },
+      {
+        "questionText": "Your single-page application is experiencing slow initial load times. What are three common strategies you would implement or investigate to diagnose and improve frontend performance, and briefly explain the benefit of each?",
+        "userAnswer": "",
+        "feedback": "",
+        "score": null,
+        "strength": "",
+        "improvement": "",
+        "_id": "6aa9949b2152324e56234193"
+      },
+      {
+        "questionText": "Explain the CSS Box Model and how the `box-sizing: border-box;` property changes its default behavior. Additionally, describe CSS Specificity and provide a scenario where understanding it is crucial for overriding styles effectively.",
+        "userAnswer": "",
+        "feedback": "",
+        "score": null,
+        "strength": "",
+        "improvement": "",
+        "_id": "6aa9949b2152324e56234194"
+      },
+      {
+        "questionText": "Why is web accessibility (A11y) crucial for modern web development? Provide at least three practical techniques you would implement to ensure a web form, specifically, is accessible to users with various disabilities.",
+        "userAnswer": "",
+        "feedback": "",
+        "score": null,
+        "strength": "",
+        "improvement": "",
+        "_id": "6aa9949b2152324e56234195"
+      }
+    ],
+    "status": "pending",
+    "overallScore": null,
+    "overallFeedback": "",
+    "grade": "",
+    "strengths": [],
+    "improvements": [],
+    "createdAt": "2026-09-15T18:55:23.262Z",
+    "updatedAt": "2026-09-15T18:55:23.262Z"
+  },
+  {
     "_id": "mock-dsa-id",
     "userId": "60d5ec49f1b2c81234567890",
     "title": "Data Structures & Algorithms Mock",

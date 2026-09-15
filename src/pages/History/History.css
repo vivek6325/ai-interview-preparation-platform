@@ -38,10 +38,14 @@
 }
 
 .history-toolbar-card {
-  background: var(--ds-bg-300);
-  border: 1px solid var(--ds-border-100);
+  background: rgba(24, 24, 27, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-xl);
   padding: var(--space-16) var(--space-24);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  margin-bottom: var(--space-24);
 }
 
 .toolbar-grid {
@@ -63,6 +67,19 @@
   flex-direction: column;
   justify-content: space-between;
   text-align: left;
+  background: rgba(24, 24, 27, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  transition: var(--transition-smooth);
+}
+
+.history-item-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4), 0 0 20px rgba(99, 102, 241, 0.15);
 }
 
 .card-top-row {
@@ -77,6 +94,7 @@
   font-weight: 800;
   color: var(--ds-primary);
   text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .item-card-title {
@@ -94,9 +112,9 @@
   gap: var(--space-16);
   margin-bottom: var(--space-24);
   padding: var(--space-16);
-  background: var(--ds-bg-200);
+  background: rgba(255, 255, 255, 0.03);
   border-radius: var(--radius-md);
-  border: 1px solid var(--ds-border-100);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .score-badge-circle {
@@ -107,20 +125,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-sans);
+  font-family: var(--mono);
   font-weight: 800;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   flex-shrink: 0;
 }
 
 .score-badge-circle.completed {
-  background: var(--primary);
-  box-shadow: 0 0 16px rgba(99, 102, 241, 0.4);
+  background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .score-badge-circle.pending {
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-muted);
 }
 
