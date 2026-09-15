@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/Toast/ToastContext';
+import { TextInput } from '../../components/ui/Input';
 import './Register.css';
 
 /**
@@ -17,6 +19,8 @@ function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -82,57 +86,57 @@ function Register() {
         <form className="register-form" onSubmit={handleSubmit}>
           {error && <div className="register-error-message">{error}</div>}
 
-          <div className="form-group">
-            <label htmlFor="fullName">Full Name</label>
-            <input
-              type="text"
-              id="fullName"
-              placeholder="John Doe"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              disabled={loading}
-              required
-            />
-          </div>
+          <TextInput
+            label="Full Name"
+            type="text"
+            id="fullName"
+            placeholder="John Doe"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            disabled={loading}
+            icon={User}
+            required
+          />
 
-          <div className="form-group">
-            <label htmlFor="email">Email Address</label>
-            <input
-              type="email"
-              id="email"
-              placeholder="name@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-              required
-            />
-          </div>
+          <TextInput
+            label="Email Address"
+            type="email"
+            id="email"
+            placeholder="name@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
+            icon={Mail}
+            required
+          />
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              placeholder="•••••••• (Min. 6 characters)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-              required
-            />
-          </div>
+          <TextInput
+            label="Password"
+            type={showPassword ? 'text' : 'password'}
+            id="password"
+            placeholder="•••••••• (Min. 6 characters)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={loading}
+            icon={Lock}
+            rightIcon={showPassword ? EyeOff : Eye}
+            onRightIconClick={() => setShowPassword(!showPassword)}
+            required
+          />
 
-          <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              placeholder="••••••••"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              disabled={loading}
-              required
-            />
-          </div>
+          <TextInput
+            label="Confirm Password"
+            type={showConfirmPassword ? 'text' : 'password'}
+            id="confirmPassword"
+            placeholder="••••••••"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            disabled={loading}
+            icon={Lock}
+            rightIcon={showConfirmPassword ? EyeOff : Eye}
+            onRightIconClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            required
+          />
 
           <button type="submit" className="btn-register-submit" disabled={loading}>
             {loading ? 'Creating Account...' : 'Get Started'}

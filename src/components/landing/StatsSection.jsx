@@ -8,10 +8,10 @@ import './Landing.css';
  */
 export function StatsSection() {
   const stats = [
-    { label: 'Mock Sessions Completed', value: '10,000+', icon: Users, accent: 'blue' },
-    { label: 'Offer Success Rate', value: '94.8%', icon: Award, accent: 'emerald' },
-    { label: 'Supported Tech Stacks', value: '500+', icon: ShieldCheck, accent: 'purple' },
-    { label: 'Candidate Satisfaction Rating', value: '4.9 / 5', icon: Star, accent: 'amber' }
+    { label: 'Voice Speech Engine', value: 'Real-Time', icon: Users, accent: 'blue' },
+    { label: 'STAR Evaluation Engine', value: '10-Point', icon: Award, accent: 'emerald' },
+    { label: 'Skill Radar Analytics', value: '6-Axis', icon: ShieldCheck, accent: 'purple' },
+    { label: 'PDF Resume Parser', value: 'Node 22 ESM', icon: Star, accent: 'amber' }
   ];
 
   return (

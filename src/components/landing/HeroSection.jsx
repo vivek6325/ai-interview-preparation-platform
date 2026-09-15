@@ -60,7 +60,7 @@ export function HeroSection({ onStartPractice, onLogin }) {
                 <Star key={i} size={14} className="star-icon fill-amber" />
               ))}
             </div>
-            <span>Used by <strong>10,000+</strong> software engineers at top tech companies</span>
+            <span>Full-Stack <strong>MERN + Google Gemini AI</strong> Portfolio Showcase Project</span>
           </div>
         </div>
 

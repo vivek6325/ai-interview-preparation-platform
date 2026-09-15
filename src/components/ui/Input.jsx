@@ -9,6 +9,9 @@ export function TextInput({
   helperText,
   error,
   icon: Icon,
+  rightIcon: RightIcon,
+  onRightIconClick,
+  rightElement,
   className = '',
   id,
   ...props
@@ -27,9 +30,22 @@ export function TextInput({
         {Icon && <Icon className="ds-input-icon-left" size={16} />}
         <input
           id={inputId}
-          className={`ds-input ${Icon ? 'has-left-icon' : ''} ${error ? 'is-error' : ''}`}
+          className={`ds-input ${Icon ? 'has-left-icon' : ''} ${RightIcon || rightElement ? 'has-right-icon' : ''} ${error ? 'is-error' : ''}`}
           {...props}
         />
+        {rightElement ? (
+          <div className="ds-input-right-element">{rightElement}</div>
+        ) : RightIcon ? (
+          <button
+            type="button"
+            className="ds-input-icon-right-btn"
+            onClick={onRightIconClick}
+            tabIndex={-1}
+            aria-label="Toggle password visibility"
+          >
+            <RightIcon size={16} />
+          </button>
+        ) : null}
       </div>
 
       {error ? (

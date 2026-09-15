@@ -27,13 +27,18 @@ function normalizeScore(score) {
  * Retrieves all user interview records from MongoDB or mockDatabase fallback.
  */
 export async function getUserInterviews(userId) {
-  if (isDbConnected() && userId && mongoose.Types.ObjectId.isValid(userId)) {
-    try {
-      const dbInterviews = await Interview.find({
-        userId: new mongoose.Types.ObjectId(userId)
-      }).sort({ createdAt: -1 });
+  const currentUserId = userId ? userId.toString() : null;
+  if (!currentUserId) return [];
 
-      if (dbInterviews && dbInterviews.length > 0) {
+  if (isDbConnected()) {
+    try {
+      const filter = mongoose.Types.ObjectId.isValid(currentUserId)
+        ? { userId: new mongoose.Types.ObjectId(currentUserId) }
+        : { userId: currentUserId };
+
+      const dbInterviews = await Interview.find(filter).sort({ createdAt: -1 });
+
+      if (dbInterviews) {
         return dbInterviews.map((doc) => doc.toObject());
       }
     } catch (err) {
@@ -41,9 +46,9 @@ export async function getUserInterviews(userId) {
     }
   }
 
-  // Filter in-memory mock database
+  // Filter in-memory mock database strictly by current user ID
   return mockDatabase.filter(
-    (i) => !userId || !i.userId || i.userId.toString() === userId.toString()
+    (i) => i && i.userId && i.userId.toString() === currentUserId
   );
 }
 

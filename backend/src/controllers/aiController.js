@@ -36,13 +36,17 @@ export const generateSession = async (req, res) => {
       throw new Error('Gemini API returned an empty or malformed questions list.');
     }
 
-    const validUserId = (req.user?._id && mongoose.Types.ObjectId.isValid(req.user._id)) ? req.user._id : null;
+    const currentUserId = req.user?._id ? req.user._id.toString() : null;
+    const userIdVal = currentUserId && mongoose.Types.ObjectId.isValid(currentUserId)
+      ? new mongoose.Types.ObjectId(currentUserId)
+      : currentUserId;
+
     let savedInterview = null;
 
     if (mongoose.connection && mongoose.connection.readyState === 1) {
       try {
         const newInterview = new Interview({
-          ...(validUserId && { userId: validUserId }),
+          ...(userIdVal && { userId: userIdVal }),
           title: `${role} AI Interview`,
           role,
           difficulty: difficulty.toLowerCase(),
@@ -65,7 +69,7 @@ export const generateSession = async (req, res) => {
     if (!savedInterview) {
       savedInterview = {
         _id: new mongoose.Types.ObjectId().toString(),
-        userId: req.user?._id || 'demo_user',
+        userId: currentUserId || 'demo_user',
         title: `${role} AI Interview`,
         role,
         difficulty: difficulty.toLowerCase(),

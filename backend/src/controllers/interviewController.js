@@ -5,6 +5,7 @@ import Interview from '../models/Interview.js';
 export let mockDatabase = [
   {
     _id: 'mock-dsa-id',
+    userId: '60d5ec49f1b2c81234567890',
     title: 'Data Structures & Algorithms Mock',
     role: 'Software Engineer',
     difficulty: 'Medium',
@@ -23,6 +24,7 @@ export let mockDatabase = [
   },
   {
     _id: 'mock-frontend-id',
+    userId: '60d5ec49f1b2c81234567890',
     title: 'Frontend React Panel',
     role: 'React Developer',
     difficulty: 'Easy',
@@ -317,11 +319,21 @@ export const createInterview = async (req, res) => {
       };
     });
 
-    if (isDbConnected()) {
-      const validUserId = (req.user?._id && mongoose.Types.ObjectId.isValid(req.user._id)) ? req.user._id : null;
+    const currentUserId = req.user?._id ? req.user._id.toString() : null;
+    if (!currentUserId) {
+      return res.status(401).json({
+        status: 'fail',
+        message: 'Authentication required to create an interview session.',
+      });
+    }
 
+    const userIdVal = mongoose.Types.ObjectId.isValid(currentUserId)
+      ? new mongoose.Types.ObjectId(currentUserId)
+      : currentUserId;
+
+    if (isDbConnected()) {
       const newInterview = new Interview({
-        ...(validUserId && { userId: validUserId }),
+        userId: userIdVal,
         title,
         role,
         difficulty,
@@ -339,7 +351,7 @@ export const createInterview = async (req, res) => {
       // In-memory Save Fallback
       const newMockInterview = {
         _id: new mongoose.Types.ObjectId().toString(),
-        userId: req.user?._id || 'demo_user',
+        userId: currentUserId,
         title,
         role,
         difficulty,
@@ -387,18 +399,28 @@ export const createInterview = async (req, res) => {
  */
 export const getInterviews = async (req, res) => {
   try {
+    const currentUserId = req.user?._id ? req.user._id.toString() : null;
+    if (!currentUserId) {
+      return res.status(200).json({
+        status: 'success',
+        results: 0,
+        data: { interviews: [] },
+      });
+    }
+
     let interviews = [];
     if (isDbConnected()) {
       try {
-        const validUserId = (req.user?._id && mongoose.Types.ObjectId.isValid(req.user._id)) ? req.user._id : null;
-        const filter = validUserId ? { userId: validUserId } : {};
+        const filter = mongoose.Types.ObjectId.isValid(currentUserId)
+          ? { userId: new mongoose.Types.ObjectId(currentUserId) }
+          : { userId: currentUserId };
         interviews = await Interview.find(filter).sort({ createdAt: -1 });
       } catch (dbError) {
         console.warn('⚠️ MongoDB error fetching interviews, falling back to mock database:', dbError.message);
-        interviews = mockDatabase;
+        interviews = mockDatabase.filter(i => i && i.userId && i.userId.toString() === currentUserId);
       }
     } else {
-      interviews = mockDatabase;
+      interviews = mockDatabase.filter(i => i && i.userId && i.userId.toString() === currentUserId);
     }
 
     res.status(200).json({

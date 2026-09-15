@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import { Star } from 'lucide-react';
 import { SectionHeader } from '../ui/SectionHeader';
 import { Card } from '../ui/Card';
 import './Landing.css';
@@ -9,27 +8,27 @@ import './Landing.css';
  * Candidate feedback cards with ratings and company badges.
  */
 export function TestimonialsSection() {
-  const testimonials = [
+  const highlights = [
     {
-      name: 'Alex Chen',
-      role: 'Senior Full Stack Engineer',
-      company: 'Secured Offer at Meta',
-      avatar: '👨‍💻',
-      content: 'PrepAI voice mock interviews were a game changer for my senior interview loop. The real-time speech feedback and STAR scorecard gave me exact clarity on what to improve.'
+      name: 'Real-Time Voice Speech Engine',
+      role: 'Multimodal AI Integration',
+      company: 'Web Speech API + Gemini STT',
+      avatar: '🎙️',
+      content: 'Integrates native browser SpeechRecognition and SpeechSynthesis APIs with Google Gemini AI audio transcription fallbacks to simulate realistic spoken mock interviews.'
     },
     {
-      name: 'Priya Sharma',
-      role: 'Frontend Developer',
-      company: 'Secured Offer at Google',
-      avatar: '👩‍💻',
-      content: 'The ESM PDF resume parser tailored mock questions directly to my React and TypeScript project experience. The 6-axis skill radar highlighted my exact strengths.'
+      name: 'ESM PDF Resume Parser',
+      role: 'Dynamic Question Synthesis',
+      company: 'Node 22 Native ESM Engine',
+      avatar: '📄',
+      content: 'Parses candidate resumes to extract tech stacks, skills, and experience level, dynamically feeding contextual parameters into Gemini AI prompt generators.'
     },
     {
-      name: 'Marcus Vance',
-      role: 'Backend Engineer',
-      company: 'Secured Offer at Amazon',
-      avatar: '👨‍💼',
-      content: 'I practiced 12 mock voice sessions over 2 weeks. Following the 4-week practice roadmap helped me land my dream Senior Backend offer with complete confidence!'
+      name: '6-Axis Visual Analytics Vault',
+      role: 'STAR Evaluation Engine',
+      company: 'Express 5 + MongoDB Atlas',
+      avatar: '📊',
+      content: 'Computes itemized STAR scorecards out of 10, multi-dimensional skill radar charts, weakness detection engines, and structured 4-week practice roadmaps.'
     }
   ];
 
@@ -37,14 +36,14 @@ export function TestimonialsSection() {
     <section className="landing-testimonials-section" id="testimonials">
       <div className="section-inner-container">
         <SectionHeader
-          title="Loved by Candidates Who Landed Top Tech Offers"
-          subtitle="See how software engineers use PrepAI to practice voice interviews and land dream offers."
-          badgeText="CANDIDATE TESTIMONIALS"
+          title="Full-Stack Technical Architecture Highlights"
+          subtitle="Explore the key engineering components and AI capabilities powering the PrepAI candidate platform."
+          badgeText="SYSTEM ARCHITECTURE"
           badgeVariant="success"
         />
 
         <div className="testimonials-grid">
-          {testimonials.map((item, idx) => (
+          {highlights.map((item, idx) => (
             <motion.div
               key={idx}
               initial={{ opacity: 0, y: 20 }}
@@ -53,13 +52,7 @@ export function TestimonialsSection() {
               transition={{ duration: 0.4, delay: idx * 0.15 }}
             >
               <Card className="testimonial-card">
-                <div className="testimonial-stars">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} size={15} className="star-fill-amber" />
-                  ))}
-                </div>
-
-                <p className="testimonial-quote">"{item.content}"</p>
+                <p className="testimonial-quote">{item.content}</p>
 
                 <div className="testimonial-author-row">
                   <span className="author-avatar">{item.avatar}</span>

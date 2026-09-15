@@ -59,6 +59,31 @@
   padding-left: 38px;
 }
 
+.ds-input.has-right-icon {
+  padding-right: 38px;
+}
+
+.ds-input-icon-right-btn, .ds-input-right-element {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--ds-text-300);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: color var(--transition-normal);
+}
+
+.ds-input-icon-right-btn:hover {
+  color: var(--ds-text-100);
+}
+
 .ds-input:focus, .ds-select:focus, .ds-textarea:focus {
   border-color: var(--ds-blue-500);
   box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.15);
