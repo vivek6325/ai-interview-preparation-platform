@@ -409,8 +409,8 @@ function Dashboard() {
                               View Report
                             </button>
                           ) : (
-                            <button className="btn-table-action start" onClick={() => navigate('/interview', { state: { id: item._id } })}>
-                              Start Mock
+                            <button className="btn-table-action start" onClick={() => navigate(`/interview/${item._id}`)}>
+                              Continue →
                             </button>
                           )}
                           <button className="btn-table-action delete" onClick={(e) => handleDeleteClick(item._id, e)} title="Delete Session">

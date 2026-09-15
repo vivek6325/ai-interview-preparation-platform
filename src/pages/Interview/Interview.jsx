@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { getInterview, updateInterview, deleteInterview, evaluateAIInterview } from '../../services/api';
+import { getInterview, updateInterview, evaluateAIInterview } from '../../services/api';
 import ProgressBar from './components/ProgressBar';
 import AvatarSection from './components/AvatarSection';
 import QuestionBoard from './components/QuestionBoard';
@@ -400,13 +400,15 @@ function Interview() {
   const handleConfirmExit = async () => {
     try {
       if (sessionId) {
-        await deleteInterview(sessionId);
-        addToast('Practice session cancelled and deleted.', 'info');
+        const updatedAnswers = [...answers];
+        updatedAnswers[currentQuestionIdx] = answerText;
+        await persistAnswerToDB(updatedAnswers);
+        addToast('Interview session saved as pending. Resume anytime from History.', 'info');
       }
-      navigate('/dashboard');
+      navigate('/history');
     } catch (err) {
-      console.error('Error cancelling interview:', err);
-      navigate('/dashboard');
+      console.error('Error exiting interview:', err);
+      navigate('/history');
     } finally {
       setExitModalOpen(false);
     }
@@ -539,7 +541,7 @@ function Interview() {
       <ConfirmationModal 
         isOpen={exitModalOpen}
         title="Exit Interview Room?"
-        message="Are you sure you want to cancel and exit this mock interview? All answers and progress recorded in this session will be permanently lost."
+        message="Are you sure you want to exit this mock interview? Your progress will be saved in your Practice History Vault as a pending session so you can continue anytime."
         confirmText="Yes, Exit"
         cancelText="Resume Practice"
         onConfirm={handleConfirmExit}

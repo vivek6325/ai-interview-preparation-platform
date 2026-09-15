@@ -1,0 +1,19 @@
+[
+  {
+    "_id": "60d5ec49f1b2c81234567890",
+    "fullName": "Demo Candidate",
+    "email": "test@example.com",
+    "password": "password123",
+    "avatar": "",
+    "role": "candidate"
+  },
+  {
+    "_id": "6aa9921534daab9891fb1495",
+    "fullName": "vivekaripall02",
+    "email": "vivekaripall02@gmail.com",
+    "password": "Vivek@1232",
+    "avatar": "",
+    "role": "candidate",
+    "createdAt": "2026-09-15T18:44:37.370Z"
+  }
+]
