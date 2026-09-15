@@ -1,59 +1,9 @@
 import mongoose from 'mongoose';
 import Interview from '../models/Interview.js';
+import { readInterviewsFromFile, writeInterviewsToFile } from '../utils/fileStore.js';
 
-// In-memory mock database fallback when MongoDB is offline
-export let mockDatabase = [
-  {
-    _id: 'mock-dsa-id',
-    userId: '60d5ec49f1b2c81234567890',
-    title: 'Data Structures & Algorithms Mock',
-    role: 'Software Engineer',
-    difficulty: 'Medium',
-    status: 'pending',
-    questions: [
-      { _id: 'q1', questionText: 'Explain the difference between a list and a tuple in Python.', userAnswer: '', feedback: '', score: null },
-      { _id: 'q2', questionText: 'How does a hash map work?', userAnswer: '', feedback: '', score: null }
-    ],
-    overallScore: null,
-    overallFeedback: '',
-    grade: '',
-    strengths: [],
-    improvements: [],
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    _id: 'mock-frontend-id',
-    userId: '60d5ec49f1b2c81234567890',
-    title: 'Frontend React Panel',
-    role: 'React Developer',
-    difficulty: 'Easy',
-    status: 'completed',
-    questions: [
-      {
-        _id: 'q3',
-        questionText: 'What are React hooks?',
-        userAnswer: 'React hooks let you use state and other React features without writing a class. Examples include useState and useEffect.',
-        feedback: 'Excellent answer. You covered technical details comprehensively with solid structure.',
-        score: 9,
-        strength: 'Accurately defines the purpose of hooks and gives basic examples.',
-        improvement: 'Proactively mention performance trade-offs or alternative approaches to show even deeper mastery.'
-      }
-    ],
-    overallScore: 9,
-    overallFeedback: 'Excellent communication and technical clarity.',
-    grade: 'Expert Candidate',
-    strengths: [
-      'Exceptional depth in explaining core engineering/technical principles.',
-      'Highly structured delivery patterns (consistent with STAR framework).'
-    ],
-    improvements: [
-      'Proactively outline edge cases or trade-offs before the interviewer prompts.'
-    ],
-    createdAt: new Date(Date.now() - 3600000),
-    updatedAt: new Date(Date.now() - 3600000)
-  }
-];
+// Persistent mock database fallback when MongoDB is offline
+export let mockDatabase = readInterviewsFromFile();
 
 // Helper to check if MongoDB is active
 const isDbConnected = () => {
@@ -367,6 +317,7 @@ export const createInterview = async (req, res) => {
       };
 
       mockDatabase.unshift(newMockInterview);
+      writeInterviewsToFile(mockDatabase);
       return res.status(201).json({
         status: 'success',
         data: {
@@ -595,6 +546,7 @@ export const updateInterview = async (req, res) => {
     };
 
     mockDatabase[index] = updatedMock;
+    writeInterviewsToFile(mockDatabase);
 
     res.status(200).json({
       status: 'success',
@@ -652,6 +604,7 @@ export const deleteInterview = async (req, res) => {
     }
 
     mockDatabase.splice(index, 1);
+    writeInterviewsToFile(mockDatabase);
 
     res.status(200).json({
       status: 'success',

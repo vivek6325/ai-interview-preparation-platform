@@ -17,6 +17,7 @@ import { interviewCategories } from '../../constants';
 import { getFullAnalytics, exportAnalyticsReport } from '../../services/analyticsService';
 import { deleteInterview } from '../../services/api';
 import { useToast } from '../../components/Toast/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import ConfirmationModal from '../../components/Modal/ConfirmationModal';
 import DashboardHeader from '../../components/dashboard/DashboardHeader';
 import MetricCard from '../../components/dashboard/MetricCard';
@@ -42,6 +43,7 @@ import './Dashboard.css';
 function Dashboard() {
   const navigate = useNavigate();
   const { addToast } = useToast();
+  const { user } = useAuth();
 
   const [analyticsData, setAnalyticsData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -195,7 +197,7 @@ function Dashboard() {
       <div className="dashboard-grid-container">
         {/* SECTION 1: HEADER HERO BANNER */}
         <DashboardHeader
-          userName="Candidate"
+          userName={user?.fullName || 'Candidate'}
           streakDays={milestones?.currentStreak || 5}
           readinessScore={insights.readinessScore || 78}
           onStartSession={() => navigate('/interview-setup')}

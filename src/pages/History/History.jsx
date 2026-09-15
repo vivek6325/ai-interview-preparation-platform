@@ -22,6 +22,7 @@ function History() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [interviews, setInterviews] = useState([]);
+  const [paginationInfo, setPaginationInfo] = useState({ total: 0, page: 1, limit: 9, totalPages: 1 });
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
 
@@ -60,6 +61,9 @@ function History() {
         const data = response?.data || response;
         if (isSubscribed) {
           setInterviews(data?.interviews || []);
+          if (data?.pagination) {
+            setPaginationInfo(data.pagination);
+          }
         }
       } catch (err) {
         console.error('Error fetching history analytics:', err);
@@ -87,6 +91,12 @@ function History() {
     setSearchParams(newParams);
   };
 
+  const handlePageChange = (newPage) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('page', newPage.toString());
+    setSearchParams(newParams);
+  };
+
   const handleResetFilters = () => {
     setSearchParams(new URLSearchParams());
   };
@@ -103,6 +113,7 @@ function History() {
       await deleteInterview(selectedDeleteId);
       addToast('Mock interview record deleted successfully.', 'success');
       setInterviews(prev => prev.filter(item => item._id !== selectedDeleteId));
+      setPaginationInfo(prev => ({ ...prev, total: Math.max(0, prev.total - 1) }));
     } catch (err) {
       console.error(err);
       addToast('Failed to delete interview record.', 'error');
@@ -297,6 +308,44 @@ function History() {
           ))
         )}
       </section>
+
+      {/* Pagination Footer Controls */}
+      {paginationInfo.totalPages > 1 && (
+        <div className="history-pagination-container d-flex justify-content-between align-items-center mt-4 px-2">
+          <span className="fs-7 text-secondary">
+            Showing {(paginationInfo.page - 1) * paginationInfo.limit + 1}–
+            {Math.min(paginationInfo.page * paginationInfo.limit, paginationInfo.total)} of {paginationInfo.total} records
+          </span>
+          <div className="d-flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={paginationInfo.page <= 1}
+              onClick={() => handlePageChange(paginationInfo.page - 1)}
+            >
+              ← Previous
+            </Button>
+            {Array.from({ length: paginationInfo.totalPages }, (_, i) => i + 1).map((pg) => (
+              <Button
+                key={pg}
+                variant={pg === paginationInfo.page ? 'primary' : 'ghost'}
+                size="sm"
+                onClick={() => handlePageChange(pg)}
+              >
+                {pg}
+              </Button>
+            ))}
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={paginationInfo.page >= paginationInfo.totalPages}
+              onClick={() => handlePageChange(paginationInfo.page + 1)}
+            >
+              Next →
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Quick Report Preview Modal */}
       {previewInterview && (

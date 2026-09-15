@@ -2,6 +2,7 @@ import fs from 'fs';
 import mongoose from 'mongoose';
 import Interview from '../models/Interview.js';
 import { mockDatabase } from './interviewController.js';
+import { writeInterviewsToFile } from '../utils/fileStore.js';
 import { generateInterviewQuestions, evaluateInterviewAnswers } from '../services/aiService.js';
 import { generateQuestions, generateQuestionsFromResume } from '../services/ai/questionGenerator.js';
 import { generateFeedback, generateInterviewReport, generateCommunicationFeedback } from '../services/ai/feedbackGenerator.js';
@@ -87,6 +88,7 @@ export const generateSession = async (req, res) => {
         updatedAt: new Date()
       };
       mockDatabase.unshift(savedInterview);
+      writeInterviewsToFile(mockDatabase);
     }
 
     res.status(201).json({
@@ -119,18 +121,35 @@ export const evaluateSession = async (req, res) => {
       });
     }
 
-    const interview = await Interview.findById(interviewId);
+    let interview = null;
+    let isMongoDoc = false;
+
+    if (mongoose.connection && mongoose.connection.readyState === 1) {
+      try {
+        interview = await Interview.findById(interviewId);
+        if (interview) isMongoDoc = true;
+      } catch (err) {
+        console.warn('⚠️ [aiController] MongoDB lookup failed in evaluateSession:', err.message);
+      }
+    }
+
+    if (!interview) {
+      interview = mockDatabase.find((i) => i && i._id && i._id.toString() === interviewId.toString());
+    }
+
     if (!interview) {
       return res.status(404).json({
         status: 'fail',
-        message: 'Interview session not found in the database.',
+        message: 'Interview session not found in database or offline memory.',
       });
     }
+
+    const currentQuestions = interview.questions || [];
 
     // Update answers in memory if provided in request body
     if (questions && Array.isArray(questions)) {
       questions.forEach((qp) => {
-        const dbQ = interview.questions.find(
+        const dbQ = currentQuestions.find(
           (q) => (qp._id && q._id.toString() === qp._id.toString()) ||
             q.questionText === qp.questionText
         );
@@ -140,14 +159,14 @@ export const evaluateSession = async (req, res) => {
       });
     } else if (answers && Array.isArray(answers)) {
       answers.forEach((ans, idx) => {
-        if (interview.questions[idx]) {
-          interview.questions[idx].userAnswer = ans;
+        if (currentQuestions[idx]) {
+          currentQuestions[idx].userAnswer = ans;
         }
       });
     }
 
     // Prepare questions with answers for Gemini API evaluation request
-    const questionsWithAnswers = interview.questions.map((q) => ({
+    const questionsWithAnswers = currentQuestions.map((q) => ({
       questionText: q.questionText,
       userAnswer: q.userAnswer || 'No response provided.',
     }));
@@ -156,11 +175,12 @@ export const evaluateSession = async (req, res) => {
     const evaluation = await evaluateInterviewAnswers(questionsWithAnswers);
 
     // Prepare updated questions array
-    const updatedQuestions = interview.questions.map((q, idx) => {
+    const updatedQuestions = currentQuestions.map((q, idx) => {
       const evalItem = evaluation.questions[idx] || {};
+      const baseObj = typeof q.toObject === 'function' ? q.toObject() : q;
 
       return {
-        ...q.toObject(),
+        ...baseObj,
         score: evalItem.score ?? 0,
         feedback: evalItem.feedback ?? '',
         strength: evalItem.strength ?? '',
@@ -168,28 +188,57 @@ export const evaluateSession = async (req, res) => {
       };
     });
 
-    // Atomic update to avoid VersionError
-    const savedInterview = await Interview.findByIdAndUpdate(
-      interviewId,
-      {
-        questions: updatedQuestions,
-        overallScore: evaluation.overallScore ?? 0,
-        overallFeedback: evaluation.overallFeedback ?? '',
-        grade: evaluation.grade ?? 'Needs Development',
-        strengths: evaluation.strengths ?? [],
-        improvements: evaluation.improvements ?? [],
-        status: 'completed',
-      },
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+    if (isMongoDoc) {
+      const savedInterview = await Interview.findByIdAndUpdate(
+        interviewId,
+        {
+          questions: updatedQuestions,
+          overallScore: evaluation.overallScore ?? 0,
+          overallFeedback: evaluation.overallFeedback ?? '',
+          grade: evaluation.grade ?? 'Needs Development',
+          strengths: evaluation.strengths ?? [],
+          improvements: evaluation.improvements ?? [],
+          status: 'completed',
+        },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
 
-    res.status(200).json({
+      return res.status(200).json({
+        status: 'success',
+        data: {
+          interview: savedInterview,
+        },
+      });
+    }
+
+    // Fallback to mockDatabase update
+    const mockIdx = mockDatabase.findIndex((i) => i && i._id && i._id.toString() === interviewId.toString());
+    const updatedMock = {
+      ...interview,
+      questions: updatedQuestions,
+      overallScore: evaluation.overallScore ?? 0,
+      overallFeedback: evaluation.overallFeedback ?? '',
+      grade: evaluation.grade ?? 'Needs Development',
+      strengths: evaluation.strengths ?? [],
+      improvements: evaluation.improvements ?? [],
+      status: 'completed',
+      updatedAt: new Date()
+    };
+
+    if (mockIdx !== -1) {
+      mockDatabase[mockIdx] = updatedMock;
+    } else {
+      mockDatabase.unshift(updatedMock);
+    }
+    writeInterviewsToFile(mockDatabase);
+
+    return res.status(200).json({
       status: 'success',
       data: {
-        interview: savedInterview,
+        interview: updatedMock,
       },
     });
   } catch (error) {
@@ -302,15 +351,23 @@ export const generateInterviewReportController = async (req, res) => {
     
     let targetId = interviewId;
     let interviewDoc = null;
+    let mockItem = null;
     let sessionData = { role, difficulty, questions };
 
     if (targetId) {
-      interviewDoc = await Interview.findById(targetId);
+      if (mongoose.connection && mongoose.connection.readyState === 1) {
+        try {
+          interviewDoc = await Interview.findById(targetId);
+        } catch (err) {
+          console.warn('⚠️ [aiController] Mongoose lookup failed in report controller:', err.message);
+        }
+      }
+
       if (interviewDoc) {
         sessionData = {
           role: interviewDoc.role,
           difficulty: interviewDoc.difficulty,
-          questions: interviewDoc.questions.map(q => ({
+          questions: (interviewDoc.questions || []).map(q => ({
             questionText: q.questionText,
             userAnswer: q.userAnswer || 'No response provided.',
             score: q.score,
@@ -319,6 +376,22 @@ export const generateInterviewReportController = async (req, res) => {
             improvement: q.improvement
           }))
         };
+      } else {
+        mockItem = mockDatabase.find(i => i && i._id && i._id.toString() === targetId.toString());
+        if (mockItem) {
+          sessionData = {
+            role: mockItem.role,
+            difficulty: mockItem.difficulty,
+            questions: (mockItem.questions || []).map(q => ({
+              questionText: q.questionText,
+              userAnswer: q.userAnswer || 'No response provided.',
+              score: q.score,
+              feedback: q.feedback,
+              strength: q.strength,
+              improvement: q.improvement
+            }))
+          };
+        }
       }
     }
 
@@ -340,13 +413,22 @@ export const generateInterviewReportController = async (req, res) => {
       interviewDoc.improvements = report.improvementAreas;
       interviewDoc.status = 'completed';
       await interviewDoc.save();
+    } else if (mockItem) {
+      mockItem.overallReport = report;
+      mockItem.overallScore = report.overallScore;
+      mockItem.grade = report.hiringRecommendation;
+      mockItem.strengths = report.topStrengths;
+      mockItem.improvements = report.improvementAreas;
+      mockItem.status = 'completed';
+      mockItem.updatedAt = new Date();
+      writeInterviewsToFile(mockDatabase);
     }
 
     res.status(200).json({
       status: 'success',
       data: {
         report,
-        interview: interviewDoc
+        interview: interviewDoc || mockItem
       }
     });
   } catch (error) {

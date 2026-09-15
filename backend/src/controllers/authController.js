@@ -1,19 +1,7 @@
 import mongoose from 'mongoose';
 import User from '../models/User.js';
 import generateToken from '../utils/generateToken.js';
-
-// In-Memory User Store for offline/fallback mode
-const DEMO_USER_ID = '60d5ec49f1b2c81234567890';
-const inMemoryUsers = new Map([
-  ['test@example.com', {
-    _id: DEMO_USER_ID,
-    fullName: 'Demo Candidate',
-    email: 'test@example.com',
-    password: 'password123',
-    avatar: '',
-    role: 'candidate'
-  }]
-]);
+import { readUsersFromFile, writeUsersToFile } from '../utils/fileStore.js';
 
 /**
  * @desc    Register a new user
@@ -48,17 +36,31 @@ export const registerUser = async (req, res) => {
 
     const cleanEmail = email.toLowerCase().trim();
 
-    // Fallback: If DB is offline, store in memory and return success
+    // Fallback: If DB is offline, store in local JSON file store
     if (mongoose.connection.readyState !== 1) {
+      const usersList = readUsersFromFile();
+      const existing = usersList.find((u) => u.email && u.email.toLowerCase() === cleanEmail);
+
+      if (existing) {
+        return res.status(400).json({
+          status: 'fail',
+          message: 'A user with this email address already exists.',
+        });
+      }
+
       const newUser = {
-        _id: `inmemory_${Date.now()}`,
+        _id: new mongoose.Types.ObjectId().toString(),
         fullName: fullName.trim(),
         email: cleanEmail,
         password,
         avatar: avatar || '',
-        role: 'candidate'
+        role: 'candidate',
+        createdAt: new Date().toISOString()
       };
-      inMemoryUsers.set(cleanEmail, newUser);
+
+      usersList.push(newUser);
+      writeUsersToFile(usersList);
+
       const token = generateToken(newUser._id);
       return res.status(201).json({
         status: 'success',
@@ -146,20 +148,24 @@ export const loginUser = async (req, res) => {
 
     const cleanEmail = email.toLowerCase().trim();
 
-    // Fallback: If DB is offline, check in-memory users or create demo user session on the fly
+    // Fallback: If DB is offline, check local JSON file store
     if (mongoose.connection.readyState !== 1) {
-      let existingUser = inMemoryUsers.get(cleanEmail);
+      const usersList = readUsersFromFile();
+      let existingUser = usersList.find((u) => u.email && u.email.toLowerCase() === cleanEmail);
 
       if (!existingUser) {
+        // Auto-create candidate on first demo login if not existing
         existingUser = {
-          _id: `inmemory_${Date.now()}`,
+          _id: new mongoose.Types.ObjectId().toString(),
           fullName: cleanEmail.split('@')[0] || 'Demo Candidate',
           email: cleanEmail,
           password,
           avatar: '',
-          role: 'candidate'
+          role: 'candidate',
+          createdAt: new Date().toISOString()
         };
-        inMemoryUsers.set(cleanEmail, existingUser);
+        usersList.push(existingUser);
+        writeUsersToFile(usersList);
       }
 
       const token = generateToken(existingUser._id);
