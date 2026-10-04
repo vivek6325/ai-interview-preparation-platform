@@ -1,5 +1,311 @@
 [
   {
+    "_id": "6ac296317896d39db5453b01",
+    "userId": "test_user_id_999",
+    "title": "Fullstack Developer AI Interview",
+    "role": "Fullstack Developer",
+    "difficulty": "medium",
+    "status": "pending",
+    "questions": [
+      {
+        "_id": "6ac296317896d39db5453b02",
+        "questionText": "Explain the purpose and usage of `useEffect` and `useLayoutEffect` hooks in React. When would you choose one over the other? How do you manage global state in a complex React application without prop drilling, considering various common patterns?",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac296317896d39db5453b03",
+        "questionText": "Describe common performance bottlenecks in React applications, particularly in large-scale applications. How would you identify and resolve these using tools and specific React features like `React.memo`, `useCallback`, and `useMemo`? Provide concrete examples.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac296317896d39db5453b04",
+        "questionText": "When designing a RESTful API with Express.js, what are your considerations for structuring endpoints, handling request validation (e.g., using Joi or express-validator), and managing different HTTP methods effectively? Provide an example of a typical API endpoint structure for a resource.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac296317896d39db5453b05",
+        "questionText": "Explain the Node.js event loop and how it handles asynchronous operations. How would you implement robust error handling in an Express.js application, including both synchronous and asynchronous errors, to prevent application crashes and provide meaningful feedback?",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac296317896d39db5453b06",
+        "questionText": "Discuss common security vulnerabilities in Node.js/Express applications (e.g., XSS, CSRF, SQL/NoSQL Injection, rate limiting). How do you mitigate these risks and implement secure practices for data handling and API access?",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac296317896d39db5453b07",
+        "questionText": "Describe the process of designing a schema for a new feature in a MongoDB database. How do you decide between embedding documents and referencing them? What strategies would you employ to optimize query performance for frequently accessed data?",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac296317896d39db5453b08",
+        "questionText": "Explain how MongoDB's aggregation framework works. Provide an example of a use case where you would prefer using the aggregation pipeline over multiple individual queries or client-side processing. Discuss the necessity and implementation of multi-document transactions in MongoDB.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac296317896d39db5453b09",
+        "questionText": "Walk us through the end-to-end process of implementing user authentication and authorization (e.g., using JWTs) in a fullstack application built with React, Node.js, and Express. What are the key security considerations at each layer (frontend, backend, database)?",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac296317896d39db5453b0a",
+        "questionText": "You've built a new fullstack application with React, Node.js, Express, and MongoDB. Describe your approach to deploying it to a production environment. What tools and strategies would you use for continuous integration/continuous deployment (CI/CD) and ensuring high availability?",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac296317896d39db5453b0b",
+        "questionText": "Imagine a scenario where your fullstack application is experiencing intermittent performance issues and errors in production. How would you approach debugging and monitoring to identify the root cause, considering both frontend (React) and backend (Node.js/Express/MongoDB) aspects?",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      }
+    ],
+    "createdAt": "2026-10-04T18:08:49.911Z",
+    "updatedAt": "2026-10-04T18:08:49.911Z"
+  },
+  {
+    "_id": "6ac295cddbcb3095ad3a9b2c",
+    "userId": "test_user_id_999",
+    "title": "Fullstack Developer AI Interview",
+    "role": "Fullstack Developer",
+    "difficulty": "medium",
+    "status": "pending",
+    "questions": [
+      {
+        "_id": "6ac295cddbcb3095ad3a9b2d",
+        "questionText": "You've identified a React application suffering from significant performance bottlenecks, particularly during complex state updates and list rendering. Beyond basic `React.memo` and `useCallback`, what advanced techniques and architectural patterns would you explore and implement to diagnose and resolve these performance issues? Provide specific examples.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac295cddbcb3095ad3a9b2e",
+        "questionText": "In a large-scale React application, state management can become complex. Compare and contrast using Redux Toolkit with the Context API + `useReducer` hooks for global state management. Discuss scenarios where one might be preferred over the other, and any trade-offs involved.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac295cddbcb3095ad3a9b2f",
+        "questionText": "Describe a robust architecture for a medium-to-large Node.js/Express backend application. How would you structure your codebase (e.g., layers, modules) to ensure maintainability, testability, and scalability? Include considerations for separating concerns like routing, business logic, data access, and middleware.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac295cddbcb3095ad3a9b30",
+        "questionText": "You need to implement authentication and authorization for a RESTful API built with Node.js and Express. Describe common strategies (e.g., JWT, session-based) and explain how you would secure sensitive routes. Discuss considerations for token storage (frontend), refresh tokens, and preventing common attacks like XSS/CSRF in this context.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac295cddbcb3095ad3a9b31",
+        "questionText": "When designing a MongoDB schema, you often face decisions between embedding documents and using references. Describe a scenario where embedding documents would be more beneficial, and another where using references would be preferred. Explain the performance implications and trade-offs of each approach.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac295cddbcb3095ad3a9b32",
+        "questionText": "A critical API endpoint in your application is experiencing slow response times due to inefficient database queries on MongoDB. Walk through your process of identifying the bottleneck and describe specific indexing strategies and query optimization techniques you would apply to improve performance. Provide an example of an index you might create and why.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac295cddbcb3095ad3a9b33",
+        "questionText": "Discuss how you would implement comprehensive error handling across a fullstack application using React, Node.js/Express, and MongoDB. Address client-side error boundaries, server-side global error middleware, logging strategies, and how to provide meaningful error messages to users while keeping sensitive information secure.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac295cddbcb3095ad3a9b34",
+        "questionText": "As a senior fullstack developer, security is paramount. Identify and explain at least three common security vulnerabilities relevant to a React, Node.js, and MongoDB stack. For each, describe how you would prevent or mitigate it in both the frontend and backend.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac295cddbcb3095ad3a9b35",
+        "questionText": "Design a high-level architecture for a real-time notification system within an application (e.g., 'X liked your post', 'Y commented'). Assume users are logged in. How would you handle the communication between the backend (Node.js/Express) and frontend (React)? What technologies would you choose, and what considerations for scalability and reliability would you have?",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac295cddbcb3095ad3a9b36",
+        "questionText": "Describe your experience with deploying fullstack applications (React frontend, Node.js/Express backend, MongoDB database). Outline a typical CI/CD pipeline for such an application, including key steps like testing, building, and deployment strategy to production. Mention tools you might use.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      }
+    ],
+    "createdAt": "2026-10-04T18:07:09.379Z",
+    "updatedAt": "2026-10-04T18:07:09.379Z"
+  },
+  {
+    "_id": "6ac295699edafe46b0128e23",
+    "userId": "test_user_id_999",
+    "title": "Fullstack Developer AI Interview",
+    "role": "Fullstack Developer",
+    "difficulty": "medium",
+    "status": "pending",
+    "questions": [
+      {
+        "_id": "6ac295699edafe46b0128e24",
+        "questionText": "Describe common performance bottlenecks in a React application and how you would identify and mitigate them. Provide examples related to state management and re-renders, and how you might leverage hooks or other React features to optimize.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac295699edafe46b0128e25",
+        "questionText": "Explain the benefits and typical use cases for React Hooks like `useState`, `useEffect`, `useContext`, and `useMemo`/`useCallback`. How do they improve component logic, reusability, and performance compared to class components?",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac295699edafe46b0128e26",
+        "questionText": "You are building a RESTful API with Node.js and Express. Describe how you would structure your routes and implement middleware for common tasks such as authentication, request validation (e.g., Joi/express-validator), and centralized error handling. Provide a high-level code example for a custom authentication middleware.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac295699edafe46b0128e27",
+        "questionText": "Explain the Node.js event loop and its significance in handling asynchronous operations. How does this non-blocking I/O model impact application performance, and what strategies would you use to manage long-running or CPU-intensive tasks without blocking the event loop?",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac295699edafe46b0128e28",
+        "questionText": "Given a use case for an e-commerce platform where users can place orders for products, describe how you would design the MongoDB schema for `users`, `products`, and `orders`. Discuss the trade-offs between embedding and referencing documents, and identify specific fields you would index for efficient querying.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac295699edafe46b0128e29",
+        "questionText": "When querying a large MongoDB collection, what strategies would you employ to ensure query performance and efficiency? Discuss the use of projections, understanding `explain()` output, and applying aggregation pipelines for complex data transformations.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac295699edafe46b0128e2a",
+        "questionText": "Design a secure user authentication and authorization flow for a fullstack application using React, Node.js/Express, and MongoDB. Discuss the roles of JWTs, refresh tokens, and how you would handle them securely on both the frontend (e.g., storage, expiration) and backend (e.g., token verification, revocation).",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac295699edafe46b0128e2b",
+        "questionText": "Describe your approach to data fetching in a React application that consumes a Node.js/Express API. How would you handle various states (loading, success, error), implement caching strategies on the frontend, and ensure consistent API error responses from the backend?",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac295699edafe46b0128e2c",
+        "questionText": "Imagine you've built a successful fullstack application (React, Node, MongoDB) that is experiencing rapid user growth. What are the key areas you would focus on to scale the application horizontally and vertically? Discuss specific considerations for each layer of your stack (frontend, backend, database).",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac295699edafe46b0128e2d",
+        "questionText": "You're debugging an issue where a user reports that a new feature is not working as expected. This involves both the React frontend and Node.js backend interacting with MongoDB. Describe your systematic approach to identify the root cause of the problem, including tools and techniques you would use across the fullstack.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      }
+    ],
+    "createdAt": "2026-10-04T18:05:29.122Z",
+    "updatedAt": "2026-10-04T18:05:29.122Z"
+  },
+  {
     "_id": "6aa9949b2152324e56234190",
     "userId": "6aa9921534daab9891fb1495",
     "title": "Frontend AI Interview",
