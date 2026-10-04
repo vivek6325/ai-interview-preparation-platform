@@ -1,5 +1,107 @@
 [
   {
+    "_id": "6ac2a2bf5c3edabd2e2ebce4",
+    "userId": "test_user_id_999",
+    "title": "Fullstack Developer AI Interview",
+    "role": "Fullstack Developer",
+    "difficulty": "medium",
+    "status": "pending",
+    "questions": [
+      {
+        "_id": "6ac2a2bf5c3edabd2e2ebce5",
+        "questionText": "As a senior React developer, how would you approach optimizing a complex React application that is experiencing significant performance bottlenecks, especially in scenarios involving large lists or frequent state updates? Discuss specific techniques and tools you would employ beyond basic memoization (`useMemo`, `useCallback`).",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac2a2bf5c3edabd2e2ebce6",
+        "questionText": "Describe the core principles of building RESTful APIs using Node.js and Express. Provide an example of how you would structure an API endpoint for creating a new resource, including considerations for request body validation, error handling, and appropriate HTTP status codes.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac2a2bf5c3edabd2e2ebce7",
+        "questionText": "When designing a schema for a social media application in MongoDB, how would you decide between embedding related data (e.g., comments within a post document) and referencing it (e.g., a separate comments collection with `postId` references)? Discuss the trade-offs and scenarios where each approach is more suitable.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac2a2bf5c3edabd2e2ebce8",
+        "questionText": "Explain the concept of middleware in an Express.js application. Provide a concrete example of a custom middleware you would implement for a common fullstack scenario, such as user authentication or request logging, and describe how it fits into the request-response cycle.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac2a2bf5c3edabd2e2ebce9",
+        "questionText": "For a large-scale React application, compare and contrast different state management solutions (e.g., Redux, React Context API with `useReducer`, Zustand, TanStack Query). What criteria would you use to choose the most appropriate solution for different parts of an application, and why?",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac2a2bf5c3edabd2e2ebcea",
+        "questionText": "Discuss common security vulnerabilities in fullstack applications built with React, Node.js, and MongoDB (e.g., XSS, CSRF, Injection attacks, improper authentication). For each, describe mitigation strategies you would implement on both the frontend and backend.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac2a2bf5c3edabd2e2ebceb",
+        "questionText": "In Node.js, describe the Event Loop and its significance for writing non-blocking, performant code. How does understanding the Event Loop help you debug performance issues or avoid common pitfalls like 'callback hell' or blocking the main thread?",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac2a2bf5c3edabd2e2ebcec",
+        "questionText": "As a senior developer, outline your strategy for testing a fullstack application involving React, Node/Express, and MongoDB. What types of tests would you prioritize (unit, integration, end-to-end), what tools would you use for each layer, and what is your philosophy on test coverage?",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac2a2bf5c3edabd2e2ebced",
+        "questionText": "Imagine you need to build a real-time notification system into your fullstack application. How would you design this system using your core technologies, specifically considering how the frontend (React) receives updates from the backend (Node/Express) and what database considerations (MongoDB) would be relevant for storing notification data?",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac2a2bf5c3edabd2e2ebcee",
+        "questionText": "Discuss your approach to maintaining code quality, reusability, and maintainability in a large fullstack codebase. What design patterns, architectural principles, or development practices (e.g., linting, code reviews, modularity) do you advocate for and why, particularly for a team of senior developers?",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      }
+    ],
+    "createdAt": "2026-10-04T19:02:23.038Z",
+    "updatedAt": "2026-10-04T19:02:23.038Z"
+  },
+  {
     "_id": "6ac296317896d39db5453b01",
     "userId": "test_user_id_999",
     "title": "Fullstack Developer AI Interview",

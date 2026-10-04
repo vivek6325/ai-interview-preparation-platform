@@ -29,7 +29,7 @@ describe('HTTP API Express Integration Suite', () => {
       app.get('/', (req, res) => {
         res.status(200).json({
           status: 'success',
-          name: 'PrepAI Career Intelligence Platform API',
+          name: 'StackScreen AI Career Intelligence Platform API',
           version: '1.0.0',
           healthCheck: '/api/health',
           timestamp: new Date().toISOString()
@@ -80,7 +80,7 @@ describe('HTTP API Express Integration Suite', () => {
     assert.strictEqual(res.status, 200);
     const body = await res.json();
     assert.strictEqual(body.status, 'success');
-    assert.ok(body.name.includes('PrepAI'));
+    assert.ok(body.name.includes('StackScreen'));
   });
 
   test('GET /api/health returns 200 with system status & database schema', async () => {

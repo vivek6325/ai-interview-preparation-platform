@@ -45,7 +45,7 @@ export function AvatarSection({
       </div>
 
       <div className="avatar-info-panel">
-        <h3>PrepAI Interviewer</h3>
+        <h3>StackScreen AI Interviewer</h3>
         <div className={`interviewer-status-badge ${getStatusBadgeClass()}`}>
           {getStatusText()}
         </div>

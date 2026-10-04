@@ -37,7 +37,7 @@ export function TestimonialsSection() {
       <div className="section-inner-container">
         <SectionHeader
           title="Full-Stack Technical Architecture Highlights"
-          subtitle="Explore the key engineering components and AI capabilities powering the PrepAI candidate platform."
+          subtitle="Explore the key engineering components and AI capabilities powering the StackScreen AI candidate platform."
           badgeText="SYSTEM ARCHITECTURE"
           badgeVariant="success"
         />

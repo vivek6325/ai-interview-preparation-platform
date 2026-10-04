@@ -1,4 +1,4 @@
-# 🚀 PrepAI - AI-Powered Mock Interview & Career Analytics Platform
+# 🚀 StackScreen AI - AI-Powered Mock Interview & Career Analytics Platform
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Node Version](https://img.shields.io/badge/Node.js-22.x-green.svg)](https://nodejs.org)
@@ -7,7 +7,7 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-brightgreen.svg)](https://www.mongodb.com/atlas)
 [![Vite](https://img.shields.io/badge/Vite-8.x-purple.svg)](https://vitejs.dev)
 
-> **PrepAI** is a production-grade, full-stack AI Career Coach and Mock Interview Platform built on the MERN stack (MongoDB, Express, React, Node.js 22) and Google Gemini AI. It empowers software engineers, developers, and candidates to practice real-time voice and text mock interviews, receive STAR-framework aligned evaluation scorecards, detect skill weaknesses, and track multi-dimensional career progress.
+> **StackScreen AI** is a production-grade, full-stack AI Career Coach and Mock Interview Platform built on the MERN stack (MongoDB, Express, React, Node.js 22) and Google Gemini AI. It empowers software engineers, developers, and candidates to practice real-time voice and text mock interviews, receive STAR-framework aligned evaluation scorecards, detect skill weaknesses, and track multi-dimensional career progress.
 
 ---
 

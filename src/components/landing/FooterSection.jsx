@@ -12,7 +12,7 @@ export function FooterSection() {
         <div className="footer-top-row">
           <div className="footer-brand-col">
             <span className="footer-logo">
-              PrepAI<span className="dot">.</span>
+              StackScreen<span className="dot">.</span>
             </span>
             <p className="footer-brand-desc">
               Next-generation AI Mock Interview & Career Analytics Platform. Empowering software engineers to master behavioral and technical loops.
@@ -64,7 +64,7 @@ export function FooterSection() {
 
         <div className="footer-bottom-row">
           <span className="copyright-text">
-            © {new Date().getFullYear()} PrepAI Inc. Built with <Heart size={13} className="text-red" /> for software engineers worldwide.
+            © {new Date().getFullYear()} StackScreen AI Inc. Built with <Heart size={13} className="text-red" /> for software engineers worldwide.
           </span>
           <span className="privacy-text">Privacy Policy • Terms of Service</span>
         </div>

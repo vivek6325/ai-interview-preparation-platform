@@ -27,7 +27,7 @@ export function DashboardPreviewSection() {
           <div className="mockup-nav-header">
             <div className="mockup-nav-left">
               <span className="brand-dot-nav"></span>
-              <span className="nav-title">PrepAI Executive Analytics</span>
+              <span className="nav-title">StackScreen Executive Analytics</span>
             </div>
             <div className="mockup-nav-right">
               <span className="nav-badge-pill">🔥 5 Day Streak</span>

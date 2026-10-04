@@ -6,7 +6,7 @@
 
 ## 💡 Elevator Pitch (30 Seconds)
 
-> *"I built **PrepAI**, an enterprise-grade AI Career Coach and Mock Interview Platform using the MERN stack (Node.js 22, Express 5, React 19, MongoDB Atlas) and Google Gemini AI. It provides candidates with real-time voice and text mock interview loops, automated STAR-framework evaluations, multi-dimensional skill radar analytics, weakness detection engines, and personalized 4-week practice roadmaps."*
+> *"I built **StackScreen AI**, an enterprise-grade AI Career Coach and Mock Interview Platform using the MERN stack (Node.js 22, Express 5, React 19, MongoDB Atlas) and Google Gemini AI. It provides candidates with real-time voice and text mock interview loops, automated STAR-framework evaluations, multi-dimensional skill radar analytics, weakness detection engines, and personalized 4-week practice roadmaps."*
 
 ---
 

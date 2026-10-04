@@ -17,7 +17,7 @@ function Navbar() {
     <nav className="home-navbar">
       {/* Brand logo linked to Home/Dashboard */}
       <Link to={isAuthenticated ? "/dashboard" : "/"} className="nav-brand">
-        PrepAI<span className="brand-dot">.</span>
+        StackScreen<span className="brand-dot">.</span>
       </Link>
       
       {/* Navigation Menu Links */}

@@ -26,7 +26,7 @@ export function HeroSection({ onStartPractice, onLogin }) {
 
         {/* Large Headline */}
         <h1 className="hero-main-headline">
-          Master Your Next Technical Interview with <span className="gradient-text-blue">PrepAI</span>
+          Master Your Next Technical Interview with <span className="gradient-text-blue">StackScreen AI</span>
         </h1>
 
         {/* Subtitle */}
@@ -77,7 +77,7 @@ export function HeroSection({ onStartPractice, onLogin }) {
               <span className="dot yellow"></span>
               <span className="dot green"></span>
             </div>
-            <span className="mockup-url">https://prepai.io/interview-session/voice-room</span>
+            <span className="mockup-url">https://stackscreen.ai/interview-session/voice-room</span>
             <span className="mockup-status">🟢 AI Panel Active</span>
           </div>
 

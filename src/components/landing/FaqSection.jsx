@@ -15,7 +15,7 @@ export function FaqSection() {
   const faqs = [
     {
       q: 'How does the AI Voice Mock Interviewer work?',
-      a: 'PrepAI uses your browser SpeechSynthesis API to speak interview questions aloud and SpeechRecognition API to capture your voice answer in real-time. The transcribed speech is analyzed by Google Gemini AI to generate itemized STAR scorecards.'
+      a: 'StackScreen AI uses your browser SpeechSynthesis API to speak interview questions aloud and SpeechRecognition API to capture your voice answer in real-time. The transcribed speech is analyzed by Google Gemini AI to generate itemized STAR scorecards.'
     },
     {
       q: 'How does resume parsing tailor my questions?',
@@ -23,14 +23,14 @@ export function FaqSection() {
     },
     {
       q: 'What track categories are supported?',
-      a: 'PrepAI supports Frontend (React, CSS, System Design), Backend (Node, Express, Databases), Full Stack, Data Structures & Algorithms (DSA), and HR Behavioral tracks.'
+      a: 'StackScreen AI supports Frontend (React, CSS, System Design), Backend (Node, Express, Databases), Full Stack, Data Structures & Algorithms (DSA), and HR Behavioral tracks.'
     },
     {
       q: 'Can I export my scorecard reports?',
       a: 'Yes! From your Practice History Vault or Dashboard, you can export your analytics in CSV format or generate print-ready PDF scorecard reports.'
     },
     {
-      q: 'Is PrepAI free to use?',
+      q: 'Is StackScreen AI free to use?',
       a: 'Yes, candidates can start with free mock sessions right away with zero credit card required.'
     }
   ];
@@ -44,7 +44,7 @@ export function FaqSection() {
       <div className="section-inner-container">
         <SectionHeader
           title="Frequently Asked Questions"
-          subtitle="Everything you need to know about PrepAI voice mock interviews and AI analytics."
+          subtitle="Everything you need to know about StackScreen AI voice mock interviews and AI analytics."
           badgeText="COMMON QUESTIONS"
           badgeVariant="primary"
         />

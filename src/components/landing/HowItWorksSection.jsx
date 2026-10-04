@@ -39,7 +39,7 @@ export function HowItWorksSection() {
     <section className="landing-how-section" id="how-it-works">
       <div className="section-inner-container">
         <SectionHeader
-          title="How PrepAI Transforms Your Interview Readiness"
+          title="How StackScreen AI Transforms Your Interview Readiness"
           subtitle="Four simple steps to practice, evaluate, and master your technical interview loops."
           badgeText="WORKFLOW ROADMAP"
           badgeVariant="primary"

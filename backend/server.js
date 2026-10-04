@@ -55,7 +55,7 @@ app.use('/api/resume', resumeRoutes);
 app.get('/', (req, res) => {
   res.status(200).json({
     status: 'success',
-    name: 'PrepAI Career Intelligence Platform API',
+    name: 'StackScreen AI Career Intelligence Platform API',
     version: '1.0.0',
     healthCheck: '/api/health',
     timestamp: new Date().toISOString()

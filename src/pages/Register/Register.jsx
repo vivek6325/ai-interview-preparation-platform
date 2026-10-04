@@ -60,7 +60,7 @@ function Register() {
         password,
       });
 
-      addToast('Account created successfully! Welcome to PrepAI.', 'success');
+      addToast('Account created successfully! Welcome to StackScreen AI.', 'success');
       navigate('/dashboard');
     } catch (err) {
       console.error('Registration failed:', err);

@@ -74,7 +74,7 @@ export function downloadInterviewReport(session) {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>PrepAI Interview Report - ${title}</title>
+  <title>StackScreen AI Interview Report - ${title}</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -328,7 +328,7 @@ export function downloadInterviewReport(session) {
 <body>
   <div class="container">
     <div class="print-banner">
-      <div class="brand">PrepAI<span>.</span></div>
+      <div class="brand">StackScreen<span>.</span></div>
       <button class="btn-print" onclick="window.print()">Print Official Report</button>
     </div>
     
@@ -389,7 +389,7 @@ export function downloadInterviewReport(session) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `PrepAI_Report_${role.replace(/\s+/g, '_')}_${Date.now()}.html`;
+  a.download = `StackScreen_Report_${role.replace(/\s+/g, '_')}_${Date.now()}.html`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

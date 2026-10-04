@@ -23,7 +23,7 @@ function Hero({ onStartInterview, onLogin }) {
       </div>
 
       {/* Main Heading */}
-      <h1>PrepAI - AI Interview Preparation</h1>
+      <h1>StackScreen AI - AI Interview Preparation</h1>
 
       {/* Platform Value Prop / Subheading */}
       <p className="hero-description">
