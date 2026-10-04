@@ -1,5 +1,107 @@
 [
   {
+    "_id": "6ac2b15a26385e56a6bb9bc6",
+    "userId": "test_user_id_999",
+    "title": "Fullstack Developer AI Interview",
+    "role": "Fullstack Developer",
+    "difficulty": "medium",
+    "status": "pending",
+    "questions": [
+      {
+        "_id": "6ac2b15a26385e56a6bb9bc7",
+        "questionText": "You are working on a performance-critical React application. Describe several strategies and specific React features (e.g., Hooks, HOCs) you would use to optimize the rendering performance of a complex component that frequently updates its state or receives new props. How do you identify performance bottlenecks in a React application?",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac2b15a26385e56a6bb9bc8",
+        "questionText": "Explain the concept of middleware in an Express.js application. Provide an example of a custom middleware function you might implement for a production API (e.g., for authentication, logging, or error handling) and explain how it contributes to the application's architecture and maintainability.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac2b15a26385e56a6bb9bc9",
+        "questionText": "When designing a MongoDB schema for an application, what are the primary considerations for deciding between embedding related documents and referencing them? Provide a practical example related to an e-commerce platform (e.g., products and reviews, or orders and items) and justify your chosen approach for that scenario, considering query patterns and data integrity.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac2b15a26385e56a6bb9bca",
+        "questionText": "Outline a robust authentication and authorization strategy for a fullstack application using React on the frontend and Node.js/Express on the backend. Discuss the trade-offs between using session-based authentication versus token-based authentication (e.g., JWTs) and describe specific security measures you would implement to protect against common vulnerabilities like XSS, CSRF, and brute-force attacks.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac2b15a26385e56a6bb9bcb",
+        "questionText": "How do you effectively handle asynchronous operations and error management in a Node.js Express application? Discuss the use of `async/await`, try-catch blocks, and error-handling middleware. Provide an example of how you would structure an API endpoint to gracefully handle potential errors at different stages (e.g., database operations, external API calls).",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac2b15a26385e56a6bb9bcc",
+        "questionText": "Describe a challenging technical problem you've encountered in a fullstack project involving React and a Node.js backend. Explain your approach to diagnosing the root cause, the steps you took to resolve it, and what key lessons you learned about debugging or system design from that experience.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac2b15a26385e56a6bb9bcd",
+        "questionText": "Imagine you need to implement a real-time notification system (e.g., for new messages, status updates) within your fullstack application. Briefly describe a high-level architectural approach for this feature, mentioning the key technologies you would consider (e.g., WebSockets, server-sent events) and how they would integrate with your existing React frontend and Node.js backend.",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac2b15a26385e56a6bb9bce",
+        "questionText": "Explain the concept of indexing in MongoDB and why it's crucial for query performance. Given a collection with millions of documents containing user activity data (e.g., user ID, action type, timestamp, IP address), how would you decide which fields to index and what type of indexes (e.g., single-field, compound, multikey, text) you would create to optimize common queries?",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac2b15a26385e56a6bb9bcf",
+        "questionText": "Discuss the advantages and disadvantages of Server-Side Rendering (SSR) and Client-Side Rendering (CSR) for a React application, particularly when backed by a Node.js Express API. In what scenarios would you choose one over the other, and what specific challenges or complexities does SSR introduce to a typical React/Node fullstack setup?",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      },
+      {
+        "_id": "6ac2b15a26385e56a6bb9bd0",
+        "questionText": "As a senior developer, how do you approach maintaining code quality and ensuring testability across a fullstack application? Describe your strategies for writing unit tests, integration tests, and end-to-end tests for both React components and Node.js API endpoints. What tools or frameworks do you prefer for testing in this stack?",
+        "userAnswer": "",
+        "score": null,
+        "feedback": "",
+        "strength": "",
+        "improvement": ""
+      }
+    ],
+    "createdAt": "2026-10-04T20:04:42.814Z",
+    "updatedAt": "2026-10-04T20:04:42.814Z"
+  },
+  {
     "_id": "6ac2a2bf5c3edabd2e2ebce4",
     "userId": "test_user_id_999",
     "title": "Fullstack Developer AI Interview",

@@ -2,6 +2,8 @@ import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './Navbar.css';
 
+import { Logo } from '../ui/Logo';
+
 /**
  * Navbar Component
  * Renders page links and session controls based on candidate authentication states.
@@ -16,8 +18,8 @@ function Navbar() {
   return (
     <nav className="home-navbar">
       {/* Brand logo linked to Home/Dashboard */}
-      <Link to={isAuthenticated ? "/dashboard" : "/"} className="nav-brand">
-        StackScreen<span className="brand-dot">.</span>
+      <Link to={isAuthenticated ? "/dashboard" : "/"} className="nav-brand" aria-label="STACKSCREEN">
+        <Logo variant="dark" height={40} className="nav-logo" />
       </Link>
       
       {/* Navigation Menu Links */}

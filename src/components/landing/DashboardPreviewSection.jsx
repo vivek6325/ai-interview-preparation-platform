@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { SectionHeader } from '../ui/SectionHeader';
+import { Logo } from '../ui/Logo';
 import './Landing.css';
 
 /**
@@ -26,8 +27,8 @@ export function DashboardPreviewSection() {
         >
           <div className="mockup-nav-header">
             <div className="mockup-nav-left">
-              <span className="brand-dot-nav"></span>
-              <span className="nav-title">StackScreen Executive Analytics</span>
+              <Logo variant="dark" height={22} />
+              <span className="nav-title" style={{ marginLeft: '10px' }}>Executive Analytics</span>
             </div>
             <div className="mockup-nav-right">
               <span className="nav-badge-pill">🔥 5 Day Streak</span>

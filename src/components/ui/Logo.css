@@ -1,0 +1,25 @@
+.stackscreen-logo-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  user-select: none;
+}
+
+.stackscreen-logo-img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.stackscreen-logo-wrapper:hover {
+  opacity: 0.95;
+}
+
+@media (max-width: 640px) {
+  .stackscreen-logo-img {
+    max-height: 28px;
+  }
+}

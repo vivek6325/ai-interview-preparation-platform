@@ -3,8 +3,8 @@
   "name": "StackScreen AI - AI Interview Preparation & Career Coach",
   "icons": [
     {
-      "src": "/favicon.svg",
-      "type": "image/svg+xml",
+      "src": "/assets/logo/logo-icon.png",
+      "type": "image/png",
       "sizes": "512x512"
     }
   ],

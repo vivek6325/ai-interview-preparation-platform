@@ -1,4 +1,5 @@
 import { Globe, Share2, Code2, Heart } from 'lucide-react';
+import { Logo } from '../ui/Logo';
 import './Landing.css';
 
 /**
@@ -11,9 +12,9 @@ export function FooterSection() {
       <div className="footer-container">
         <div className="footer-top-row">
           <div className="footer-brand-col">
-            <span className="footer-logo">
-              StackScreen<span className="dot">.</span>
-            </span>
+            <div className="footer-logo">
+              <Logo variant="dark" height={32} />
+            </div>
             <p className="footer-brand-desc">
               Next-generation AI Mock Interview & Career Analytics Platform. Empowering software engineers to master behavioral and technical loops.
             </p>
